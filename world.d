@@ -567,6 +567,8 @@ private void writeToFile(T)(string directory, string fileName, string append, T[
 	file.close();
 }
 
+// Below function is no longer required as belief results have been removed.
+
 private void writeBeliefsToFile(T)(string directory, string fileName, string append, T[][] results)
 {
 	auto file = File(directory ~ fileName, append);
