@@ -1,7 +1,6 @@
 module dempshaf.consensus.operators;
 
 import std.math;
-//import std.stdio;
 
 public final class Operators
 {

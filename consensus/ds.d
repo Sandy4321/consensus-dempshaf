@@ -2,8 +2,7 @@ module dempshaf.consensus.ds;
 
 import dempshaf.consensus.feedback;
 
-import std.math, std.parallelism;
-import std.stdio;
+import std.math;
 
 public class DempsterShafer : Feedback
 {
@@ -173,30 +172,6 @@ public class DempsterShafer : Feedback
 
 			double distance = 0.0;
 			auto counter = new int[agent2.length];
-
-			/*foreach (i, ref opinion1; agent1)
-			{
-				bool found;
-				foreach(int j, ref opinion2; agent2)
-				{
-					if (opinion1 == opinion2)
-					{
-						distance += (sqrt(prob1[i]) - sqrt(prob2[j])) ^^2;
-						counter[j]++;
-						found = true;
-						break;
-					}
-				}
-				if (!found)
-				{
-					distance += prob1[i];
-				}
-			}
-			foreach (int i, ref j; counter)
-			{
-				if (!j) distance += (0.0 - sqrt(prob2[i])) ^^2;
-			}
-			return ((1.0 / sqrt(2.0)) * sqrt(distance));*/
 
 			foreach (i, ref opinion1; agent1)
 			{

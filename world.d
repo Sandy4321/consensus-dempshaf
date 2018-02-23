@@ -87,10 +87,6 @@ void main(string[] args)
 					groupSize = to!int(arg);
 					groupSizeSet = true;
 				}
-				version (t_norm)
-				{
-					baseParam = to!double(arg);
-				}
 			break;
 			case 9:
 				version (noisy)
@@ -115,7 +111,6 @@ void main(string[] args)
 		writeln("Random Evidence Allocation: " ~ to!string(evidenceRate) ~ "%");
 	version (noisy)
 		writeln("Evidence Noise Rate: " ~ to!string(noiseRate) ~ "%");
-	writeln("Base parameter: " ~ to!string(baseParam));
 
 	auto seed = setSeed ? 128 : unpredictableSeed;
 	auto rand = Random(seed);
@@ -389,22 +384,8 @@ void main(string[] args)
 								{
 									version (boolean)
 									{
-										auto beliefs1 = agent1.beliefs;
-										auto beliefs2 = agent2.beliefs;
-										auto newBeliefs = beliefs1.dup;
-										foreach (int b, ref belief; newBeliefs)
-										{
-											immutable auto numerator = Operators.frankTNorm(beliefs1[b][0], beliefs2[b][0], baseParam);
-											immutable auto denominator = 1.0 - beliefs1[b][0] - beliefs2[b][0] + (2 * numerator);
-
-											// Undefined behaviour of D-S rule of comb. for inconsistent beliefs
-											if (denominator == 0.0)
-												belief[0] = belief[1] = 0.5;
-											else if (numerator == 0.0)
-												belief[0] = belief[1] = 0.0;
-											else
-												belief[0] = belief[1] = (numerator / denominator);
-										}
+										// Code here if I make a Boolean variant,
+										// if that's even possible.
 									}
 									else
 									{
