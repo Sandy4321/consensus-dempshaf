@@ -32,61 +32,35 @@ void main(string[] args)
 	double pRaw = 0.66;
 	string boolThreeInit = "three_valued";
 
-	writeln("Running program: ", args[0][2..$]);
+	writeln("Running program: ", args[0].split("/")[$-1]);
 
 	auto argProcessing = getopt(
 		args,
-		"beliefs",		&pRaw,
-		"threshStart",	&thresholdStart,
-		"threshEnd",	&thresholdEnd,
+		"bdist",
+		(string _, string s)
+		{
+			pRaw = to!double(s);
+			p = to!int(pRaw * 100);
+		},
+		"thrStart",
+		(string _, string s)
+		{
+			thresholdStart = to!int(to!double(s) * 100);
+		},
+		"thrEnd",
+		(string _, string s)
+		{
+			thresholdEnd = to!int(to!double(s) * 100);
+		},
 		"random",		&randomSelect,
 		"rate",			&evidenceRate,
-		"group",		&groupSize
+		"group",
+		(string _, string s)
+		{
+			groupSize = to!int(s);
+			groupSizeSet = true;
+		}
 	);
-
-	// Additional processing of arguments
-	writeln(pRaw);
-	p = to!int(pRaw * 100);
-
-	//case 3:
-	//pRaw = to!double(arg);
-	//p = to!int(pRaw * 100);
-	//writeln("P value: ", pRaw, " : ", p);
-	//if (p == 100)
-	//{
-	//	writeln(" => ! Boolean initialisation !");
-	//	boolThreeInit = "boolean";
-	//}
-	//break;
-	//case 4:
-	//	thresholdStart = to!int(to!double(arg) * 100);
-	//	writeln("Threshold start: ", thresholdStart);
-	//break;
-	//case 5:
-	//	thresholdEnd = to!int(to!double(arg) * 100);
-	//	writeln("Threshold end: ", thresholdEnd);
-	//break;
-	//case 7:
-	//	randomSelect = to!bool(arg);
-	//	writeln("Random selection: ", randomSelect);
-	//break;
-	//case 8:
-	//	version (evidence)
-	//	{
-	//		evidenceRate = to!int(arg);
-	//	}
-	//	version (group)
-	//	{
-	//		groupSize = to!int(arg);
-	//		groupSizeSet = true;
-	//	}
-	//break;
-	//case 9:
-	//	version (noisy)
-	//	{
-	//		noiseRate = to!int(arg);
-	//	}
-	//break;
 
 	foreach (i, arg; args)
 	{
@@ -111,6 +85,18 @@ void main(string[] args)
 		writeln("Boolean");
 	else
 		writeln("Three-valued");
+
+	// Additional processing of arguments
+	writeln("P value: ", pRaw, " :: ", p);
+	if (p == 100)
+	{
+		writeln("==> ! Boolean initialisation !");
+		boolThreeInit = "boolean";
+	}
+	writeln("Threshold start: ", thresholdStart);
+	writeln("Threshold end: ", thresholdEnd);
+	writeln("Random selection: ", randomSelect);
+
 	if (groupSizeSet)
 		writeln("Group size: ", groupSize);
 	version (evidence)
@@ -131,22 +117,10 @@ void main(string[] args)
 	auto uniqueResults		=	new string[][](arraySize, testSet);
 	auto payoffResults		=	new string[][](arraySize, testSet);
 	auto maxPayoffResults	=	new string[][](arraySize, testSet);
-	//auto propositionResults	=	new string[][](arraySize, testSet);
-	//auto interactionResults	=	new string[](testSet);
-
-	// Belief measure results
-	//auto lowerBeliefResults	=	new string[][][]((iterations / iterStep) + 1, testSet, n);
-	//auto upperBeliefResults	=	new string[][][]((iterations / iterStep) + 1, testSet, n);
 
 	// Initialize the population of agents according to population size l
 	auto population = new Agent[n];
 	foreach (ref agent; population) agent = new Agent();
-
-	// Map payoff values to agent indices
-	/*
-	 * Generating a single payoff model should suffice? New opinions are generated
-	 * for every test anyway.
-	 */
 
 	// Define array to store payoff for all propositions in the language
 	auto propPayoffs = DempsterShafer.generatePayoff(rand, l);
