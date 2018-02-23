@@ -1,0 +1,16 @@
+# Compiled Sources #
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Sublime Text #
+*.sublime*
+
+# Results Directory #
+results/
+
+# Executable names on linux
+world

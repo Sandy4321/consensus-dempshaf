@@ -4,7 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.algorithm, std.conv, std.file, std.math, std.random, std.stdio, std.string;
+import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
 //import std.parallelism;
 import core.thread;
 
@@ -21,21 +21,72 @@ void main(string[] args)
 	 * Initialise consistent variables first, then sort through those passed
 	 * via command-line arguments.
 	 */
-
 	immutable auto iterations = 50_000; //50_000
 	immutable auto iterStep = iterations / 500; // iterations / 100
 	immutable auto thresholdStep = 2;
 	immutable auto testSet = 100; // 100
-	double baseParam = 1.0;
 	immutable double evidenceNoise = 1.0;
 
-	bool setSeed, randomSelect, groupSizeSet;
+	bool setSeed = true, randomSelect = true, groupSizeSet;
 	int l, n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
-	double pRaw;
+	double pRaw = 0.66;
 	string boolThreeInit = "three_valued";
 
 	writeln("Running program: ", args[0][2..$]);
-	//writeln("Total cores: ", totalCPUs);
+
+	auto argProcessing = getopt(
+		args,
+		"beliefs",		&pRaw,
+		"threshStart",	&thresholdStart,
+		"threshEnd",	&thresholdEnd,
+		"random",		&randomSelect,
+		"rate",			&evidenceRate,
+		"group",		&groupSize
+	);
+
+	// Additional processing of arguments
+	writeln(pRaw);
+	p = to!int(pRaw * 100);
+
+	//case 3:
+	//pRaw = to!double(arg);
+	//p = to!int(pRaw * 100);
+	//writeln("P value: ", pRaw, " : ", p);
+	//if (p == 100)
+	//{
+	//	writeln(" => ! Boolean initialisation !");
+	//	boolThreeInit = "boolean";
+	//}
+	//break;
+	//case 4:
+	//	thresholdStart = to!int(to!double(arg) * 100);
+	//	writeln("Threshold start: ", thresholdStart);
+	//break;
+	//case 5:
+	//	thresholdEnd = to!int(to!double(arg) * 100);
+	//	writeln("Threshold end: ", thresholdEnd);
+	//break;
+	//case 7:
+	//	randomSelect = to!bool(arg);
+	//	writeln("Random selection: ", randomSelect);
+	//break;
+	//case 8:
+	//	version (evidence)
+	//	{
+	//		evidenceRate = to!int(arg);
+	//	}
+	//	version (group)
+	//	{
+	//		groupSize = to!int(arg);
+	//		groupSizeSet = true;
+	//	}
+	//break;
+	//case 9:
+	//	version (noisy)
+	//	{
+	//		noiseRate = to!int(arg);
+	//	}
+	//break;
 
 	foreach (i, arg; args)
 	{
@@ -48,51 +99,6 @@ void main(string[] args)
 			case 2:
 				n = to!int(arg);
 				writeln("Population size: ", n);
-			break;
-			case 3:
-				pRaw = to!double(arg);
-				p = to!int(pRaw * 100);
-				writeln("P value: ", pRaw, " : ", p);
-				if (p == 100)
-				{
-					writeln(" => ! Boolean initialisation !");
-					boolThreeInit = "boolean";
-				}
-				else
-					writeln();
-			break;
-			case 4:
-				thresholdStart = to!int(to!double(arg) * 100);
-				writeln("Threshold start: ", thresholdStart);
-			break;
-			case 5:
-				thresholdEnd = to!int(to!double(arg) * 100);
-				writeln("Threshold end: ", thresholdEnd);
-			break;
-			case 6:
-				setSeed = to!bool(arg);
-				writeln("Set seed: ", setSeed);
-			break;
-			case 7:
-				randomSelect = to!bool(arg);
-				writeln("Random selection: ", randomSelect);
-			break;
-			case 8:
-				version (evidence)
-				{
-					evidenceRate = to!int(arg);
-				}
-				version (group)
-				{
-					groupSize = to!int(arg);
-					groupSizeSet = true;
-				}
-			break;
-			case 9:
-				version (noisy)
-				{
-					noiseRate = to!int(arg);
-				}
 			break;
 
 			default:
@@ -502,11 +508,6 @@ void main(string[] args)
 				evidenceRateFN ~= "_ev_" ~ to!string(evidenceRate);
 			}
 		}
-		string paramString;
-		version (t_norm)
-		{
-			paramString = "_" ~ to!string(baseParam);
-		}
 		string noisyEvidence;
 		version (noisy)
 		{
@@ -543,37 +544,37 @@ void main(string[] args)
 
 		// Vagueness
 		fileName = "vagueness" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, vaguenessResults);
 
 		// Distance
 		fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, distanceResults);
 
 		// Inconsistency
 		fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, inconsistResults);
 
 		// Entropy
 		fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, entropyResults);
 
 		// Unique Beliefs
 		fileName = "unique_beliefs" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, uniqueResults);
 
 		// Payoff
 		fileName = "payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, payoffResults);
 
 		// Maximum payoff
 		fileName = "max_payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-		~ paramString ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+		 ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
 		writeToFile(directory, fileName, append, maxPayoffResults);
 	}
 }
