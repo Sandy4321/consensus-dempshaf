@@ -5,8 +5,6 @@ import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
 import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
-//import std.parallelism;
-import core.thread;
 
 version (evidence_only)
 {
@@ -36,7 +34,7 @@ void main(string[] args)
 
     auto argProcessing = getopt(
         args,
-        "bdist",
+        "dist",
         (string _, string s)
         {
             pRaw = to!double(s);
