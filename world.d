@@ -4,7 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
+import std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
 
 version (evidence_only)
 {
@@ -120,9 +120,12 @@ void main(string[] args)
     auto population = new Agent[n];
     foreach (ref agent; population) agent = new Agent();
 
-    // Define array to store payoff for all propositions in the language
-    auto propPayoffs = DempsterShafer.generatePayoff(rand, l);
-    writeln(propPayoffs);
+    // Identify the choices that agents have and their respective,
+    // normalised quality values.
+    immutable auto choices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    writeln(choices);
+    auto qualities = DempsterShafer.generatePayoff(choices,l);
+    writeln(qualities);
 
     /*
      * Main test loop;
@@ -197,7 +200,7 @@ void main(string[] args)
                     }
                 }
 
-                payoff = DempsterShafer.calculatePayoff(propPayoffs, beliefs);
+                payoff = DempsterShafer.calculatePayoff(qualities, beliefs);
                 agent.beliefs = beliefs;
                 agent.payoff = payoff;
                 payoffMap[agentIndex] = payoff;
@@ -219,8 +222,9 @@ void main(string[] args)
             {
                 //if (iter == 0) break;
                 //writeln("#", iter);
-                if ((iter % (iterations / iterStep) == 0 && uniqueBeliefs.length > 1)
-                    || iter == 0)
+                if ((iter % (iterations / iterStep) == 0
+                     && uniqueBeliefs.length > 1)
+                     || iter == 0)
                 {
                     uniqueBeliefs.length = 0;
                     vagueness = 0.0;
@@ -265,11 +269,11 @@ void main(string[] args)
                             inconsist += Operators.inconsistency(agent.beliefs, cmpAgent.beliefs, l);
                         }
                     }
+
                     distance = (2 * distance) / (n * (n - 1));
                     vagueness /= n;
                     entropy /= n;
                     inconsist = (2 * inconsist) / (n * (n - 1));
-
                 }
 
                 // Fill out arrays for writing results later
@@ -408,7 +412,7 @@ void main(string[] args)
                                 }
 
                                 immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                                    propPayoffs,
+                                    qualities,
                                     newBeliefs
                                 );
 
@@ -431,12 +435,9 @@ void main(string[] args)
                             foreach (ref prop; randomEvidence)
                             {
                                 prop = [0.0, 1.0];
-                                // Below valuation results in non-convergence but potentially higher payoff
-                                // on average.
-                                // prop = [0.33, 0.66];
                             }
                             auto randomProp = uniform(0, l, rand);
-                            auto evidenceProp = (propPayoffs[randomProp][0] == 1) ? [1.0, 1.0] : [0.0, 0.0];
+                            auto evidenceProp = (qualities[randomProp][0] == 1) ? [1.0, 1.0] : [0.0, 0.0];
                             if (uniform(0, 100) <= noiseRate)
                                 evidenceProp[] += (evidenceProp[0] == 0.0) ? evidenceNoise : evidenceNoise * -1;
 
@@ -448,7 +449,7 @@ void main(string[] args)
                             );
 
                             auto newPayoff = DempsterShafer.calculatePayoff(
-                                propPayoffs,
+                                qualities,
                                 newBeliefs
                             );
 

@@ -11,60 +11,57 @@ public final class Agent
         int interactions;
     }
 
-    public
+    void beliefs(double[2][] beliefs)
     {
-        void beliefs(double[2][] beliefs)
-        {
-            this.mBeliefs = beliefs;
-            string tempProp;
-            foreach (ref belief; this.mBeliefs)
-                foreach (ref prop; belief)
-                    if (prop >= 1.0) prop = 1.0;
-                    else
-                    {
-                        tempProp = format("%.5f", prop);
-                        prop = to!double(tempProp);
-                    }
-        }
+        this.mBeliefs = beliefs;
+        string tempProp;
+        foreach (ref belief; this.mBeliefs)
+            foreach (ref prop; belief)
+                if (prop >= 1.0) prop = 1.0;
+                else
+                {
+                    tempProp = format("%.5f", prop);
+                    prop = to!double(tempProp);
+                }
+    }
 
-        double[2][] beliefs()
-        {
-            return this.mBeliefs;
-        }
+    double[2][] beliefs()
+    {
+        return this.mBeliefs;
+    }
 
-        void payoff(double payoff)
-        {
-            this.mPayoff = payoff;
-        }
+    void payoff(double payoff)
+    {
+        this.mPayoff = payoff;
+    }
 
-        double payoff()
-        {
-            return this.mPayoff;
-        }
+    double payoff()
+    {
+        return this.mPayoff;
+    }
 
-        double vagueness(int l)
+    double vagueness(int l)
+    {
+        auto vagueness = 0.0;
+        foreach (int i, ref belief; beliefs)
         {
-            auto vagueness = 0.0;
-            foreach (int i, ref belief; beliefs)
-            {
-                vagueness += belief[1] - belief[0];
-            }
-            return vagueness / cast(double) l;
+            vagueness += belief[1] - belief[0];
         }
+        return vagueness / cast(double) l;
+    }
 
-        void incrementInteractions()
-        {
-            this.interactions++;
-        }
+    void incrementInteractions()
+    {
+        this.interactions++;
+    }
 
-        int getInteractions()
-        {
-            return this.interactions;
-        }
+    int getInteractions()
+    {
+        return this.interactions;
+    }
 
-        void resetInteractions()
-        {
-            this.interactions = 0;
-        }
+    void resetInteractions()
+    {
+        this.interactions = 0;
     }
 }
