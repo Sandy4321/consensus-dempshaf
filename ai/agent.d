@@ -25,22 +25,22 @@ public final class Agent
                 }
     }
 
-    double[2][] beliefs()
+    double[2][] beliefs() pure
     {
         return this.mBeliefs;
     }
 
-    void payoff(double payoff)
+    void payoff(in double payoff) pure
     {
         this.mPayoff = payoff;
     }
 
-    double payoff()
+    double payoff() pure
     {
         return this.mPayoff;
     }
 
-    double vagueness(int l)
+    double vagueness(in int l) pure
     {
         auto vagueness = 0.0;
         foreach (int i, ref belief; beliefs)
@@ -50,17 +50,17 @@ public final class Agent
         return vagueness / cast(double) l;
     }
 
-    void incrementInteractions()
+    void incrementInteractions() pure
     {
         this.interactions++;
     }
 
-    int getInteractions()
+    int getInteractions() pure
     {
         return this.interactions;
     }
 
-    void resetInteractions()
+    void resetInteractions() pure
     {
         this.interactions = 0;
     }

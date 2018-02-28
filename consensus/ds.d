@@ -6,9 +6,9 @@ public class DempsterShafer
 {
     static auto maximalPayoff = 0.0;
 
-    static pure double[] generatePayoff(
+    static double[] generatePayoff(
         ref in int[] choices,
-        ref in int l)
+        ref in int l) pure
     {
         import std.algorithm, std.conv;
 
@@ -21,9 +21,9 @@ public class DempsterShafer
         return payoff;
     }
 
-    static pure double calculatePayoff(
+    static double calculatePayoff(
         in double[] payoffs,
-        in double[2][] beliefs)
+        in double[2][] beliefs) pure
     {
         double payoff = 0.0;
         foreach (i, ref belief; beliefs)
@@ -34,7 +34,7 @@ public class DempsterShafer
         return payoff;
     }
 
-    static pure double minPayoff(in double[] payoffMap)
+    static double minPayoff(in double[] payoffMap) pure
     {
         auto payoff = double.infinity;
         foreach(ref value; payoffMap)
@@ -46,7 +46,7 @@ public class DempsterShafer
         return payoff;
     }
 
-    static pure double maxPayoff(in double[] payoffMap)
+    static double maxPayoff(in double[] payoffMap) pure
     {
         auto payoff = double.infinity * -1;
         foreach(ref value; payoffMap)
@@ -58,9 +58,9 @@ public class DempsterShafer
         return payoff;
     }
 
-    static pure double totalPayoff(
+    static double totalPayoff(
         in double[] payoffMap,
-        in double minPayoff)
+        in double minPayoff) pure
     {
         double payoff = 0.0;
         foreach(ref value; payoffMap)
@@ -113,10 +113,10 @@ public class DempsterShafer
      * distance: calculates the Hellinger distance between two probability
      * distributions.
      */
-    static pure double distance(
+    static double distance(
         in double[2][] worldBeliefs1,
         in double[2][] worldBeliefs2,
-        in int l)
+        in int l) pure
     {
         import std.math;
 
@@ -126,14 +126,14 @@ public class DempsterShafer
             double sum = 0.0;
 
             // True
-            sum += (sqrt(worldBeliefs1[i][0]) -
-                sqrt(worldBeliefs2[i][0])) ^^2;
+            sum += (sqrt(worldBeliefs1[i][0]) - sqrt(worldBeliefs2[i][0])) ^^2;
 
             // Borderline
-            auto one = (worldBeliefs1[i][1] - worldBeliefs1[i][0] < 0) ? 0 : worldBeliefs1[i][1] - worldBeliefs1[i][0];
-            auto two = (worldBeliefs2[i][1] - worldBeliefs2[i][0] < 0) ? 0 : worldBeliefs2[i][1] - worldBeliefs2[i][0];
-            sum += (sqrt(one) -
-                sqrt(two)) ^^2;
+            auto one = (worldBeliefs1[i][1] - worldBeliefs1[i][0] < 0) ?
+                0 : worldBeliefs1[i][1] - worldBeliefs1[i][0];
+            auto two = (worldBeliefs2[i][1] - worldBeliefs2[i][0] < 0) ?
+                0 : worldBeliefs2[i][1] - worldBeliefs2[i][0];
+            sum += (sqrt(one) - sqrt(two)) ^^2;
 
             // False
             one = (1.0 - worldBeliefs1[i][1]) < 0 ? 0 : 1.0 - worldBeliefs1[i][1];
@@ -149,9 +149,9 @@ public class DempsterShafer
      * valuationDistance: takes opinions and probability dist.s for both agents
      * and calculates the distance between both agents on a world-belief basis.
      */
-    static pure double valuationDistance(
+    static double valuationDistance(
         in int[][][] opinions1, in double[] p1,
-        in int[][][] opinions2, in double[] p2)
+        in int[][][] opinions2, in double[] p2) pure
     {
         import std.math;
 
