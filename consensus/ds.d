@@ -1,6 +1,6 @@
 module dempshaf.consensus.ds;
 
-import dempshaf.consensus.feedback;
+import dempshaf.importidiom;
 
 public class DempsterShafer
 {
@@ -13,7 +13,7 @@ public class DempsterShafer
         import std.algorithm, std.conv;
 
         auto payoff = new double[l];
-        auto choiceSum = choices.sum;
+        auto choiceSum = choices[0 .. l].sum;
 
         foreach (ref i; 0 .. l)
             payoff[i] = choices[i] / to!double(choiceSum);
@@ -72,11 +72,13 @@ public class DempsterShafer
     }
 
     static int[] rouletteSelection(
-        ref Random rand,
+        ref from!"std.random".Random rand,
         double[] payoffMap,
         int l,
         int amt)
     {
+        import std.random;
+
         auto selection = new int[amt];
         int select;
         auto n = payoffMap.length;

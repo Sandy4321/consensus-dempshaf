@@ -1,13 +1,13 @@
 module dempshaf.consensus.operators;
 
-import std.math;
-
 public final class Operators
 {
     static pure double entropy(
         in double[2][] beliefs,
         in int l)
     {
+        import std.math;
+
         double entropy = 0.0;
         double one, two, logOne, logTwo, logThree = 0.0;
 
@@ -45,6 +45,8 @@ public final class Operators
 
     static pure double frankTNorm(T, L)(T belief1, T belief2, L p)
     {
+        import std.math;
+
         T function(T value1, T value2, L p) func;
 
         if (p == 0) func = (x, y, p) => (x <= y) ? x : y;
