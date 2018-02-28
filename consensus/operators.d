@@ -4,7 +4,7 @@ import std.math;
 
 public final class Operators
 {
-    static double entropy(
+    static pure double entropy(
         in double[2][] beliefs,
         in int l)
     {
@@ -28,7 +28,7 @@ public final class Operators
         return entropy / l;
     }
 
-    static double inconsistency(
+    static pure double inconsistency(
         in double[2][] beliefs1,
         in double[2][] beliefs2,
         in int l)
@@ -43,7 +43,7 @@ public final class Operators
         return (inconsistency / l);
     }
 
-    static double frankTNorm(T, L)(T belief1, T belief2, L p)
+    static pure double frankTNorm(T, L)(T belief1, T belief2, L p)
     {
         T function(T value1, T value2, L p) func;
 
@@ -60,7 +60,7 @@ public final class Operators
         return func(belief1, belief2, p);
     }
 
-    static int[][][] conservative(
+    static pure int[][][] conservative(
         in int[][][] opinions1, in double[] probability1,
         in int[][][] opinions2, in double[] probability2,
         out double[] probability)
@@ -113,7 +113,7 @@ public final class Operators
         return opinions;
     }
 
-    static int[][][] positive(
+    static pure int[][][] positive(
         in int[][][] opinions1, in double[] probability1,
         in int[][][] opinions2, in double[] probability2,
         out double[] probability)
@@ -171,7 +171,7 @@ public final class Operators
         return opinions;
     }
 
-    static int[][][] negative(
+    static pure int[][][] negative(
         in int[][][] opinions1, in double[] probability1,
         in int[][][] opinions2, in double[] probability2,
         out double[] probability)
@@ -229,7 +229,7 @@ public final class Operators
         return opinions;
     }
 
-    static int[][][] difference(
+    static pure int[][][] difference(
         in int[][][] opinions1, in double[] probability1,
         in int[][][] opinions2, in double[] probability2,
         out double[] probability)
@@ -290,7 +290,7 @@ public final class Operators
         return opinions;
     }
 
-    static int[][][] optimistic(
+    static pure int[][][] optimistic(
         in int[][][] opinions1, in double[] probability1,
         in int[][][] opinions2, in double[] probability2,
         out double[] probability)
@@ -354,7 +354,7 @@ public final class Operators
         return opinions;
     }
 
-    static int[][][] consensus(
+    static pure int[][][] consensus(
         in int[][][] opinions1, in double[] probability1,
         in int[][][] opinions2, in double[] probability2,
         out double[] probabilities)
@@ -495,7 +495,7 @@ public final class Operators
         return opinions;
     }
 
-    static double[2][] beliefConsensus(
+    static pure double[2][] beliefConsensus(
         double[2][] beliefs1,
         double[2][] beliefs2)
     {

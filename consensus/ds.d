@@ -2,11 +2,11 @@ module dempshaf.consensus.ds;
 
 import dempshaf.consensus.feedback;
 
-public class DempsterShafer : Feedback
+public class DempsterShafer
 {
     static auto maximalPayoff = 0.0;
 
-    static double[] generatePayoff(
+    static pure double[] generatePayoff(
         ref in int[] choices,
         ref in int l)
     {
@@ -21,7 +21,7 @@ public class DempsterShafer : Feedback
         return payoff;
     }
 
-    static double calculatePayoff(
+    static pure double calculatePayoff(
         in double[] payoffs,
         in double[2][] beliefs)
     {
@@ -34,7 +34,7 @@ public class DempsterShafer : Feedback
         return payoff;
     }
 
-    static double minPayoff(in double[] payoffMap)
+    static pure double minPayoff(in double[] payoffMap)
     {
         auto payoff = double.infinity;
         foreach(ref value; payoffMap)
@@ -46,7 +46,7 @@ public class DempsterShafer : Feedback
         return payoff;
     }
 
-    static double maxPayoff(in double[] payoffMap)
+    static pure double maxPayoff(in double[] payoffMap)
     {
         auto payoff = double.infinity * -1;
         foreach(ref value; payoffMap)
@@ -58,7 +58,7 @@ public class DempsterShafer : Feedback
         return payoff;
     }
 
-    static double totalPayoff(
+    static pure double totalPayoff(
         in double[] payoffMap,
         in double minPayoff)
     {
@@ -111,7 +111,7 @@ public class DempsterShafer : Feedback
      * distance: calculates the Hellinger distance between two probability
      * distributions.
      */
-    static double distance(
+    static pure double distance(
         in double[2][] worldBeliefs1,
         in double[2][] worldBeliefs2,
         in int l)
@@ -147,7 +147,7 @@ public class DempsterShafer : Feedback
      * valuationDistance: takes opinions and probability dist.s for both agents
      * and calculates the distance between both agents on a world-belief basis.
      */
-    static double valuationDistance(
+    static pure double valuationDistance(
         in int[][][] opinions1, in double[] p1,
         in int[][][] opinions2, in double[] p2)
     {
