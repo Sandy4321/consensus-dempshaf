@@ -108,7 +108,7 @@ void main(string[] args)
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
-    auto vaguenessResults   =   new string[][](arraySize, testSet);
+    auto ignoranceResults   =   new string[][](arraySize, testSet);
     auto distanceResults    =   new string[][](arraySize, testSet);
     auto inconsistResults   =   new string[][](arraySize, testSet);
     auto entropyResults     =   new string[][](arraySize, testSet);
@@ -216,7 +216,7 @@ void main(string[] args)
 
             int iterIndex;
             double[2][][] uniqueBeliefs;
-            double vagueness, distance, entropy, inconsist;
+            double ignorance, distance, entropy, inconsist;
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
@@ -227,7 +227,7 @@ void main(string[] args)
                      || iter == 0)
                 {
                     uniqueBeliefs.length = 0;
-                    vagueness = 0.0;
+                    ignorance = 0.0;
                     distance = 0.0;
                     entropy = 0.0;
                     inconsist = 0.0;
@@ -248,8 +248,8 @@ void main(string[] args)
                         if (append)
                             uniqueBeliefs ~= beliefs;
 
-                        // Calculate average vagueness of all agents in population
-                        vagueness += agent.vagueness(l);
+                        // Calculate average ignorance of all agents in population
+                        ignorance += agent.ignorance(l);
 
                         // Calculate average entropy of agents' beliefs
                         entropy += Operators.entropy(beliefs, l);
@@ -271,7 +271,7 @@ void main(string[] args)
                     }
 
                     distance = (2 * distance) / (n * (n - 1));
-                    vagueness /= n;
+                    ignorance /= n;
                     entropy /= n;
                     inconsist = (2 * inconsist) / (n * (n - 1));
                 }
@@ -279,7 +279,7 @@ void main(string[] args)
                 // Fill out arrays for writing results later
                 if ( (iter % (iterations / iterStep) == 0 ) || iter == iterations )
                 {
-                    vaguenessResults[iterIndex][test]   = format("%.4f", vagueness);
+                    ignoranceResults[iterIndex][test]   = format("%.4f", ignorance);
                     distanceResults[iterIndex][test]    = format("%.4f", distance);
                     inconsistResults[iterIndex][test]   = format("%.4f", inconsist);
                     entropyResults[iterIndex][test]     = format("%.4f", entropy);
@@ -523,10 +523,10 @@ void main(string[] args)
 
         auto append = "w";
 
-        // Vagueness
-        fileName = "vagueness" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        // ignorance
+        fileName = "ignorance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, vaguenessResults);
+        writeToFile(directory, fileName, append, ignoranceResults);
 
         // Distance
         fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)

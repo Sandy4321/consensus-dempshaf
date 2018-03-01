@@ -40,16 +40,16 @@ public final class Agent
         return this.mPayoff;
     }
 
-    double vagueness(in int l) pure
+    double ignorance(in int l) pure
     {
         import std.conv;
 
-        auto vagueness = 0.0;
+        auto ignorance = 0.0;
         foreach (int i, ref belief; beliefs)
         {
-            vagueness += belief[1] - belief[0];
+            ignorance += belief[1] - belief[0];
         }
-        return vagueness / to!double(l);
+        return ignorance / to!double(l);
     }
 
     void incrementInteractions() pure
