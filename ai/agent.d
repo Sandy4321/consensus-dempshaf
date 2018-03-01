@@ -1,7 +1,5 @@
 module dempshaf.ai.agent;
 
-import std.string, std.conv;
-
 public final class Agent
 {
     private
@@ -13,6 +11,8 @@ public final class Agent
 
     void beliefs(double[2][] beliefs)
     {
+        import std.string, std.conv;
+
         this.mBeliefs = beliefs;
         string tempProp;
         foreach (ref belief; this.mBeliefs)
@@ -42,12 +42,14 @@ public final class Agent
 
     double vagueness(in int l) pure
     {
+        import std.conv;
+
         auto vagueness = 0.0;
         foreach (int i, ref belief; beliefs)
         {
             vagueness += belief[1] - belief[0];
         }
-        return vagueness / cast(double) l;
+        return vagueness / to!double(l);
     }
 
     void incrementInteractions() pure
