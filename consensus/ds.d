@@ -187,4 +187,15 @@ public class DempsterShafer
         }
         return distance;
     }
+
+    /*
+     * valuationDistance: takes opinions and probability dist.s for both agents
+     * and calculates the distance between both agents on a world-belief basis.
+     */
+    static double generatePowerSet(
+        in int[][][] opinions1, in double[] p1,
+        in int[][][] opinions2, in double[] p2) pure
+    {
+        auto powerSet
+    }
 }
