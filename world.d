@@ -8,7 +8,7 @@ import std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.stri
 
 version (evidence_only)
 {
-    // VERSION: EVIDENCE_ONLY implies EVIDENCE also TRUE.
+    // VERSION: EVIDENCE_ONLY implies EVIDENCE is also TRUE.
     version = evidence;
 }
 
