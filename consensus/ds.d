@@ -241,7 +241,16 @@ public class DempsterShafer
      * massAssignment: calculates the mass assignment of an agent's belief and
      * plausibility measures.
      */
-    static auto massAssignment(ref double[][] powerSet) pure
+    static auto massAssignment(ref in double[][] powerSet, in double[2][] beliefs) pure
+    {
+        return;
+    }
+
+    /*
+     * beliefAssignment: calculates the belief assignment from an agent's
+     * mass function.
+     */
+    static auto beliefAssignment(ref in double[][] powerSet, in double[][] masses) pure
     {
         return;
     }
