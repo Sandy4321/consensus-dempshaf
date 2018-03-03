@@ -22,8 +22,8 @@ public class DempsterShafer
     }
 
     static double calculatePayoff(
-        in double[] payoffs,
-        in double[2][] beliefs) pure
+        ref in double[] payoffs,
+        ref in double[2][] beliefs) pure
     {
         double payoff = 0.0;
         foreach (i, ref belief; beliefs)
@@ -34,7 +34,7 @@ public class DempsterShafer
         return payoff;
     }
 
-    static double minPayoff(in double[] payoffMap) pure
+    static double minPayoff(ref in double[] payoffMap) pure
     {
         auto payoff = double.infinity;
         foreach(ref value; payoffMap)
@@ -46,7 +46,7 @@ public class DempsterShafer
         return payoff;
     }
 
-    static double maxPayoff(in double[] payoffMap) pure
+    static double maxPayoff(ref in double[] payoffMap) pure
     {
         auto payoff = double.infinity * -1;
         foreach(ref value; payoffMap)
@@ -59,7 +59,7 @@ public class DempsterShafer
     }
 
     static double totalPayoff(
-        in double[] payoffMap,
+        ref in double[] payoffMap,
         in double minPayoff) pure
     {
         double payoff = 0.0;
@@ -73,9 +73,9 @@ public class DempsterShafer
 
     static int[] rouletteSelection(
         ref from!"std.random".Random rand,
-        double[] payoffMap,
-        int l,
-        int amt)
+        ref double[] payoffMap,
+        ref int l,
+        ref int amt)
     {
         import std.random;
 
@@ -116,7 +116,7 @@ public class DempsterShafer
     static double distance(
         in double[2][] worldBeliefs1,
         in double[2][] worldBeliefs2,
-        in int l) pure
+        ref in int l) pure
     {
         import std.math;
 
@@ -189,13 +189,60 @@ public class DempsterShafer
     }
 
     /*
-     * valuationDistance: takes opinions and probability dist.s for both agents
-     * and calculates the distance between both agents on a world-belief basis.
+     * generatePowerSet: generates the power set (frame of discernment) from
+     * the number of propositional variables given as l.
      */
-    static double generatePowerSet(
-        in int[][][] opinions1, in double[] p1,
-        in int[][][] opinions2, in double[] p2) pure
+    static ref auto generatePowerSet(ref in int l) pure
     {
-        auto powerSet
+        import std.algorithm;
+
+        auto powerSet = new double[][]((2^^l));
+        auto props = new int[l];
+        props[] = 0;
+
+        foreach (ref set; powerSet)
+        {
+            foreach (i, ref prop; props)
+            {
+                if (prop == 1)
+                {
+                    set ~= i;
+                }
+            }
+
+            props[0]++;
+            foreach (i, ref prop; props[0 .. $-1])
+            {
+                if (prop > 1)
+                {
+                    prop = 0;
+                    props[i+1]++;
+                }
+            }
+        }
+
+        auto tempSet = powerSet.sort();
+        powerSet = null;
+        foreach (ref level; 0 .. l + 1)
+            foreach (ref prop; 0 .. l)
+                foreach (ref set; tempSet)
+                {
+                    if (set.length > 0)
+                        if (set.length == level && set[0] == prop)
+                        {
+                            powerSet ~= set;
+                        }
+                }
+
+        return powerSet;
+    }
+
+    /*
+     * massAssignment: calculates the mass assignment of an agent's belief and
+     * plausibility measures.
+     */
+    static auto massAssignment(ref double[][] powerSet) pure
+    {
+        return;
     }
 }

@@ -127,6 +127,10 @@ void main(string[] args)
     auto qualities = DempsterShafer.generatePayoff(choices,l);
     writeln(qualities);
 
+    // Generate the frame of discernment (power set of the propositional variables)
+    auto powerSet = DempsterShafer.generatePowerSet(l);
+    writeln(powerSet);
+
     /*
      * Main test loop;
      * Total number of tests are run for each threshold in range thresholdStart
@@ -154,7 +158,7 @@ void main(string[] args)
 
             foreach (agentIndex, ref agent; population)
             {
-                double[2][] beliefs = new double[2][](l);
+                auto beliefs = new double[2][](l);
                 double payoff;
                 foreach (ref belief; beliefs)
                 {

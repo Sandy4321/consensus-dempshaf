@@ -3,8 +3,8 @@ module dempshaf.consensus.operators;
 public final class Operators
 {
     static double entropy(
-        in double[2][] beliefs,
-        in int l) pure
+        ref in double[2][] beliefs,
+        ref in int l) pure
     {
         import std.math;
 
@@ -31,7 +31,7 @@ public final class Operators
     static double inconsistency(
         in double[2][] beliefs1,
         in double[2][] beliefs2,
-        in int l) pure
+        ref in int l) pure
     {
         double inconsistency = 0.0;
         foreach (prop; 0 .. l)

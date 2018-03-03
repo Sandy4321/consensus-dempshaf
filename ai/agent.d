@@ -30,22 +30,6 @@ public final class Agent
         return this.mBeliefs;
     }
 
-    /*
-     * Write a belief inversion function here that converts Bel and Pl to
-     * mass assignments.
-     */
-
-    auto massAssignment(ref powerSet) pure
-    {
-        foreach(i, ref _; mBeliefs)
-        {
-            foreach(j, ref_; powerSet)
-            {
-                this.mBeliefs;
-            }
-        }
-    }
-
     void payoff(in double payoff) pure
     {
         this.mPayoff = payoff;
