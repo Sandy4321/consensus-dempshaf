@@ -150,11 +150,12 @@ void main(string[] args)
          */
         foreach (test; 0 .. testSet)
         {
-            auto payoffMap = new double[n];
             write("\rtest #", test);
             stdout.flush();
-
             if (test == testSet - 1) writeln();
+
+            int[] broadcasting, listening;
+            auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
             {
@@ -213,9 +214,9 @@ void main(string[] args)
 
             /*
              * Iteration loop;
-             * Agents interact according to a preset rule (random/roulette
-             * selection) and results are recorded either at steadystate or
-             * throughout for trajectory recordings.
+             * Agents interact according to discrete broadcasting/listening
+             * states. Possibility to limit them based on some inconsistency
+             * threshold exists.
              */
 
             int iterIndex;
@@ -224,17 +225,12 @@ void main(string[] args)
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
-                //if (iter == 0) break;
-                //writeln("#", iter);
                 if ((iter % (iterations / iterStep) == 0
-                     && uniqueBeliefs.length > 1)
-                     || iter == 0)
+                    && uniqueBeliefs.length > 1)
+                    || iter == 0)
                 {
                     uniqueBeliefs.length = 0;
-                    ignorance = 0.0;
-                    distance = 0.0;
-                    entropy = 0.0;
-                    inconsist = 0.0;
+                    ignorance = distance = entropy = inconsist = 0.0;
 
                     foreach (i, ref agent; population)
                     {
