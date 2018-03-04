@@ -154,7 +154,6 @@ void main(string[] args)
             stdout.flush();
             if (test == testSet - 1) writeln();
 
-            int[] broadcasting, listening;
             auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
@@ -214,9 +213,9 @@ void main(string[] args)
 
             /*
              * Iteration loop;
-             * Agents interact according to discrete broadcasting/listening
-             * states. Possibility to limit them based on some inconsistency
-             * threshold exists.
+             * Agents interact according to broadcasting/listening rules,
+             * but states are not discrete and separate. Possibility to limit
+             * them based on some sort of inconsistency threshold exists.
              */
 
             int iterIndex;
