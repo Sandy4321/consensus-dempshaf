@@ -378,10 +378,7 @@ void main(string[] args)
                                     }
                                     else
                                     {
-                                        auto newBeliefs = Operators.beliefConsensus(
-                                            agent1.beliefs,
-                                            agent2.beliefs
-                                        );
+                                        // Need to form Dempster-Shafer combination here
                                     }
 
                                     foreach (propIndex, ref prop; newBeliefs)
