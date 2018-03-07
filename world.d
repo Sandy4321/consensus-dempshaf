@@ -50,8 +50,8 @@ void main(string[] args)
         {
             thresholdEnd = to!int(to!double(s) * 100);
         },
-        "random",       &randomSelect,
-        "rate",         &evidenceRate,
+        "random", &randomSelect,
+        "rate", &evidenceRate,
         "group",
         (string _, string s)
         {
@@ -122,7 +122,11 @@ void main(string[] args)
 
     // Identify the choices that agents have and their respective,
     // normalised quality values.
-    immutable auto choices = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    int[] choices;
+    foreach (i; 0 .. l)
+    {
+        choices ~= i + 1;
+    }
     writeln(choices);
     auto qualities = DempsterShafer.generatePayoff(choices,l);
     writeln(qualities);
@@ -158,50 +162,21 @@ void main(string[] args)
 
             foreach (agentIndex, ref agent; population)
             {
-                auto beliefs = new double[2][](l);
+                auto beliefs = new double[](l);
                 double payoff;
-                foreach (ref belief; beliefs)
-                {
-                    // if boolean version, ensure all borderlines are converted
-                    version (boolean)
-                    {
-                        foreach (i; 0 .. l)
-                        {
-                            belief[0] = belief[1] = uniform(0, 101, beliefDist) / 100.0;
-                        }
-                    }
-                    else
-                    {
-                        // if init. distribution is Boolean, assign Boolean beliefs.
-                        if (pRaw == 1)
-                        {
-                            foreach (i; 0 .. l)
-                            {
-                                belief[0] = belief[1] = uniform!"[]"(0.0, 1.0, beliefDist);
-                            }
-                        }
-                        // else, if the initial beliefs should be completely ignorant
-                        else if (pRaw == 0)
-                        {
-                            belief[0] = 0.0;
-                            belief[1] = 1.0;
-                        }
-                        // else, assign uncertain beliefs
-                        else
-                        {
-                            foreach (i; 0 .. l)
-                            {
-                                do
-                                {
-                                    belief[0] = uniform!"[]"(0.0, 1.0, beliefDist);
-                                    belief[1] = uniform!"[]"(0.0, 1.0, beliefDist);
-                                }
-                                while (belief[0] > belief[1]);
 
-                                assert(belief[0] <= belief[1]);
-                            }
-                        }
+                // assign uniform masses to the power set P^W.
+                if (pRaw == 1)
+                {
+                    foreach (i; 0 .. l)
+                    {
+                        beliefs[] = 1.0 / l;
                     }
+                }
+                // assign full mass to the set W; complete ignorance.
+                else if (pRaw == 0)
+                {
+                    beliefs[$-1] = 1.0;
                 }
 
                 payoff = DempsterShafer.calculatePayoff(qualities, beliefs);
@@ -219,7 +194,7 @@ void main(string[] args)
              */
 
             int iterIndex;
-            double[2][][] uniqueBeliefs;
+            double[][] uniqueBeliefs;
             double ignorance, distance, entropy, inconsist;
             bool append;
             foreach (iter; 0 .. iterations + 1)
@@ -233,7 +208,7 @@ void main(string[] args)
 
                     foreach (i, ref agent; population)
                     {
-                        double[2][] beliefs = agent.beliefs;
+                        double[] beliefs = agent.beliefs;
 
                         append = true;
                         foreach (unique; uniqueBeliefs)
@@ -301,7 +276,7 @@ void main(string[] args)
                 // consensus. // uniqueBeliefs.length > 1
                 if (uniqueBeliefs.length > 1)           // Check if consensus has been achieved
                 {
-                    int[]   selection;
+                    int[] selection;
                     Agent[] selected;
 
                     // Select a pair of agents to interact:
@@ -334,11 +309,11 @@ void main(string[] args)
                     foreach (i, ref agent; selection)
                         selected[i] = population[agent];
 
-                    auto combinedBeliefs = new double[2][][](groupSize, l);
+                    auto combinedBeliefs = new double[][](groupSize, l);
                     foreach (ref belief; combinedBeliefs)
                     {
                         foreach (ref prop; belief)
-                            prop[] = [0.0, 0.0];
+                            prop = 0.0;
                     }
 
                     auto agentCounts = new int[groupSize];
@@ -379,10 +354,10 @@ void main(string[] args)
                                     else
                                     {
                                         // Need to form Dempster-Shafer combination here
-                                        auto newBeliefs = Operators.combination(
-                                            agent1.beliefs,
-                                            agent2.beliefs
-                                        );
+                                        auto newBeliefs = [[1,2],[3,21,5]];
+                                        //auto newBeliefs = Operators.combination(
+                                        //    agent1.beliefs,
+                                        //    agent2.beliefs);
                                     }
 
                                     foreach (propIndex, ref prop; newBeliefs)
@@ -402,7 +377,7 @@ void main(string[] args)
 
                             if (agentCounts[i] > 0)
                             {
-                                auto newBeliefs = new double[2][](l);
+                                auto newBeliefs = new double[](l);
                                 foreach (propIndex, ref prop; newBeliefs)
                                 {
                                     newBeliefs[propIndex][0] = combinedBeliefs[i][propIndex][0] /
@@ -431,7 +406,7 @@ void main(string[] args)
                             auto randomIndex = uniform(0, n, rand);
                             auto randomAgent = population[randomIndex];
 
-                            auto randomEvidence = new double[2][](l);
+                            auto randomEvidence = new double[](l);
                             foreach (ref prop; randomEvidence)
                             {
                                 prop = [0.0, 1.0];

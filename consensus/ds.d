@@ -23,7 +23,7 @@ public class DempsterShafer
 
     static double calculatePayoff(
         ref in double[] payoffs,
-        ref in double[2][] beliefs) pure
+        ref in double[] beliefs) pure
     {
         double payoff = 0.0;
         foreach (i, ref belief; beliefs)
@@ -114,8 +114,8 @@ public class DempsterShafer
      * distributions.
      */
     static double distance(
-        in double[2][] worldBeliefs1,
-        in double[2][] worldBeliefs2,
+        in double[] worldBeliefs1,
+        in double[] worldBeliefs2,
         ref in int l) pure
     {
         import std.math;
@@ -194,7 +194,7 @@ public class DempsterShafer
      */
     static ref auto generatePowerSet(ref in int l) pure
     {
-        import std.algorithm;
+        import std.algorithm : sort;
 
         auto powerSet = new double[][]((2^^l));
         auto props = new int[l];
@@ -237,11 +237,34 @@ public class DempsterShafer
         return powerSet;
     }
 
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tgeneratePowerSet(int l)");
+
+        auto l = 1;
+        auto powerSet = generatePowerSet(l);
+        assert(powerSet == [[0]]);
+
+        l = 2;
+        powerSet = generatePowerSet(l);
+        assert(powerSet == [[0], [1], [0, 1]]);
+
+        l = 3;
+        powerSet = generatePowerSet(l);
+        assert(powerSet == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
+
+        writeln("\t\tPASSED.");
+    }
+
     /*
      * massAssignment: calculates the mass assignment of an agent's belief and
      * plausibility measures.
      */
-    static auto massAssignment(ref in double[][] powerSet, in double[2][] beliefs) pure
+    static auto massAssignment(
+        ref in double[][] powerSet,
+        in double[] beliefs) pure
     {
         return;
     }
@@ -250,7 +273,9 @@ public class DempsterShafer
      * beliefAssignment: calculates the belief assignment from an agent's
      * mass function.
      */
-    static auto beliefAssignment(ref in double[][] powerSet, in double[][] masses) pure
+    static auto beliefAssignment(
+        ref in double[][] powerSet,
+        in double[][] masses) pure
     {
         return;
     }

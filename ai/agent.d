@@ -4,12 +4,12 @@ public final class Agent
 {
     private
     {
-        double[2][] mBeliefs;
+        double[] mBeliefs;
         double mPayoff;
         int interactions;
     }
 
-    void beliefs(double[2][] beliefs)
+    void beliefs(double[] beliefs)
     {
         import std.string, std.conv;
 
@@ -25,7 +25,7 @@ public final class Agent
                 }
     }
 
-    double[2][] beliefs() pure
+    double[] beliefs() pure
     {
         return this.mBeliefs;
     }
