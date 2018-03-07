@@ -379,6 +379,10 @@ void main(string[] args)
                                     else
                                     {
                                         // Need to form Dempster-Shafer combination here
+                                        auto newBeliefs = Operators.combination(
+                                            agent1.beliefs,
+                                            agent2.beliefs
+                                        );
                                     }
 
                                     foreach (propIndex, ref prop; newBeliefs)
@@ -389,9 +393,9 @@ void main(string[] args)
                                         // Agent j
                                         combinedBeliefs[k][propIndex][0] += newBeliefs[propIndex][0];
                                         combinedBeliefs[k][propIndex][1] += newBeliefs[propIndex][1];
-                                        // Increment the count to later normalise the beliefs for
-                                        // each agent.
                                     }
+                                    // Increment the count to later normalise the beliefs for
+                                    // each agent.
                                     agentCounts[i]++; agentCounts[k]++;
                                 }
                             }
