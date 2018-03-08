@@ -27,7 +27,8 @@ void main(string[] args)
     immutable bool setSeed = true;
 
     bool randomSelect = true, groupSizeSet;
-    int l, n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
+    ulong l;
+    int n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
     double pRaw = 0.66;
     string boolThreeInit = "three_valued";
 
@@ -122,17 +123,19 @@ void main(string[] args)
 
     // Identify the choices that agents have and their respective,
     // normalised quality values.
-    int[] choices;
+    ulong[] choices;
     foreach (i; 0 .. l)
     {
         choices ~= i + 1;
     }
     writeln(choices);
-    auto qualities = DempsterShafer.generatePayoff(choices,l);
+    //auto qualities = DempsterShafer.generatePayoff(choices,l);
+    auto qualities = [0.05, 0.05, 0.05, 0.05, 0.8];
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
+    auto belLength = powerSet.length;
     writeln(powerSet);
 
     /*
@@ -154,7 +157,7 @@ void main(string[] args)
          */
         foreach (test; 0 .. testSet)
         {
-            write("\rtest #", test);
+            write("\rtest #", test + 1);
             stdout.flush();
             if (test == testSet - 1) writeln();
 
@@ -162,15 +165,15 @@ void main(string[] args)
 
             foreach (agentIndex, ref agent; population)
             {
-                auto beliefs = new double[](l);
+                auto beliefs = new double[](belLength);
                 double payoff;
 
                 // assign uniform masses to the power set P^W.
                 if (pRaw == 1)
                 {
-                    foreach (i; 0 .. l)
+                    foreach (i; 0 .. belLength)
                     {
-                        beliefs[] = 1.0 / l;
+                        beliefs[] = 1.0 / belLength;
                     }
                 }
                 // assign full mass to the set W; complete ignorance.
@@ -224,7 +227,7 @@ void main(string[] args)
                             uniqueBeliefs ~= beliefs;
 
                         // Calculate average entropy of agents' beliefs
-                        entropy += DempsterShafer.entropy(beliefs, l);
+                        entropy += DempsterShafer.entropy(beliefs, belLength);
 
                         // Calculate average distance of agents to identify
                         // possible consensus of the population
@@ -235,10 +238,14 @@ void main(string[] args)
                             distanceHold = DempsterShafer.distance(
                                 agent.beliefs,
                                 cmpAgent.beliefs,
-                                l
+                                belLength
                             );
                             distance += distanceHold;
-                            inconsist += DempsterShafer.inconsistency(agent.beliefs, cmpAgent.beliefs, l);
+                            inconsist += DempsterShafer.inconsistency(
+                                agent.beliefs,
+                                cmpAgent.beliefs,
+                                belLength
+                            );
                         }
                     }
 
@@ -269,167 +276,69 @@ void main(string[] args)
                 }
 
                 // Only conduct interactions if agents have not yet reached
-                // consensus. // uniqueBeliefs.length > 1
-                if (uniqueBeliefs.length > 1)           // Check if consensus has been achieved
+                // consensus.
+
+                if (uniqueBeliefs.length > 1)
                 {
-                    int[] selection;
-                    Agent[] selected;
-
-                    // Select a pair of agents to interact:
-                    // If randomSelect ? select at random : use roulette wheel
-                    // selection method.
-                    if (!randomSelect)
-                    {
-                        selection = DempsterShafer.rouletteSelection(rand, payoffMap, l, groupSize);
-                    }
-                    else
-                    {
-                        for (int i; i < groupSize; i++)
-                        {
-                            selection ~= uniform(0, n, rand);
-
-                            if (i == 0) continue;
-                            for (int j; j < i; j++)
-                            {
-                                if (selection[i] == selection[j])
-                                {
-                                    do selection[i] = uniform(0, n, rand);
-                                    while (selection[i] == selection[j]);
-                                    j = -1;
-                                }
-                            }
-                        }
-                    }
-
-                    selected = new Agent[groupSize];
-                    foreach (i, ref agent; selection)
-                        selected[i] = population[agent];
-
-                    auto combinedBeliefs = new double[][](groupSize, l);
-                    foreach (ref belief; combinedBeliefs)
-                    {
-                        foreach (ref prop; belief)
-                            prop = 0.0;
-                    }
-
-                    auto agentCounts = new int[groupSize];
-
                     bool consistent;
                     double inconsistency;
-                    version (evidence_only)
-                    {
 
-                    }
-                    else
+                    Agent selected;
+
+                    foreach (int i, ref agent; population)
                     {
-                        foreach (int i, ref agent1; selected[0 .. $])
+                        consistent = true;
+
+                        do selected = population.choice(rand);
+                        while (agent == selected);
+
+                        if (threshold != 100)
                         {
-                            foreach (int j, ref agent2; selected[i + 1 .. $])
+                            inconsistency = DempsterShafer.inconsistency(
+                                agent.beliefs,
+                                selected.beliefs,
+                                belLength
+                            );
+
+                            if ((inconsistency * 100) > threshold)
+                                consistent = false;
+                        }
+
+                        auto newBeliefs = agent.beliefs;
+
+                        if (consistent)
+                        {
+                            version (boolean)
                             {
-                                int k = i + 1 + j;
-                                consistent = true;
-                                if (threshold != 100)
-                                {
-                                    inconsistency = DempsterShafer.inconsistency(
-                                        agent1.beliefs,
-                                        agent2.beliefs,
-                                        l
-                                    );
-
-                                    if ((inconsistency * 100) > threshold)
-                                        consistent = false;
-                                }
-
-                                if (consistent)
-                                {
-                                    version (boolean)
-                                    {
-                                        // Code here if I make a Boolean variant,
-                                        // if that's even possible.
-                                    }
-                                    else
-                                    {
-                                        // Need to form Dempster-Shafer combination here
-                                        auto newBeliefs = [0.2,0.3,0.1,0.2,0.2];
-                                        //auto newBeliefs = DempsterShafer.combination(
-                                        //    agent1.beliefs,
-                                        //    agent2.beliefs);
-                                    }
-
-                                    foreach (propIndex, ref prop; newBeliefs)
-                                    {
-                                        // Agent i
-                                        combinedBeliefs[i][propIndex] += newBeliefs[propIndex];
-                                        // Agent j
-                                        combinedBeliefs[k][propIndex] += newBeliefs[propIndex];
-                                    }
-                                    // Increment the count to later normalise the beliefs for
-                                    // each agent.
-                                    agentCounts[i]++; agentCounts[k]++;
-                                }
+                                // Code here if I make a Boolean variant,
+                                // if that's even possible.
                             }
-
-                            if (agentCounts[i] > 0)
+                            else
                             {
-                                auto newBeliefs = new double[](l);
-                                foreach (propIndex, ref prop; newBeliefs)
-                                {
-                                    newBeliefs[propIndex] = combinedBeliefs[i][propIndex] /
-                                        cast(double) agentCounts[i];
-                                }
-
-                                immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                                    qualities,
-                                    newBeliefs
+                                // Need to form Dempster-Shafer combination here
+                                newBeliefs = Operators.ruleOfCombination(
+                                    powerSet,
+                                    agent.beliefs,
+                                    selected.beliefs
                                 );
-
-                                agent1.beliefs = newBeliefs;
-                                agent1.payoff = newPayoff;
-                                payoffMap[selection[i]] = newPayoff;
-                                agent1.incrementInteractions;
                             }
                         }
-                    }
 
-                    version (evidence)
-                    {
-                        if (uniform(0, 100) <= evidenceRate)
-                        {
-                            auto randomIndex = uniform(0, n, rand);
-                            auto randomAgent = population[randomIndex];
+                        immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                            qualities,
+                            newBeliefs
+                        );
 
-                            auto randomEvidence = new double[](l);
-                            foreach (ref prop; randomEvidence)
-                            {
-                                prop = [0.0, 1.0];
-                            }
-                            auto randomProp = uniform(0, l, rand);
-                            auto evidenceProp = (qualities[randomProp][0] == 1) ? [1.0, 1.0] : [0.0, 0.0];
-                            if (uniform(0, 100) <= noiseRate)
-                                evidenceProp[] += (evidenceProp[0] == 0.0) ? evidenceNoise : evidenceNoise * -1;
-
-                            randomEvidence[randomProp] = evidenceProp;
-
-                            auto newBeliefs = Operators.beliefConsensus(
-                                randomAgent.beliefs,
-                                randomEvidence
-                            );
-
-                            auto newPayoff = DempsterShafer.calculatePayoff(
-                                qualities,
-                                newBeliefs
-                            );
-
-                            randomAgent.beliefs = newBeliefs;
-                            randomAgent.setPayoff(newPayoff);
-                            payoffMap[randomIndex] = newPayoff;
-                        }
+                        agent.beliefs = newBeliefs;
+                        agent.payoff = newPayoff;
+                        payoffMap[i] = newPayoff;
+                        agent.incrementInteractions;
                     }
                 }
             }
         }
 
-        writeln();
+        //writeln();
 
         // Write results to disk for current threshold
         string fileName;

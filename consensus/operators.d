@@ -9,8 +9,8 @@ public final class Operators
      * Consensus operator for uncertain three-valued beliefs.
      */
     static auto beliefConsensus(
-        in double[2][] beliefs1,
-        in double[2][] beliefs2) pure
+        ref in double[2][] beliefs1,
+        ref in double[2][] beliefs2) pure
     {
         auto beliefs = new double[2][beliefs1.length];
         auto w1 = beliefs1;
@@ -36,10 +36,13 @@ public final class Operators
      * Consensus operator for uncertain three-valued beliefs.
      */
 
-    static auto ruleOfCombination(
-        in double[] beliefs1,
-        in double[] beliefs2) pure
+    static ref auto ruleOfCombination(
+        ref in double[][] powerSet,
+        ref in double[] beliefs1,
+        ref in double[] beliefs2) pure
     {
-        return;
+        auto beliefs = new double[beliefs1.length > beliefs2.length ? beliefs1.length : beliefs2.length];
+
+        return beliefs;
     }
 }

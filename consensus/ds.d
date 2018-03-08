@@ -19,7 +19,7 @@ public class DempsterShafer
      */
     static double[] generatePayoff(
         ref in int[] choices,
-        ref in int l) pure
+        ref in ulong l) pure
     {
         import std.algorithm : sum;
         import std.conv : to;
@@ -41,10 +41,12 @@ public class DempsterShafer
         ref in double[] beliefs) pure
     {
         double payoff = 0.0;
-        foreach (i, ref belief; beliefs)
+        /*foreach (i, ref belief; beliefs)
         {
             payoff += belief * payoffs[i];
-        }
+        }*/
+
+        // TODO: PAYOFF.LENGTH != BELIEFS.LENGTH (POWER SET VS PROPS)
 
         return payoff;
     }
@@ -102,7 +104,7 @@ public class DempsterShafer
     static int[] rouletteSelection(
         ref from!"std.random".Random rand,
         ref double[] payoffMap,
-        ref int l,
+        ref ulong l,
         ref int amt)
     {
         import std.random : uniform;
@@ -143,7 +145,7 @@ public class DempsterShafer
     /*static double distance(
         in double[2][] beliefs1,
         in double[2][] beliefs2,
-        ref in int l) pure
+        ref in ulong l) pure
     {
         import std.math : sqrt;
 
@@ -222,7 +224,7 @@ public class DempsterShafer
     static double distance(
         ref in double[] beliefs1,
         ref in double[] beliefs2,
-        ref in int l) pure
+        ref in ulong l) pure
     {
         import std.math : sqrt;
 
@@ -238,7 +240,7 @@ public class DempsterShafer
      */
     static double entropy(
         ref in double[] beliefs,
-        ref in int l) pure
+        ref in ulong l) pure
     {
         import std.math : log, log2;
 
@@ -259,7 +261,7 @@ public class DempsterShafer
                     + (two * logThree);
         }*/
 
-        // TODO: IMPLEMENT DISTANCE MEASURE
+        // TODO: IMPLEMENT ENTROPY MEASURE
 
         return entropy / l;
     }
@@ -270,7 +272,7 @@ public class DempsterShafer
     static double inconsistency(
         ref in double[] beliefs1,
         ref in double[] beliefs2,
-        ref in int l) pure
+        ref in ulong l) pure
     {
         double inconsistency = 0.0;
         foreach (prop; 0 .. l)
@@ -287,7 +289,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static ref auto generatePowerSet(ref in int l) pure
+    static ref auto generatePowerSet(ref in ulong l) pure
     {
         import std.algorithm : sort;
 
@@ -336,7 +338,7 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tgeneratePowerSet(int l)");
+        writeln("Unit tests:\tgeneratePowerSet(ulong l)");
 
         auto l = 1;
         auto powerSet = generatePowerSet(l);
