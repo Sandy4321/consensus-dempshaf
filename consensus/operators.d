@@ -8,9 +8,9 @@ public final class Operators
     /**
      * Consensus operator for uncertain three-valued beliefs.
      */
-    static double[] beliefConsensus(
-        in double[] beliefs1,
-        in double[] beliefs2) pure
+    static auto beliefConsensus(
+        in double[2][] beliefs1,
+        in double[2][] beliefs2) pure
     {
         auto beliefs = new double[2][beliefs1.length];
         auto w1 = beliefs1;

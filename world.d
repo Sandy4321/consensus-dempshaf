@@ -109,7 +109,6 @@ void main(string[] args)
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
-    auto ignoranceResults   =   new string[][](arraySize, testSet);
     auto distanceResults    =   new string[][](arraySize, testSet);
     auto inconsistResults   =   new string[][](arraySize, testSet);
     auto entropyResults     =   new string[][](arraySize, testSet);
@@ -197,7 +196,7 @@ void main(string[] args)
 
             int iterIndex;
             double[][] uniqueBeliefs;
-            double ignorance, distance, entropy, inconsist;
+            double distance, entropy, inconsist;
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
@@ -206,7 +205,7 @@ void main(string[] args)
                     || iter == 0)
                 {
                     uniqueBeliefs.length = 0;
-                    ignorance = distance = entropy = inconsist = 0.0;
+                    distance = entropy = inconsist = 0.0;
 
                     foreach (i, ref agent; population)
                     {
@@ -223,9 +222,6 @@ void main(string[] args)
                         }
                         if (append)
                             uniqueBeliefs ~= beliefs;
-
-                        // Calculate average ignorance of all agents in population
-                        ignorance += agent.ignorance(l);
 
                         // Calculate average entropy of agents' beliefs
                         entropy += DempsterShafer.entropy(beliefs, l);
@@ -247,7 +243,6 @@ void main(string[] args)
                     }
 
                     distance = (2 * distance) / (n * (n - 1));
-                    ignorance /= n;
                     entropy /= n;
                     inconsist = (2 * inconsist) / (n * (n - 1));
                 }
@@ -255,7 +250,6 @@ void main(string[] args)
                 // Fill out arrays for writing results later
                 if ( (iter % (iterations / iterStep) == 0 ) || iter == iterations )
                 {
-                    ignoranceResults[iterIndex][test]   = format("%.4f", ignorance);
                     distanceResults[iterIndex][test]    = format("%.4f", distance);
                     inconsistResults[iterIndex][test]   = format("%.4f", inconsist);
                     entropyResults[iterIndex][test]     = format("%.4f", entropy);
@@ -495,11 +489,6 @@ void main(string[] args)
         }
 
         auto append = "w";
-
-        // ignorance
-        fileName = "ignorance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, ignoranceResults);
 
         // Distance
         /*fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)

@@ -141,8 +141,8 @@ public class DempsterShafer
      * Calculates the Hellinger distance between two probability distributions.
      */
     /*static double distance(
-        in double[2][] worldBeliefs1,
-        in double[2][] worldBeliefs2,
+        in double[2][] beliefs1,
+        in double[2][] beliefs2,
         ref in int l) pure
     {
         import std.math : sqrt;
@@ -153,18 +153,18 @@ public class DempsterShafer
             double sum = 0.0;
 
             // True
-            sum += (sqrt(worldBeliefs1[i][0]) - sqrt(worldBeliefs2[i][0])) ^^2;
+            sum += (sqrt(beliefs1[i][0]) - sqrt(beliefs2[i][0])) ^^2;
 
             // Borderline
-            auto one = (worldBeliefs1[i][1] - worldBeliefs1[i][0] < 0) ?
-                0 : worldBeliefs1[i][1] - worldBeliefs1[i][0];
-            auto two = (worldBeliefs2[i][1] - worldBeliefs2[i][0] < 0) ?
-                0 : worldBeliefs2[i][1] - worldBeliefs2[i][0];
+            auto one = (beliefs1[i][1] - beliefs1[i][0] < 0) ?
+                0 : beliefs1[i][1] - beliefs1[i][0];
+            auto two = (beliefs2[i][1] - beliefs2[i][0] < 0) ?
+                0 : beliefs2[i][1] - beliefs2[i][0];
             sum += (sqrt(one) - sqrt(two)) ^^2;
 
             // False
-            one = (1.0 - worldBeliefs1[i][1]) < 0 ? 0 : 1.0 - worldBeliefs1[i][1];
-            two = (1.0 - worldBeliefs2[i][1]) < 0 ? 0 : 1.0 - worldBeliefs2[i][1];
+            one = (1.0 - beliefs1[i][1]) < 0 ? 0 : 1.0 - beliefs1[i][1];
+            two = (1.0 - beliefs2[i][1]) < 0 ? 0 : 1.0 - beliefs2[i][1];
             sum += (sqrt(one) - sqrt(two)) ^^2;
 
             distance += (1.0 / sqrt(2.0)) * sqrt(sum);
@@ -220,8 +220,8 @@ public class DempsterShafer
      * This distance measure is a placeholder for now.
      */
     static double distance(
-        in double[] worldBeliefs1,
-        in double[] worldBeliefs2,
+        ref in double[] beliefs1,
+        ref in double[] beliefs2,
         ref in int l) pure
     {
         import std.math : sqrt;
@@ -242,8 +242,8 @@ public class DempsterShafer
     {
         import std.math : log, log2;
 
-        double entropy = 0.0;
-        double one, two, logOne, logTwo, logThree = 0.0;
+        double entropy = 1.0;
+        /*double one, two, logOne, logTwo, logThree = 0.0;
 
         foreach (belief; beliefs)
         {
@@ -257,7 +257,9 @@ public class DempsterShafer
             entropy -= (belief[0] * logOne)
                     + (one * logTwo)
                     + (two * logThree);
-        }
+        }*/
+
+        // TODO: IMPLEMENT DISTANCE MEASURE
 
         return entropy / l;
     }
@@ -273,8 +275,9 @@ public class DempsterShafer
         double inconsistency = 0.0;
         foreach (prop; 0 .. l)
         {
-            inconsistency += (beliefs1[prop][0] * (1.0 - beliefs2[prop][1])) +
-                ((1.0 - beliefs1[prop][1]) * beliefs2[prop][0]);
+            //inconsistency += (beliefs1[prop][0] * (1.0 - beliefs2[prop][1])) +
+            //    ((1.0 - beliefs1[prop][1]) * beliefs2[prop][0]);
+            inconsistency += 1.0;
         }
 
         return (inconsistency / l);
