@@ -2,15 +2,27 @@ module dempshaf.consensus.ds;
 
 import dempshaf.importidiom;
 
+/**
+ * DempsterShafer is a class for containing all of the calculation functions
+ * specific to the DempsterShafer model of beliefs.
+ */
 public class DempsterShafer
 {
+    /**
+     * Keep track of the total maximal payoff. Useful for calculating convergence
+     * in the payoff model.
+     */
     static auto maximalPayoff = 0.0;
 
+    /**
+     * Generate the payoff model.
+     */
     static double[] generatePayoff(
         ref in int[] choices,
         ref in int l) pure
     {
-        import std.algorithm, std.conv;
+        import std.algorithm : sum;
+        import std.conv : to;
 
         auto payoff = new double[l];
         auto choiceSum = choices[0 .. l].sum;
@@ -21,6 +33,9 @@ public class DempsterShafer
         return payoff;
     }
 
+    /**
+     * Calculate the payoff associated with a given belief.
+     */
     static double calculatePayoff(
         ref in double[] payoffs,
         ref in double[] beliefs) pure
@@ -28,12 +43,15 @@ public class DempsterShafer
         double payoff = 0.0;
         foreach (i, ref belief; beliefs)
         {
-            payoff += belief[0] * payoffs[i];
+            payoff += belief * payoffs[i];
         }
 
         return payoff;
     }
 
+    /**
+     * Calculate the minimum payoff value present in the population.
+     */
     static double minPayoff(ref in double[] payoffMap) pure
     {
         auto payoff = double.infinity;
@@ -46,6 +64,9 @@ public class DempsterShafer
         return payoff;
     }
 
+    /**
+     * Calculate the maximum payoff value present in the population.
+     */
     static double maxPayoff(ref in double[] payoffMap) pure
     {
         auto payoff = double.infinity * -1;
@@ -58,6 +79,9 @@ public class DempsterShafer
         return payoff;
     }
 
+    /**
+     * Calculate the total payoff of the population
+     */
     static double totalPayoff(
         ref in double[] payoffMap,
         in double minPayoff) pure
@@ -71,17 +95,21 @@ public class DempsterShafer
         return payoff;
     }
 
+    /**
+     * The selection algorithm for selecting two pairs of agents based on the
+     * roulette-wheel selection method seen in genetic algorithms.
+     */
     static int[] rouletteSelection(
         ref from!"std.random".Random rand,
         ref double[] payoffMap,
         ref int l,
         ref int amt)
     {
-        import std.random;
+        import std.random : uniform;
 
         auto selection = new int[amt];
         int select;
-        auto n = payoffMap.length;
+        immutable auto n = payoffMap.length;
         double payoff, choice;
 
         //auto minPayoff = DempsterShafer.minPayoff(payoffMap);
@@ -109,16 +137,15 @@ public class DempsterShafer
         return selection;
     }
 
-    /*
-     * distance: calculates the Hellinger distance between two probability
-     * distributions.
+    /**
+     * Calculates the Hellinger distance between two probability distributions.
      */
-    static double distance(
-        in double[] worldBeliefs1,
-        in double[] worldBeliefs2,
+    /*static double distance(
+        in double[2][] worldBeliefs1,
+        in double[2][] worldBeliefs2,
         ref in int l) pure
     {
-        import std.math;
+        import std.math : sqrt;
 
         double distance = 0.0;
         foreach (i; 0 .. l)
@@ -143,17 +170,17 @@ public class DempsterShafer
             distance += (1.0 / sqrt(2.0)) * sqrt(sum);
         }
         return distance / cast(double) l;   // Normalise distance over all propositions
-    }
+    }*/
 
-    /*
-     * valuationDistance: takes opinions and probability dist.s for both agents
-     * and calculates the distance between both agents on a world-belief basis.
+    /**
+     * Takes opinions and probability distributions for both agents and calculates
+     * the distance between both agents on a world-belief basis.
      */
-    static double valuationDistance(
-        in int[][][] opinions1, in double[] p1,
-        in int[][][] opinions2, in double[] p2) pure
+    /*static double valuationDistance(
+        in int[][][] opinions1, in double[2][] p1,
+        in int[][][] opinions2, in double[2][] p2) pure
     {
-        import std.math;
+        import std.math : sqrt;
 
         auto agent1 = opinions1;
         auto agent2 = opinions2;
@@ -186,11 +213,76 @@ public class DempsterShafer
             if (!j) distance += ((1.0 / sqrt(2.0)) * sqrt((0.0 - sqrt(prob2[i])) ^^2));
         }
         return distance;
+    }*/
+
+    /**
+     * Need to find a good distance measure for Dempster-Shafer Theory..
+     * This distance measure is a placeholder for now.
+     */
+    static double distance(
+        in double[] worldBeliefs1,
+        in double[] worldBeliefs2,
+        ref in int l) pure
+    {
+        import std.math : sqrt;
+
+        double distance = 1.0;
+
+        // TODO: IMPLEMENT DISTANCE MEASURE
+
+        return distance;
     }
 
-    /*
-     * generatePowerSet: generates the power set (frame of discernment) from
-     * the number of propositional variables given as l.
+    /**
+     * Calculates the entropy of an agent's beliefs: a measure of uncertainty.
+     */
+    static double entropy(
+        ref in double[] beliefs,
+        ref in int l) pure
+    {
+        import std.math : log, log2;
+
+        double entropy = 0.0;
+        double one, two, logOne, logTwo, logThree = 0.0;
+
+        foreach (belief; beliefs)
+        {
+            one = (belief[1] - belief[0]) < 0 ? 0 : (belief[1] - belief[0]);
+            two = (1.0 - belief[1]) < 0 ? 0 : 1.0 - belief[1];
+
+            logOne = (belief[0] == 0 ? 0 : log2(belief[0]));
+            logTwo = (one == 0 ? 0 : log2(one));
+            logThree = (two == 0 ? 0 : log2(two));
+
+            entropy -= (belief[0] * logOne)
+                    + (one * logTwo)
+                    + (two * logThree);
+        }
+
+        return entropy / l;
+    }
+
+    /**
+     * Inconsistency measure between two beliefs.
+     */
+    static double inconsistency(
+        ref in double[] beliefs1,
+        ref in double[] beliefs2,
+        ref in int l) pure
+    {
+        double inconsistency = 0.0;
+        foreach (prop; 0 .. l)
+        {
+            inconsistency += (beliefs1[prop][0] * (1.0 - beliefs2[prop][1])) +
+                ((1.0 - beliefs1[prop][1]) * beliefs2[prop][0]);
+        }
+
+        return (inconsistency / l);
+    }
+
+    /**
+     * Generates the power set (frame of discernment) from the number of
+     * propositional variables given as l.
      */
     static ref auto generatePowerSet(ref in int l) pure
     {
@@ -258,24 +350,22 @@ public class DempsterShafer
         writeln("\t\tPASSED.");
     }
 
-    /*
-     * massAssignment: calculates the mass assignment of an agent's belief and
-     * plausibility measures.
+    /**
+     * Calculates the mass assignment of an agent's belief and plausibility measures.
      */
     static auto massAssignment(
         ref in double[][] powerSet,
-        in double[] beliefs) pure
+        ref in double[] beliefs) pure
     {
         return;
     }
 
-    /*
-     * beliefAssignment: calculates the belief assignment from an agent's
-     * mass function.
+    /**
+     * Calculates the belief assignment from an agent's mass function.
      */
     static auto beliefAssignment(
         ref in double[][] powerSet,
-        in double[][] masses) pure
+        ref in double[][] masses) pure
     {
         return;
     }

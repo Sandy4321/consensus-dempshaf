@@ -9,7 +9,7 @@ public final class Agent
         int interactions;
     }
 
-    void beliefs(double[] beliefs)
+    void beliefs(ref in double[] beliefs)
     {
         import std.string, std.conv;
 
@@ -25,7 +25,7 @@ public final class Agent
                 }
     }
 
-    double[] beliefs() pure
+    ref double[] beliefs() pure
     {
         return this.mBeliefs;
     }

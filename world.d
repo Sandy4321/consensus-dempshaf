@@ -24,15 +24,16 @@ void main(string[] args)
     immutable auto thresholdStep = 2;
     immutable auto testSet = 100; // 100
     immutable double evidenceNoise = 1.0;
+    immutable bool setSeed = true;
 
-    bool setSeed = true, randomSelect = true, groupSizeSet;
+    bool randomSelect = true, groupSizeSet;
     int l, n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
     double pRaw = 0.66;
     string boolThreeInit = "three_valued";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
 
-    auto argProcessing = getopt(
+    const auto argProcessing = getopt(
         args,
         "dist",
         (string _, string s)
@@ -176,6 +177,7 @@ void main(string[] args)
                 // assign full mass to the set W; complete ignorance.
                 else if (pRaw == 0)
                 {
+                    beliefs[] = 0.0;
                     beliefs[$-1] = 1.0;
                 }
 
@@ -226,7 +228,7 @@ void main(string[] args)
                         ignorance += agent.ignorance(l);
 
                         // Calculate average entropy of agents' beliefs
-                        entropy += Operators.entropy(beliefs, l);
+                        entropy += DempsterShafer.entropy(beliefs, l);
 
                         // Calculate average distance of agents to identify
                         // possible consensus of the population
@@ -240,7 +242,7 @@ void main(string[] args)
                                 l
                             );
                             distance += distanceHold;
-                            inconsist += Operators.inconsistency(agent.beliefs, cmpAgent.beliefs, l);
+                            inconsist += DempsterShafer.inconsistency(agent.beliefs, cmpAgent.beliefs, l);
                         }
                     }
 
@@ -334,7 +336,7 @@ void main(string[] args)
                                 consistent = true;
                                 if (threshold != 100)
                                 {
-                                    inconsistency = Operators.inconsistency(
+                                    inconsistency = DempsterShafer.inconsistency(
                                         agent1.beliefs,
                                         agent2.beliefs,
                                         l
@@ -354,8 +356,8 @@ void main(string[] args)
                                     else
                                     {
                                         // Need to form Dempster-Shafer combination here
-                                        auto newBeliefs = [[1,2],[3,21,5]];
-                                        //auto newBeliefs = Operators.combination(
+                                        auto newBeliefs = [0.2,0.3,0.1,0.2,0.2];
+                                        //auto newBeliefs = DempsterShafer.combination(
                                         //    agent1.beliefs,
                                         //    agent2.beliefs);
                                     }
@@ -363,11 +365,9 @@ void main(string[] args)
                                     foreach (propIndex, ref prop; newBeliefs)
                                     {
                                         // Agent i
-                                        combinedBeliefs[i][propIndex][0] += newBeliefs[propIndex][0];
-                                        combinedBeliefs[i][propIndex][1] += newBeliefs[propIndex][1];
+                                        combinedBeliefs[i][propIndex] += newBeliefs[propIndex];
                                         // Agent j
-                                        combinedBeliefs[k][propIndex][0] += newBeliefs[propIndex][0];
-                                        combinedBeliefs[k][propIndex][1] += newBeliefs[propIndex][1];
+                                        combinedBeliefs[k][propIndex] += newBeliefs[propIndex];
                                     }
                                     // Increment the count to later normalise the beliefs for
                                     // each agent.
@@ -380,9 +380,7 @@ void main(string[] args)
                                 auto newBeliefs = new double[](l);
                                 foreach (propIndex, ref prop; newBeliefs)
                                 {
-                                    newBeliefs[propIndex][0] = combinedBeliefs[i][propIndex][0] /
-                                        cast(double) agentCounts[i];
-                                    newBeliefs[propIndex][1] = combinedBeliefs[i][propIndex][1] /
+                                    newBeliefs[propIndex] = combinedBeliefs[i][propIndex] /
                                         cast(double) agentCounts[i];
                                 }
 
@@ -504,9 +502,9 @@ void main(string[] args)
         writeToFile(directory, fileName, append, ignoranceResults);
 
         // Distance
-        fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        /*fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, distanceResults);
+        writeToFile(directory, fileName, append, distanceResults);*/
 
         // Inconsistency
         fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
