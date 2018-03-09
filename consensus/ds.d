@@ -19,7 +19,7 @@ public class DempsterShafer
      */
     static double[] generatePayoff(
         ref in int[] choices,
-        ref in ulong l) pure
+        ref in int l) pure
     {
         import std.algorithm : sum;
         import std.conv : to;
@@ -104,7 +104,7 @@ public class DempsterShafer
     static int[] rouletteSelection(
         ref from!"std.random".Random rand,
         ref double[] payoffMap,
-        ref ulong l,
+        ref int l,
         ref int amt)
     {
         import std.random : uniform;
@@ -145,7 +145,7 @@ public class DempsterShafer
     /*static double distance(
         in double[2][] beliefs1,
         in double[2][] beliefs2,
-        ref in ulong l) pure
+        ref in int l) pure
     {
         import std.math : sqrt;
 
@@ -224,7 +224,7 @@ public class DempsterShafer
     static double distance(
         ref in double[] beliefs1,
         ref in double[] beliefs2,
-        ref in ulong l) pure
+        ref in int l) pure
     {
         import std.math : sqrt;
 
@@ -240,7 +240,7 @@ public class DempsterShafer
      */
     static double entropy(
         ref in double[] beliefs,
-        ref in ulong l) pure
+        ref in int l) pure
     {
         import std.math : log, log2;
 
@@ -272,7 +272,7 @@ public class DempsterShafer
     static double inconsistency(
         ref in double[] beliefs1,
         ref in double[] beliefs2,
-        ref in ulong l) pure
+        ref in int l) pure
     {
         double inconsistency = 0.0;
         foreach (prop; 0 .. l)
@@ -289,7 +289,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static ref auto generatePowerSet(ref in ulong l) pure
+    static ref auto generatePowerSet(ref in int l) pure
     {
         import std.algorithm : sort;
 
@@ -338,7 +338,7 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tgeneratePowerSet(ulong l)");
+        writeln("Unit tests:\tgeneratePowerSet(int l)");
 
         auto l = 1;
         auto powerSet = generatePowerSet(l);
@@ -358,7 +358,23 @@ public class DempsterShafer
     /**
      * Calculates the mass assignment of an agent's belief and plausibility measures.
      */
-    static auto massAssignment(
+    static ref auto massEvidence(
+        ref in double[][] powerSet,
+        ref in double[] qualities,
+        from!"std.random".Random rand) pure
+    {
+        import random : choice;
+        auto choice = qualities.choice(rand);
+
+
+
+        return;
+    }
+
+    /**
+     * Calculates the mass assignment of an agent's belief and plausibility measures.
+     */
+    static auto massFunction(
         ref in double[][] powerSet,
         ref in double[] beliefs) pure
     {

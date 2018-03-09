@@ -43,6 +43,8 @@ public final class Operators
     {
         auto beliefs = new double[beliefs1.length > beliefs2.length ? beliefs1.length : beliefs2.length];
 
+        beliefs = beliefs1.dup;
+
         return beliefs;
     }
 }

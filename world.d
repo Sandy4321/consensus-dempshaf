@@ -4,7 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
+import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
 
 version (evidence_only)
 {
@@ -19,16 +19,15 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 50_000; //50_000
-    immutable auto iterStep = iterations / 500; // iterations / 100
+    immutable auto iterations = 1_000; //50_000
+    immutable auto iterStep = iterations / 10; // iterations / 100
     immutable auto thresholdStep = 2;
     immutable auto testSet = 100; // 100
     immutable double evidenceNoise = 1.0;
     immutable bool setSeed = true;
 
     bool randomSelect = true, groupSizeSet;
-    ulong l;
-    int n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
+    int l, n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
     double pRaw = 0.66;
     string boolThreeInit = "three_valued";
 
@@ -123,7 +122,7 @@ void main(string[] args)
 
     // Identify the choices that agents have and their respective,
     // normalised quality values.
-    ulong[] choices;
+    int[] choices;
     foreach (i; 0 .. l)
     {
         choices ~= i + 1;
@@ -131,12 +130,13 @@ void main(string[] args)
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
     auto qualities = [0.05, 0.05, 0.05, 0.05, 0.8];
+    assert(qualities.sum == 1.0);
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
-    auto belLength = powerSet.length;
-    writeln(powerSet);
+    auto belLength = to!int(powerSet.length);
+    //writeln(powerSet);
 
     /*
      * Main test loop;
@@ -203,9 +203,15 @@ void main(string[] args)
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
-                if ((iter % (iterations / iterStep) == 0
-                    && uniqueBeliefs.length > 1)
-                    || iter == 0)
+                /*
+                 * Extract the data for each agent in the population, to be used
+                 * throughout the simulation as well as for plotting results later.
+                 */
+                if (
+                        (
+                            iter % (iterations / iterStep) == 0 //&& uniqueBeliefs.length > 1
+                        ) || iter == 0
+                    )
                 {
                     uniqueBeliefs.length = 0;
                     distance = entropy = inconsist = 0.0;
@@ -236,13 +242,13 @@ void main(string[] args)
                         {
                             if (agent == cmpAgent) continue;
                             distanceHold = DempsterShafer.distance(
-                                agent.beliefs,
+                                beliefs,
                                 cmpAgent.beliefs,
                                 belLength
                             );
                             distance += distanceHold;
                             inconsist += DempsterShafer.inconsistency(
-                                agent.beliefs,
+                                beliefs,
                                 cmpAgent.beliefs,
                                 belLength
                             );
@@ -254,8 +260,11 @@ void main(string[] args)
                     inconsist = (2 * inconsist) / (n * (n - 1));
                 }
 
-                // Fill out arrays for writing results later
-                if ( (iter % (iterations / iterStep) == 0 ) || iter == iterations )
+                /*
+                 * Enter data into the results arrays, at set intervals and when the
+                 * simulation has reached the final iteration.
+                 */
+                if ((iter % (iterations / iterStep) == 0 ) || iter == iterations)
                 {
                     distanceResults[iterIndex][test]    = format("%.4f", distance);
                     inconsistResults[iterIndex][test]   = format("%.4f", inconsist);
@@ -264,33 +273,62 @@ void main(string[] args)
 
                     payoffResults[iterIndex][test] = format(
                         "%.4f",
-                        ((DempsterShafer.totalPayoff(payoffMap, 0.0) /
-                            DempsterShafer.maximalPayoff) / n) * 100
+                        (
+                            (
+                                DempsterShafer.totalPayoff(payoffMap, 0.0) /
+                                DempsterShafer.maximalPayoff
+                            ) / n
+                        ) * 100
                     );
                     maxPayoffResults[iterIndex][test] = format(
                         "%.4f",
-                        (DempsterShafer.maxPayoff(payoffMap) /
-                            DempsterShafer.maximalPayoff) * 100
+                        (
+                            DempsterShafer.maxPayoff(payoffMap) /
+                            DempsterShafer.maximalPayoff
+                        ) * 100
                     );
                     iterIndex++;
                 }
 
-                // Only conduct interactions if agents have not yet reached
-                // consensus.
+                /*
+                 * Only conduct interactions if agents have not yet reached
+                 * consensus.
+                 */
 
-                if (uniqueBeliefs.length > 1)
+                if (/*uniqueBeliefs.length >*/ 1)
                 {
+                    /*
+                     * Begin by combining each agent's mass function with the new
+                     * evidence mass function, which serves as a form of 'payoff'
+                     * assumed to be received when the agent assesses its choice
+                     * e.g. when a honeybee visits a site.
+                     */
+                    foreach(i, ref agent; population)
+                    {
+                        agent.beliefs = Operators.ruleOfCombination(
+                            powerSet,
+                            agent.beliefs,
+                            DempsterShafer.massEvidence(
+                                powerSet,
+                                qualities,
+                                rand
+                            )
+                        );
+                    }
+
                     bool consistent;
                     double inconsistency;
-
                     Agent selected;
+                    int selection;
 
-                    foreach (int i, ref agent; population)
+                    foreach (i, ref agent; population)
                     {
                         consistent = true;
 
-                        do selected = population.choice(rand);
-                        while (agent == selected);
+                        //do selected = population.choice(rand);
+                        do selection = uniform(0, n, rand);
+                        while (i == selection);
+                        selected = population[selection];
 
                         if (threshold != 100)
                         {
@@ -308,20 +346,12 @@ void main(string[] args)
 
                         if (consistent)
                         {
-                            version (boolean)
-                            {
-                                // Code here if I make a Boolean variant,
-                                // if that's even possible.
-                            }
-                            else
-                            {
-                                // Need to form Dempster-Shafer combination here
-                                newBeliefs = Operators.ruleOfCombination(
-                                    powerSet,
-                                    agent.beliefs,
-                                    selected.beliefs
-                                );
-                            }
+                            // Need to form Dempster-Shafer combination here
+                            newBeliefs = Operators.ruleOfCombination(
+                                powerSet,
+                                agent.beliefs,
+                                selected.beliefs
+                            );
                         }
 
                         immutable auto newPayoff = DempsterShafer.calculatePayoff(
@@ -445,8 +475,7 @@ private void writeToFile(T)(string directory, string fileName, string append, T[
     file.close();
 }
 
-// Below function is no longer required as belief results have been removed.
-
+// The following function is no longer required as belief results have been removed.
 private void writeBeliefsToFile(T)(string directory, string fileName, string append, T[][] results)
 {
     auto file = File(directory ~ fileName, append);
