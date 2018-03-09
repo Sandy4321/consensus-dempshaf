@@ -295,7 +295,6 @@ public class DempsterShafer
 
         auto powerSet = new double[][]((2^^l));
         auto props = new int[l];
-        props[] = 0;
 
         foreach (ref set; powerSet)
         {
@@ -323,13 +322,9 @@ public class DempsterShafer
         foreach (ref level; 0 .. l + 1)
             foreach (ref prop; 0 .. l)
                 foreach (ref set; tempSet)
-                {
                     if (set.length > 0)
                         if (set.length == level && set[0] == prop)
-                        {
                             powerSet ~= set;
-                        }
-                }
 
         return powerSet;
     }
@@ -338,7 +333,7 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tgeneratePowerSet(int l)");
+        writeln("Unit tests:\tgeneratePowerSet");
 
         auto l = 1;
         auto powerSet = generatePowerSet(l);
@@ -363,12 +358,39 @@ public class DempsterShafer
         ref in double[] qualities,
         from!"std.random".Random rand) pure
     {
-        import random : choice;
-        auto choice = qualities.choice(rand);
+        import std.random : uniform;
 
+        auto choice = uniform(0, qualities.length, rand);
+        auto massFunction = new double[](powerSet.length);
+        massFunction[] = 0.0;
 
+        massFunction[choice] = qualities[choice];
+        massFunction[$-1] = 1.0 - qualities[choice];
 
-        return;
+        return massFunction;
+    }
+
+    unittest
+    {
+        import std.algorithm.comparison : equal;
+        import std.math : approxEqual;
+        import std.random : Random;
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tmassEvidence");
+
+        auto rand = Random();
+
+        auto l = 2;
+        auto powerSet = generatePowerSet(l);
+        assert(powerSet == [[0], [1], [0, 1]]);
+
+        auto qualities = [0.8, 0.2];
+        auto massFunction = massEvidence(powerSet, qualities, rand);
+        auto temp = [0.8, 0, 0.2];
+        assert(equal!approxEqual(massFunction, temp));
+
+        writeln("\t\tPASSED.");
     }
 
     /**
