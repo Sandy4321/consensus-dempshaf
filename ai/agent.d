@@ -12,7 +12,7 @@ public final class Agent
     /**
      *
      */
-    void beliefs(ref double[] beliefs)
+    auto beliefs(ref double[] beliefs)
     {
         import std.string : format;
         import std.conv : to;
@@ -33,7 +33,7 @@ public final class Agent
     /**
      *
      */
-    ref double[] beliefs() pure
+    auto ref beliefs() pure
     {
         return this.mBeliefs;
     }
@@ -49,7 +49,7 @@ public final class Agent
     /**
      *
      */
-    double payoff() pure
+    auto ref payoff() pure
     {
         return this.mPayoff;
     }
@@ -65,7 +65,7 @@ public final class Agent
     /**
      *
      */
-    int getInteractions() pure
+    auto ref getInteractions() pure
     {
         return this.interactions;
     }

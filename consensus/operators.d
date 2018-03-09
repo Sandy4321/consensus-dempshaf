@@ -36,14 +36,44 @@ public final class Operators
      * Consensus operator for uncertain three-valued beliefs.
      */
 
-    static ref auto ruleOfCombination(
+    static auto ref ruleOfCombination(
         ref in double[][] powerSet,
-        ref in double[] beliefs1,
-        ref in double[] beliefs2) pure
+        in double[] beliefs1,
+        in double[] beliefs2) pure
     {
-        auto beliefs = new double[beliefs1.length > beliefs2.length ? beliefs1.length : beliefs2.length];
+        import std.algorithm.searching;
+        import std.algorithm.sorting;
+        import std.algorithm.setops;
+        import std.math : approxEqual;
+        import std.conv;
 
-        beliefs = beliefs1.dup;
+        auto beliefs = new double[powerSet.length];
+
+        foreach (i, ref bel1; beliefs1)
+        {
+            foreach (j, ref bel2; beliefs2)
+            {
+                double[] currentSet;
+                auto intersection = setIntersection(powerSet[i], powerSet[j]);
+                if (intersection.empty)
+                {
+                    currentSet = (powerSet[i] ~ powerSet[j]).dup;
+                    currentSet.sort;
+                }
+                else
+                {
+                    currentSet ~= powerSet[i];
+                    foreach (ref element; powerSet[j])
+                        if (currentSet.find(element).length == 0)
+                            currentSet ~= element;
+                    currentSet.sort();
+                }
+                if (approxEqual(bel1, 0.0) || approxEqual(bel2, 0.0))
+                {
+
+                }
+            }
+        }
 
         return beliefs;
     }

@@ -289,7 +289,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static ref auto generatePowerSet(ref in int l) pure
+    static auto generatePowerSet(ref in int l) pure
     {
         import std.algorithm : sort;
 
@@ -353,7 +353,7 @@ public class DempsterShafer
     /**
      * Calculates the mass assignment of an agent's belief and plausibility measures.
      */
-    static ref auto massEvidence(
+    static auto massEvidence(
         ref in double[][] powerSet,
         ref in double[] qualities,
         from!"std.random".Random rand) pure
@@ -388,6 +388,9 @@ public class DempsterShafer
         auto qualities = [0.8, 0.2];
         auto massFunction = massEvidence(powerSet, qualities, rand);
         auto temp = [0.8, 0, 0.2];
+        // It is necessary to use approxEqual here in the element-wise comparison
+        // of arrays because you're comparing doubles which can result in them
+        // printing the same out, but not actually being comparatively equivalent.
         assert(equal!approxEqual(massFunction, temp));
 
         writeln("\t\tPASSED.");

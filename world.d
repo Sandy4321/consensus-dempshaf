@@ -136,7 +136,7 @@ void main(string[] args)
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
     auto belLength = to!int(powerSet.length);
-    //writeln(powerSet);
+    writeln(powerSet);
 
     /*
      * Main test loop;
