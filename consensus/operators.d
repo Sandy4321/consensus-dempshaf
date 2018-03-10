@@ -70,7 +70,8 @@ public final class Operators
                 }
                 if (approxEqual(bel1, 0.0) || approxEqual(bel2, 0.0))
                 {
-
+                    // If at least one of their masses is 0, then just take the
+                    // product of the union of the set, and add that to the list.
                 }
             }
         }
