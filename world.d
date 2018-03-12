@@ -27,8 +27,9 @@ void main(string[] args)
     immutable bool setSeed = true;
 
     bool randomSelect = true, groupSizeSet;
-    int l, n, p, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
+    int l, n, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
     double pRaw = 0.66;
+    int p = 66;
     string boolThreeInit = "three_valued";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
@@ -129,7 +130,7 @@ void main(string[] args)
     }
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.05, 0.05, 0.05, 0.05, 0.8];
+    auto qualities = [0.025, 0.025, 0.05, 0.1, 0.8];
     assert(qualities.sum == 1.0);
     writeln(qualities);
 

@@ -41,11 +41,10 @@ public final class Operators
         in double[] beliefs1,
         in double[] beliefs2) pure
     {
-        import std.algorithm.searching;
-        import std.algorithm.sorting;
-        import std.algorithm.setops;
+        import std.algorithm.searching : find;
+        import std.algorithm.sorting : sort;
+        import std.algorithm.setops : setIntersection;
         import std.math : approxEqual;
-        import std.conv;
 
         auto beliefs = new double[powerSet.length];
 
