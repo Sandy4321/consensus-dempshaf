@@ -39,41 +39,51 @@ public final class Operators
     static auto ref ruleOfCombination(
         ref in double[][] powerSet,
         in double[] beliefs1,
-        in double[] beliefs2) pure
+        in double[] beliefs2) //pure
     {
-        import std.algorithm.searching : find;
-        import std.algorithm.sorting : sort;
-        import std.algorithm.setops : setIntersection;
+        import std.algorithm;
         import std.math : approxEqual;
 
         auto beliefs = new double[powerSet.length];
+        beliefs[] = 0;
 
         foreach (i, ref bel1; beliefs1)
         {
+            // If the mass is 0, skip this set.
+            if (approxEqual(bel1, 0.0))
+                continue;
             foreach (j, ref bel2; beliefs2)
             {
+                // If the mass is 0, skip this set.
+                if (approxEqual(bel2, 0.0))
+                    continue;
+
                 double[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
+
                 if (intersection.empty)
                 {
+                    // If the intersection is the empty set, form the union instead.
                     currentSet = (powerSet[i] ~ powerSet[j]).dup;
                     currentSet.sort;
                 }
                 else
                 {
-                    currentSet ~= powerSet[i];
-                    foreach (ref element; powerSet[j])
-                        if (currentSet.find(element).length == 0)
-                            currentSet ~= element;
-                    currentSet.sort();
+                    // If the intersection is not empty, recreate the intersection set.
+                    foreach (elem; intersection)
+                        currentSet ~= elem;
                 }
-                if (approxEqual(bel1, 0.0) || approxEqual(bel2, 0.0))
+                foreach (k, ref set; powerSet)
                 {
-                    // If at least one of their masses is 0, then just take the
-                    // product of the union of the set, and add that to the list.
+                    if (currentSet == set)
+                    {
+                        beliefs[k] += bel1 * bel2;
+                    }
                 }
             }
         }
+
+        beliefs[] /= beliefs.sum;
 
         return beliefs;
     }

@@ -315,7 +315,11 @@ void main(string[] args)
                                 rand
                             )
                         );
+                        if (iter == 1000)
+                            writeln("Post-belief: ", agent.beliefs);
                     }
+                    if (iter == 1000)
+                        writeln(powerSet);
 
                     bool consistent;
                     double inconsistency;
@@ -331,7 +335,7 @@ void main(string[] args)
                         while (i == selection);
                         selected = population[selection];
 
-                        if (threshold != 100)
+                        /*if (threshold != 100)
                         {
                             inconsistency = DempsterShafer.inconsistency(
                                 agent.beliefs,
@@ -341,7 +345,7 @@ void main(string[] args)
 
                             if ((inconsistency * 100) > threshold)
                                 consistent = false;
-                        }
+                        }*/
 
                         auto newBeliefs = agent.beliefs;
 

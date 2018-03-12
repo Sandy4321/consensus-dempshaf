@@ -356,7 +356,7 @@ public class DempsterShafer
     static auto massEvidence(
         ref in double[][] powerSet,
         ref in double[] qualities,
-        from!"std.random".Random rand) pure
+        ref from!"std.random".Random rand) pure
     {
         import std.random : uniform;
 
