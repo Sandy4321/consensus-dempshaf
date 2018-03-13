@@ -41,7 +41,10 @@ public class DempsterShafer
         ref in int[][] powerSet,
         ref in double[] beliefs) pure
     {
+        import std.algorithm : maxElement;
+
         double payoff = 0.0;
+        auto maxPayoff = payoffs.maxElement;
         auto pignistic = new double[](payoffs.length);
         pignistic[] = 0;
 
@@ -58,7 +61,7 @@ public class DempsterShafer
            payoff += prob * payoffs[i];
         }
 
-        return payoff;
+        return payoff/maxPayoff;
     }
 
     /**
@@ -84,8 +87,7 @@ public class DempsterShafer
         auto payoff = double.infinity * -1;
         foreach(ref value; payoffMap)
         {
-            if (value > payoff)
-                payoff = value;
+            if (value > payoff) payoff = value;
         }
 
         return payoff;

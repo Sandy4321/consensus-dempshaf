@@ -322,7 +322,7 @@ void main(string[] args)
                         //if (iter == 1000)
                         //    writeln("Post-belief: ", agent.beliefs);
                     }
-                    if (iter == 1000) writeln(uniqueBeliefs);
+                    //if (iter == 1000) writeln(uniqueBeliefs);
 
                     bool consistent;
                     double inconsistency;
@@ -370,7 +370,6 @@ void main(string[] args)
 
                         agent.beliefs = newBeliefs;
                         agent.payoff = newPayoff;
-                        writeln(newPayoff);
                         payoffMap[i] = newPayoff;
                         agent.incrementInteractions;
                     }
