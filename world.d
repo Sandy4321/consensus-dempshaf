@@ -19,8 +19,8 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1_000; //50_000
-    immutable auto iterStep = iterations / 10; // iterations / 100
+    immutable auto iterations = 2_000; //50_000
+    immutable auto iterStep = iterations / 20; // iterations / 100
     immutable auto thresholdStep = 2;
     immutable auto testSet = 100; // 100
     immutable double evidenceNoise = 1.0;
@@ -184,7 +184,11 @@ void main(string[] args)
                     beliefs[$-1] = 1.0;
                 }
 
-                payoff = DempsterShafer.calculatePayoff(qualities, beliefs);
+                payoff = DempsterShafer.calculatePayoff(
+                    qualities,
+                    powerSet,
+                    beliefs
+                );
                 agent.beliefs = beliefs;
                 agent.payoff = payoff;
                 payoffMap[agentIndex] = payoff;
@@ -224,14 +228,14 @@ void main(string[] args)
                         append = true;
                         foreach (unique; uniqueBeliefs)
                         {
-                            if (unique == beliefs)
+                            // Using approxEqual to adequately compare arrays of doubles.
+                            if (equal!approxEqual(unique, beliefs))
                             {
                                 append = false;
                                 break;
                             }
                         }
-                        if (append)
-                            uniqueBeliefs ~= beliefs;
+                        if (append) uniqueBeliefs ~= beliefs;
 
                         // Calculate average entropy of agents' beliefs
                         entropy += DempsterShafer.entropy(beliefs, belLength);
@@ -315,11 +319,10 @@ void main(string[] args)
                                 rand
                             )
                         );
-                        if (iter == 1000)
-                            writeln("Post-belief: ", agent.beliefs);
+                        //if (iter == 1000)
+                        //    writeln("Post-belief: ", agent.beliefs);
                     }
-                    if (iter == 1000)
-                        writeln(powerSet);
+                    if (iter == 1000) writeln(uniqueBeliefs);
 
                     bool consistent;
                     double inconsistency;
@@ -361,11 +364,13 @@ void main(string[] args)
 
                         immutable auto newPayoff = DempsterShafer.calculatePayoff(
                             qualities,
+                            powerSet,
                             newBeliefs
                         );
 
                         agent.beliefs = newBeliefs;
                         agent.payoff = newPayoff;
+                        writeln(newPayoff);
                         payoffMap[i] = newPayoff;
                         agent.incrementInteractions;
                     }

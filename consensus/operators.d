@@ -37,7 +37,7 @@ public final class Operators
      */
 
     static auto ref ruleOfCombination(
-        ref in double[][] powerSet,
+        ref in int[][] powerSet,
         in double[] beliefs1,
         in double[] beliefs2) //pure
     {
@@ -58,7 +58,7 @@ public final class Operators
                 if (approxEqual(bel2, 0.0))
                     continue;
 
-                double[] currentSet;
+                int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
 
                 if (intersection.empty)

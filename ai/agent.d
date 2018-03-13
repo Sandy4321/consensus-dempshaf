@@ -1,5 +1,9 @@
 module dempshaf.ai.agent;
 
+/**
+ * Agent class that contains the behaviours of each agent, such as setting and
+ * retrieving beliefs, payoff, and keeping count of interactions.
+ */
 public final class Agent
 {
     private
@@ -10,7 +14,7 @@ public final class Agent
     }
 
     /**
-     *
+     * Set the beliefs of an agent, which is a mass function.
      */
     auto beliefs(ref double[] beliefs)
     {
@@ -31,7 +35,7 @@ public final class Agent
     }
 
     /**
-     *
+     * Return the beliefs of an agent
      */
     auto ref beliefs() pure
     {
@@ -39,7 +43,7 @@ public final class Agent
     }
 
     /**
-     *
+     * Set the payoff of an agent.
      */
     void payoff(ref in double payoff) pure
     {
@@ -47,7 +51,7 @@ public final class Agent
     }
 
     /**
-     *
+     * Return the payoff of an agent.
      */
     auto ref payoff() pure
     {
@@ -55,7 +59,7 @@ public final class Agent
     }
 
     /**
-     *
+     * Increment the interaction count of the agent.
      */
     void incrementInteractions() pure
     {
@@ -63,7 +67,7 @@ public final class Agent
     }
 
     /**
-     *
+     * return the interaction count of the agent.
      */
     auto ref getInteractions() pure
     {
@@ -71,7 +75,7 @@ public final class Agent
     }
 
     /**
-     *
+     * Reset the agent's interactions count.
      */
     void resetInteractions() pure
     {

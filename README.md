@@ -4,4 +4,4 @@ This is a version of the kind of consensus model developed during my Ph.D. in wh
 
 Looking at evidence-based dissemination in combination with consensus to see if a Dempster-Shafer model can converge with either completely ignorant beliefs, or uniformly distributed beliefs, to the best-of-n.
 
-###### Part of project T-B PHASE | 2017 - 2022
+__Part of project T-B PHASE | 2017 - 2022__

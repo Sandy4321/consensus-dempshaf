@@ -38,15 +38,25 @@ public class DempsterShafer
      */
     static double calculatePayoff(
         ref in double[] payoffs,
+        ref in int[][] powerSet,
         ref in double[] beliefs) pure
     {
         double payoff = 0.0;
-        /*foreach (i, ref belief; beliefs)
-        {
-            payoff += belief * payoffs[i];
-        }*/
+        auto pignistic = new double[](payoffs.length);
+        pignistic[] = 0;
 
-        // TODO: PAYOFF.LENGTH != BELIEFS.LENGTH (POWER SET VS PROPS)
+        foreach (i, ref set; powerSet)
+        {
+            foreach (ref choice; set)
+            {
+                pignistic[choice] += beliefs[i]/set.length;
+            }
+        }
+
+        foreach (i, ref prob; pignistic)
+        {
+           payoff += prob * payoffs[i];
+        }
 
         return payoff;
     }
@@ -293,12 +303,12 @@ public class DempsterShafer
     {
         import std.algorithm : sort;
 
-        auto powerSet = new double[][]((2^^l));
+        auto powerSet = new int[][]((2^^l));
         auto props = new int[l];
 
         foreach (ref set; powerSet)
         {
-            foreach (i, ref prop; props)
+            foreach (int i, ref prop; props)
             {
                 if (prop == 1)
                 {
@@ -354,7 +364,7 @@ public class DempsterShafer
      * Calculates the mass assignment of an agent's belief and plausibility measures.
      */
     static auto massEvidence(
-        ref in double[][] powerSet,
+        ref in int[][] powerSet,
         ref in double[] qualities,
         ref from!"std.random".Random rand) pure
     {
