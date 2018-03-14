@@ -34,7 +34,7 @@ void main(string[] args)
 
     writeln("Running program: ", args[0].split("/")[$-1]);
 
-    const auto argProcessing = getopt(
+    getopt(
         args,
         "dist",
         (string _, string s)
@@ -110,12 +110,12 @@ void main(string[] args)
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
-    auto distanceResults    =   new string[][](arraySize, testSet);
-    auto inconsistResults   =   new string[][](arraySize, testSet);
-    auto entropyResults     =   new string[][](arraySize, testSet);
-    auto uniqueResults      =   new string[][](arraySize, testSet);
-    auto payoffResults      =   new string[][](arraySize, testSet);
-    auto maxPayoffResults   =   new string[][](arraySize, testSet);
+    auto distanceResults    = new string[][](arraySize, testSet);
+    auto inconsistResults   = new string[][](arraySize, testSet);
+    auto entropyResults     = new string[][](arraySize, testSet);
+    auto uniqueResults      = new string[][](arraySize, testSet);
+    auto payoffResults      = new string[][](arraySize, testSet);
+    auto maxPayoffResults   = new string[][](arraySize, testSet);
 
     // Initialize the population of agents according to population size l
     auto population = new Agent[n];
@@ -124,10 +124,7 @@ void main(string[] args)
     // Identify the choices that agents have and their respective,
     // normalised quality values.
     int[] choices;
-    foreach (i; 0 .. l)
-    {
-        choices ~= i + 1;
-    }
+    foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
     auto qualities = [0.025, 0.025, 0.05, 0.1, 0.8];
@@ -281,7 +278,7 @@ void main(string[] args)
                         (
                             (
                                 DempsterShafer.totalPayoff(payoffMap, 0.0) /
-                                DempsterShafer.maximalPayoff
+                                qualities[$-1]
                             ) / n
                         ) * 100
                     );
@@ -289,7 +286,7 @@ void main(string[] args)
                         "%.4f",
                         (
                             DempsterShafer.maxPayoff(payoffMap) /
-                            DempsterShafer.maximalPayoff
+                            qualities[$-1]
                         ) * 100
                     );
                     iterIndex++;

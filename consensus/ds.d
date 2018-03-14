@@ -22,7 +22,7 @@ public class DempsterShafer
         ref in int l) pure
     {
         import std.algorithm : sum;
-        import std.conv : to;
+        import std.conv      : to;
 
         auto payoff = new double[l];
         auto choiceSum = choices[0 .. l].sum;
@@ -385,9 +385,9 @@ public class DempsterShafer
     unittest
     {
         import std.algorithm.comparison : equal;
-        import std.math : approxEqual;
+        import std.math   : approxEqual;
         import std.random : Random;
-        import std.stdio : writeln;
+        import std.stdio  : writeln;
 
         writeln("Unit tests:\tmassEvidence");
 

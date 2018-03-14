@@ -19,7 +19,7 @@ public final class Agent
     auto beliefs(ref double[] beliefs)
     {
         import std.string : format;
-        import std.conv : to;
+        import std.conv   : to;
 
         this.mBeliefs = beliefs;
         string tempProp;
