@@ -282,8 +282,8 @@ void main(string[] args)
                     inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
                     entropyResults[iterIndex][test]    = format("%.4f", entropy);
                     uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
-                    bestChoiceResults[iterIndex][test] = format(".4%f", bestBelief);
-                    cardMassResults[iterIndex][test]   = format(".4%f", cardinality);
+                    bestChoiceResults[iterIndex][test] = format("%.4f", bestBelief);
+                    cardMassResults[iterIndex][test]   = format("%.4f", cardinality);
 
                     payoffResults[iterIndex][test] = format(
                         "%.4f",
@@ -301,87 +301,76 @@ void main(string[] args)
                     );
                     iterIndex++;
                 }
-
                 /*
-                 * Only conduct interactions if agents have not yet reached
-                 * consensus.
-                 */
-
-                if (/*uniqueBeliefs.length >*/ 1)
+                    * Begin by combining each agent's mass function with the new
+                    * evidence mass function, which serves as a form of 'payoff'
+                    * assumed to be received when the agent assesses its choice
+                    * e.g. when a honeybee visits a site.
+                    */
+                foreach(i, ref agent; population)
                 {
-                    /*
-                     * Begin by combining each agent's mass function with the new
-                     * evidence mass function, which serves as a form of 'payoff'
-                     * assumed to be received when the agent assesses its choice
-                     * e.g. when a honeybee visits a site.
-                     */
-                    foreach(i, ref agent; population)
+                    agent.beliefs = Operators.ruleOfCombination(
+                        powerSet,
+                        agent.beliefs,
+                        DempsterShafer.randMassEvidence(
+                            powerSet,
+                            qualities,
+                            rand
+                        )
+                    );
+                }
+
+                bool consistent;
+                double inconsistency;
+                Agent selected;
+                int selection;
+
+                foreach (i, ref agent; population)
+                {
+                    consistent = true;
+
+                    do selection = uniform(0, n, rand);
+                    while (i == selection);
+                    selected = population[selection];
+
+                    /*if (threshold != 100)
                     {
-                        agent.beliefs = Operators.ruleOfCombination(
+                        inconsistency = DempsterShafer.inconsistency(
+                            agent.beliefs,
+                            selected.beliefs,
+                            belLength
+                        );
+
+                        if ((inconsistency * 100) > threshold)
+                            consistent = false;
+                    }*/
+
+                    auto newBeliefs = agent.beliefs;
+
+                    if (consistent)
+                    {
+                        // Form a new belief via Dempster-Shafer rule
+                        // of combination.
+                        newBeliefs = Operators.ruleOfCombination(
                             powerSet,
                             agent.beliefs,
-                            DempsterShafer.randMassEvidence(
-                                powerSet,
-                                qualities,
-                                rand
-                            )
+                            selected.beliefs
                         );
                     }
 
-                    bool consistent;
-                    double inconsistency;
-                    Agent selected;
-                    int selection;
+                    immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                        qualities,
+                        powerSet,
+                        newBeliefs
+                    );
 
-                    foreach (i, ref agent; population)
-                    {
-                        consistent = true;
-
-                        do selection = uniform(0, n, rand);
-                        while (i == selection);
-                        selected = population[selection];
-
-                        /*if (threshold != 100)
-                        {
-                            inconsistency = DempsterShafer.inconsistency(
-                                agent.beliefs,
-                                selected.beliefs,
-                                belLength
-                            );
-
-                            if ((inconsistency * 100) > threshold)
-                                consistent = false;
-                        }*/
-
-                        auto newBeliefs = agent.beliefs;
-
-                        if (consistent)
-                        {
-                            // Form a new belief via Dempster-Shafer rule
-                            // of combination.
-                            newBeliefs = Operators.ruleOfCombination(
-                                powerSet,
-                                agent.beliefs,
-                                selected.beliefs
-                            );
-                        }
-
-                        immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                            qualities,
-                            powerSet,
-                            newBeliefs
-                        );
-
-                        agent.beliefs = newBeliefs;
-                        agent.payoff  = newPayoff;
-                        payoffMap[i]  = newPayoff;
-                        agent.incrementInteractions;
-                    }
+                    agent.beliefs = newBeliefs;
+                    agent.payoff  = newPayoff;
+                    payoffMap[i]  = newPayoff;
+                    agent.incrementInteractions;
                 }
             }
         }
-
-        //writeln();
 
         // Write results to disk for current threshold
         string fileName;
