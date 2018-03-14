@@ -19,8 +19,8 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 2_000; //50_000
-    immutable auto iterStep = iterations / 20; // iterations / 100
+    immutable auto iterations = 1_00; //50_000
+    immutable auto iterStep = iterations / 1; // iterations / 100
     immutable auto thresholdStep = 2;
     immutable auto testSet = 100; // 100
     immutable double evidenceNoise = 1.0;
@@ -116,6 +116,8 @@ void main(string[] args)
     auto uniqueResults      = new string[][](arraySize, testSet);
     auto payoffResults      = new string[][](arraySize, testSet);
     auto maxPayoffResults   = new string[][](arraySize, testSet);
+    auto bestChoiceResults  = new string[][](arraySize, testSet);
+    auto cardMassResults    = new string[][](arraySize, testSet);
 
     // Initialize the population of agents according to population size l
     auto population = new Agent[n];
@@ -135,6 +137,13 @@ void main(string[] args)
     auto powerSet = DempsterShafer.generatePowerSet(l);
     auto belLength = to!int(powerSet.length);
     writeln(powerSet);
+
+    // Find the choice with the highest payoff, and store its index in the power set.
+    int bestChoice = qualities.maxIndex.to!int;
+    foreach (int i, ref set; powerSet)
+        if (set.length == 1)
+            if (set[0] == bestChoice)
+               bestChoice = i;
 
     /*
      * Main test loop;
@@ -201,7 +210,7 @@ void main(string[] args)
 
             int iterIndex;
             double[][] uniqueBeliefs;
-            double distance, entropy, inconsist;
+            double distance, entropy, inconsist, bestBelief, cardinality;
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
@@ -209,18 +218,14 @@ void main(string[] args)
                  * Extract the data for each agent in the population, to be used
                  * throughout the simulation as well as for plotting results later.
                  */
-                if (
-                        (
-                            iter % (iterations / iterStep) == 0 //&& uniqueBeliefs.length > 1
-                        ) || iter == 0
-                    )
+                if (iter % (iterations / iterStep) == 0)
                 {
                     uniqueBeliefs.length = 0;
-                    distance = entropy = inconsist = 0.0;
+                    distance = entropy = inconsist = bestBelief = cardinality = 0.0;
 
                     foreach (i, ref agent; population)
                     {
-                        double[] beliefs = agent.beliefs;
+                        auto beliefs = agent.beliefs;
 
                         append = true;
                         foreach (unique; uniqueBeliefs)
@@ -239,7 +244,7 @@ void main(string[] args)
 
                         // Calculate average distance of agents to identify
                         // possible consensus of the population
-                        auto distanceHold = 0.0;
+                        /* auto distanceHold = 0.0;
                         foreach (ref cmpAgent; population[i + 1 .. $])
                         {
                             if (agent == cmpAgent) continue;
@@ -254,39 +259,44 @@ void main(string[] args)
                                 cmpAgent.beliefs,
                                 belLength
                             );
+                        } */
+
+                        bestBelief += beliefs[bestChoice];
+
+                        foreach (j, ref bel; beliefs)
+                        {
+                            cardinality += bel * powerSet[j].length;
                         }
                     }
 
                     distance = (2 * distance) / (n * (n - 1));
                     entropy /= n;
                     inconsist = (2 * inconsist) / (n * (n - 1));
-                }
+                    bestBelief /= n;
+                    cardinality /= n;
 
-                /*
-                 * Enter data into the results arrays, at set intervals and when the
-                 * simulation has reached the final iteration.
-                 */
-                if ((iter % (iterations / iterStep) == 0 ) || iter == iterations)
-                {
-                    distanceResults[iterIndex][test]    = format("%.4f", distance);
-                    inconsistResults[iterIndex][test]   = format("%.4f", inconsist);
-                    entropyResults[iterIndex][test]     = format("%.4f", entropy);
-                    uniqueResults[iterIndex][test]      = format("%d", uniqueBeliefs.length);
+                    // Format and tore the resulting simulation data into their
+                    // respective arrays.
+
+                    distanceResults[iterIndex][test]   = format("%.4f", distance);
+                    inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
+                    entropyResults[iterIndex][test]    = format("%.4f", entropy);
+                    uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
+                    bestChoiceResults[iterIndex][test] = format(".4%f", bestBelief);
+                    cardMassResults[iterIndex][test]   = format(".4%f", cardinality);
 
                     payoffResults[iterIndex][test] = format(
                         "%.4f",
                         (
                             (
-                                DempsterShafer.totalPayoff(payoffMap, 0.0) /
-                                qualities[$-1]
+                                DempsterShafer.totalPayoff(payoffMap, 0.0)
                             ) / n
                         ) * 100
                     );
                     maxPayoffResults[iterIndex][test] = format(
                         "%.4f",
                         (
-                            DempsterShafer.maxPayoff(payoffMap) /
-                            qualities[$-1]
+                            DempsterShafer.maxPayoff(payoffMap)
                         ) * 100
                     );
                     iterIndex++;
@@ -310,16 +320,13 @@ void main(string[] args)
                         agent.beliefs = Operators.ruleOfCombination(
                             powerSet,
                             agent.beliefs,
-                            DempsterShafer.massEvidence(
+                            DempsterShafer.randMassEvidence(
                                 powerSet,
                                 qualities,
                                 rand
                             )
                         );
-                        //if (iter == 1000)
-                        //    writeln("Post-belief: ", agent.beliefs);
                     }
-                    //if (iter == 1000) writeln(uniqueBeliefs);
 
                     bool consistent;
                     double inconsistency;
@@ -330,7 +337,6 @@ void main(string[] args)
                     {
                         consistent = true;
 
-                        //do selected = population.choice(rand);
                         do selection = uniform(0, n, rand);
                         while (i == selection);
                         selected = population[selection];
@@ -351,7 +357,8 @@ void main(string[] args)
 
                         if (consistent)
                         {
-                            // Need to form Dempster-Shafer combination here
+                            // Form a new belief via Dempster-Shafer rule
+                            // of combination.
                             newBeliefs = Operators.ruleOfCombination(
                                 powerSet,
                                 agent.beliefs,
@@ -366,8 +373,8 @@ void main(string[] args)
                         );
 
                         agent.beliefs = newBeliefs;
-                        agent.payoff = newPayoff;
-                        payoffMap[i] = newPayoff;
+                        agent.payoff  = newPayoff;
+                        payoffMap[i]  = newPayoff;
                         agent.incrementInteractions;
                     }
                 }
@@ -441,14 +448,14 @@ void main(string[] args)
         writeToFile(directory, fileName, append, distanceResults);*/
 
         // Inconsistency
-        fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        /* fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, inconsistResults);
+        writeToFile(directory, fileName, append, inconsistResults); */
 
         // Entropy
-        fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        /* fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, entropyResults);
+        writeToFile(directory, fileName, append, entropyResults); */
 
         // Unique Beliefs
         fileName = "unique_beliefs" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
@@ -464,6 +471,16 @@ void main(string[] args)
         fileName = "max_payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, maxPayoffResults);
+
+        // Best-choice belief
+        fileName = "average_belief" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        writeToFile(directory, fileName, append, bestChoiceResults);
+
+        // Cardinality
+        fileName = "cardinality" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        writeToFile(directory, fileName, append, cardMassResults);
     }
 }
 

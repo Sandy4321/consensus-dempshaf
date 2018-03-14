@@ -9,12 +9,6 @@ import dempshaf.importidiom;
 public class DempsterShafer
 {
     /**
-     * Keep track of the total maximal payoff. Useful for calculating convergence
-     * in the payoff model.
-     */
-    static auto maximalPayoff = 0.0;
-
-    /**
      * Generate the payoff model.
      */
     static double[] generatePayoff(
@@ -44,7 +38,7 @@ public class DempsterShafer
         import std.algorithm : maxElement;
 
         double payoff = 0.0;
-        auto maxPayoff = payoffs.maxElement;
+        auto maximalPayoff = payoffs.maxElement;
         auto pignistic = new double[](payoffs.length);
         pignistic[] = 0;
 
@@ -61,7 +55,7 @@ public class DempsterShafer
            payoff += prob * payoffs[i];
         }
 
-        return payoff/maxPayoff;
+        return payoff/maximalPayoff;
     }
 
     /**
@@ -349,7 +343,10 @@ public class DempsterShafer
     }
 
     /**
-     * Calculates the mass assignment of an agent's belief and plausibility measures.
+     * Calculates the evidential mass assignment based on the agent's current
+     * beliefs. This prioritises the most dominant choice to receive feedback (payoff
+     * so that more accurate beliefs are reinforced, and inaccurate beliefs are
+     * punished.
      */
     static auto massEvidence(
         ref in int[][] powerSet,
@@ -385,6 +382,53 @@ public class DempsterShafer
 
         auto qualities = [0.8, 0.2];
         auto massFunction = massEvidence(powerSet, qualities, rand);
+        auto temp = [0.8, 0, 0.2];
+        // It is necessary to use approxEqual here in the element-wise comparison
+        // of arrays because you're comparing doubles which can result in them
+        // printing the same out, but not actually being comparatively equivalent.
+        assert(equal!approxEqual(massFunction, temp));
+
+        writeln("\t\tPASSED.");
+    }
+
+    /**
+     * Calculates the evidential mass assignment, selecting a quality value
+     * at random.
+     */
+    static auto randMassEvidence(
+        ref in int[][] powerSet,
+        ref in double[] qualities,
+        ref from!"std.random".Random rand) pure
+    {
+        import std.random : uniform;
+
+        auto choice = uniform(0, qualities.length, rand);
+        auto massFunction = new double[](powerSet.length);
+        massFunction[] = 0.0;
+
+        massFunction[choice] = qualities[choice];
+        massFunction[$-1] = 1.0 - qualities[choice];
+
+        return massFunction;
+    }
+
+    unittest
+    {
+        import std.algorithm.comparison : equal;
+        import std.math   : approxEqual;
+        import std.random : Random;
+        import std.stdio  : writeln;
+
+        writeln("Unit tests:\trandMassEvidence");
+
+        auto rand = Random();
+
+        auto l = 2;
+        auto powerSet = generatePowerSet(l);
+        assert(powerSet == [[0], [1], [0, 1]]);
+
+        auto qualities = [0.8, 0.2];
+        auto massFunction = randMassEvidence(powerSet, qualities, rand);
         auto temp = [0.8, 0, 0.2];
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
