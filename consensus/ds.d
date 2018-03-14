@@ -69,14 +69,9 @@ public class DempsterShafer
      */
     static double minPayoff(ref in double[] payoffMap) pure
     {
-        auto payoff = double.infinity;
-        foreach(ref value; payoffMap)
-        {
-            if (value < payoff)
-                payoff = value;
-        }
+        import std.algorithm.searching : minElement;
 
-        return payoff;
+        return payoffMap.minElement;
     }
 
     /**
@@ -84,13 +79,9 @@ public class DempsterShafer
      */
     static double maxPayoff(ref in double[] payoffMap) pure
     {
-        auto payoff = double.infinity * -1;
-        foreach(ref value; payoffMap)
-        {
-            if (value > payoff) payoff = value;
-        }
+        import std.algorithm.searching : maxElement;
 
-        return payoff;
+        return payoffMap.maxElement;
     }
 
     /**
@@ -100,13 +91,9 @@ public class DempsterShafer
         ref in double[] payoffMap,
         in double minPayoff) pure
     {
-        double payoff = 0.0;
-        foreach(ref value; payoffMap)
-        {
-            payoff += value - minPayoff;
-        }
+        import std.algorithm.iteration;
 
-        return payoff;
+        return payoffMap.map!(x => x - minPayoff).sum;
     }
 
     /**
@@ -126,7 +113,6 @@ public class DempsterShafer
         immutable auto n = payoffMap.length;
         double payoff, choice;
 
-        //auto minPayoff = DempsterShafer.minPayoff(payoffMap);
         auto totalPayoff = DempsterShafer.totalPayoff(payoffMap, 0);
 
         while(select < amt)
