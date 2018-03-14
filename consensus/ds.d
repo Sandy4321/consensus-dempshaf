@@ -281,7 +281,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static auto generatePowerSet(ref in int l) pure
+    static auto ref generatePowerSet(ref in int l) pure
     {
         import std.algorithm : sort;
 
@@ -348,7 +348,7 @@ public class DempsterShafer
      * so that more accurate beliefs are reinforced, and inaccurate beliefs are
      * punished.
      */
-    static auto massEvidence(
+    static auto ref massEvidence(
         ref in int[][] powerSet,
         ref in double[] qualities,
         ref from!"std.random".Random rand) pure
@@ -395,7 +395,7 @@ public class DempsterShafer
      * Calculates the evidential mass assignment, selecting a quality value
      * at random.
      */
-    static auto randMassEvidence(
+    static auto ref randMassEvidence(
         ref in int[][] powerSet,
         ref in double[] qualities,
         ref from!"std.random".Random rand) pure
@@ -441,7 +441,7 @@ public class DempsterShafer
     /**
      * Calculates the mass assignment of an agent's belief and plausibility measures.
      */
-    static auto massFunction(
+    static auto ref massFunction(
         ref in double[][] powerSet,
         ref in double[] beliefs) pure
     {
@@ -449,9 +449,32 @@ public class DempsterShafer
     }
 
     /**
+     * Generates the pignistic (uniform) probability distribution from an
+     * agent's mass function.
+     */
+    static auto ref pignisticDist(
+        ref in int[][] powerSet,
+        ref in int l,
+        ref in double[] beliefs) pure
+    {
+        auto pignistic = new double[](l);
+        pignistic[] = 0;
+
+        foreach (i, ref set; powerSet)
+        {
+            foreach (ref choice; set)
+            {
+                pignistic[choice] += beliefs[i]/set.length;
+            }
+        }
+
+        return pignistic;
+    }
+
+    /**
      * Calculates the belief assignment from an agent's mass function.
      */
-    static auto beliefAssignment(
+    static auto ref beliefAssignment(
         ref in double[][] powerSet,
         ref in double[][] masses) pure
     {
