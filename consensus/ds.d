@@ -79,7 +79,7 @@ public class DempsterShafer
     }
 
     /**
-     * Calculate the total payoff of the population
+     * Calculate the total payoff of the population.
      */
     static double totalPayoff(
         ref in double[] payoffMap,
@@ -167,62 +167,26 @@ public class DempsterShafer
     }*/
 
     /**
-     * Takes opinions and probability distributions for both agents and calculates
-     * the distance between both agents on a world-belief basis.
-     */
-    /*static double valuationDistance(
-        in int[][][] opinions1, in double[2][] p1,
-        in int[][][] opinions2, in double[2][] p2) pure
-    {
-        import std.math : sqrt;
-
-        auto agent1 = opinions1;
-        auto agent2 = opinions2;
-        auto prob1 = p1;
-        auto prob2 = p2;
-
-        double distance = 0.0;
-        auto counter = new int[agent2.length];
-
-        foreach (i, ref opinion1; agent1)
-        {
-            bool found;
-            foreach(int j, ref opinion2; agent2)
-            {
-                if (opinion1 == opinion2)
-                {
-                    distance += ((1.0 / sqrt(2.0)) * sqrt((sqrt(prob1[i]) - sqrt(prob2[j])) ^^2));
-                    counter[j]++;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
-            {
-                distance += ((1.0 / sqrt(2.0)) * sqrt(prob1[i]));
-            }
-        }
-        foreach (int i, ref j; counter)
-        {
-            if (!j) distance += ((1.0 / sqrt(2.0)) * sqrt((0.0 - sqrt(prob2[i])) ^^2));
-        }
-        return distance;
-    }*/
-
-    /**
-     * Need to find a good distance measure for Dempster-Shafer Theory..
-     * This distance measure is a placeholder for now.
+     * The Hellinger distance for two discrete probability distributions,
+     * applied to the pignistic distributions of each agent's beliefs.
      */
     static double distance(
+        ref in int[][] powerSet,
+        ref in int l,
         ref in double[] beliefs1,
-        ref in double[] beliefs2,
-        ref in int l) pure
+        ref in double[] beliefs2) pure
     {
         import std.math : sqrt;
 
-        double distance = 1.0;
+        auto pignisticBel1 = pignisticDist(powerSet, l, beliefs1);
+        auto pignisticBel2 = pignisticDist(powerSet, l, beliefs2);
 
-        // TODO: IMPLEMENT DISTANCE MEASURE
+        double distance = 0.0;
+        double sum = 0.0;
+        foreach (i; 0 .. l)
+            sum += (sqrt(pignisticBel1[i]) - sqrt(pignisticBel2[i])) ^^2;
+
+        distance += (1.0 / sqrt(2.0)) * sqrt(sum);
 
         return distance;
     }
@@ -262,16 +226,19 @@ public class DempsterShafer
      * Inconsistency measure between two beliefs.
      */
     static double inconsistency(
+        ref in int[][] powerSet,
+        ref in int l,
         ref in double[] beliefs1,
-        ref in double[] beliefs2,
-        ref in int l) pure
+        ref in double[] beliefs2) pure
     {
+        auto pignisticBel1 = pignisticDist(powerSet, l, beliefs1);
+        auto pignisticBel2 = pignisticDist(powerSet, l, beliefs2);
+
         double inconsistency = 0.0;
-        foreach (prop; 0 .. l)
+
+        foreach (i; 0 .. l)
         {
-            //inconsistency += (beliefs1[prop][0] * (1.0 - beliefs2[prop][1])) +
-            //    ((1.0 - beliefs1[prop][1]) * beliefs2[prop][0]);
-            inconsistency += 1.0;
+            inconsistency += (pignisticBel1[i] * (1.0 - pignisticBel2[i]));
         }
 
         return (inconsistency / l);
@@ -469,6 +436,11 @@ public class DempsterShafer
         }
 
         return pignistic;
+    }
+
+    unittest
+    {
+
     }
 
     /**

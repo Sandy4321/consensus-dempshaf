@@ -244,22 +244,24 @@ void main(string[] args)
 
                         // Calculate average distance of agents to identify
                         // possible consensus of the population
-                        /* auto distanceHold = 0.0;
+                        auto distanceHold = 0.0;
                         foreach (ref cmpAgent; population[i + 1 .. $])
                         {
                             if (agent == cmpAgent) continue;
                             distanceHold = DempsterShafer.distance(
+                                powerSet,
+                                l,
                                 beliefs,
-                                cmpAgent.beliefs,
-                                belLength
+                                cmpAgent.beliefs
                             );
                             distance += distanceHold;
                             inconsist += DempsterShafer.inconsistency(
+                                powerSet,
+                                l,
                                 beliefs,
-                                cmpAgent.beliefs,
-                                belLength
+                                cmpAgent.beliefs
                             );
-                        } */
+                        }
 
                         bestBelief += beliefs[bestChoice];
 
@@ -338,7 +340,7 @@ void main(string[] args)
                         inconsistency = DempsterShafer.inconsistency(
                             agent.beliefs,
                             selected.beliefs,
-                            belLength
+                            l
                         );
 
                         if ((inconsistency * 100) > threshold)
@@ -432,14 +434,14 @@ void main(string[] args)
         auto append = "w";
 
         // Distance
-        /*fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, distanceResults);*/
+        writeToFile(directory, fileName, append, distanceResults);
 
         // Inconsistency
-        /* fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, inconsistResults); */
+        writeToFile(directory, fileName, append, inconsistResults);
 
         // Entropy
         /* fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
