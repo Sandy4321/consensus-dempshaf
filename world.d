@@ -240,7 +240,7 @@ void main(string[] args)
                         if (append) uniqueBeliefs ~= beliefs;
 
                         // Calculate average entropy of agents' beliefs
-                        entropy += DempsterShafer.entropy(beliefs, belLength);
+                        entropy += DempsterShafer.entropy(powerSet, l, beliefs);
 
                         // Calculate average distance of agents to identify
                         // possible consensus of the population
@@ -327,13 +327,15 @@ void main(string[] args)
                 Agent selected;
                 int selection;
 
-                foreach (i, ref agent; population)
+                auto snapshotPopulation = population.dup;
+
+                foreach (i, ref agent; snapshotPopulation)
                 {
                     consistent = true;
 
                     do selection = uniform(0, n, rand);
                     while (i == selection);
-                    selected = population[selection];
+                    selected = snapshotPopulation[selection];
 
                     /*if (threshold != 100)
                     {
@@ -444,9 +446,9 @@ void main(string[] args)
         writeToFile(directory, fileName, append, inconsistResults);
 
         // Entropy
-        /* fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
+        fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
          ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
-        writeToFile(directory, fileName, append, entropyResults); */
+        writeToFile(directory, fileName, append, entropyResults);
 
         // Unique Beliefs
         fileName = "unique_beliefs" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)

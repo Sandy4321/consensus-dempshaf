@@ -132,41 +132,6 @@ public class DempsterShafer
     }
 
     /**
-     * Calculates the Hellinger distance between two probability distributions.
-     */
-    /*static double distance(
-        in double[2][] beliefs1,
-        in double[2][] beliefs2,
-        ref in int l) pure
-    {
-        import std.math : sqrt;
-
-        double distance = 0.0;
-        foreach (i; 0 .. l)
-        {
-            double sum = 0.0;
-
-            // True
-            sum += (sqrt(beliefs1[i][0]) - sqrt(beliefs2[i][0])) ^^2;
-
-            // Borderline
-            auto one = (beliefs1[i][1] - beliefs1[i][0] < 0) ?
-                0 : beliefs1[i][1] - beliefs1[i][0];
-            auto two = (beliefs2[i][1] - beliefs2[i][0] < 0) ?
-                0 : beliefs2[i][1] - beliefs2[i][0];
-            sum += (sqrt(one) - sqrt(two)) ^^2;
-
-            // False
-            one = (1.0 - beliefs1[i][1]) < 0 ? 0 : 1.0 - beliefs1[i][1];
-            two = (1.0 - beliefs2[i][1]) < 0 ? 0 : 1.0 - beliefs2[i][1];
-            sum += (sqrt(one) - sqrt(two)) ^^2;
-
-            distance += (1.0 / sqrt(2.0)) * sqrt(sum);
-        }
-        return distance / cast(double) l;   // Normalise distance over all propositions
-    }*/
-
-    /**
      * The Hellinger distance for two discrete probability distributions,
      * applied to the pignistic distributions of each agent's beliefs.
      */
@@ -195,31 +160,25 @@ public class DempsterShafer
      * Calculates the entropy of an agent's beliefs: a measure of uncertainty.
      */
     static double entropy(
-        ref in double[] beliefs,
-        ref in int l) pure
+        ref in int[][] powerSet,
+        ref in int l,
+        ref in double[] beliefs) pure
     {
-        import std.math : log, log2;
+        import std.math : approxEqual;
+        import std.math : log2;
 
-        double entropy = 1.0;
-        /*double one, two, logOne, logTwo, logThree = 0.0;
+        auto pignisticBel = pignisticDist(powerSet, l, beliefs);
 
-        foreach (belief; beliefs)
+        double entropy = 0.0;
+
+        foreach (belief; pignisticBel)
         {
-            one = (belief[1] - belief[0]) < 0 ? 0 : (belief[1] - belief[0]);
-            two = (1.0 - belief[1]) < 0 ? 0 : 1.0 - belief[1];
+            if (approxEqual(belief, 0.0))
+                continue;
+            entropy -= belief * log2(belief);
+        }
 
-            logOne = (belief[0] == 0 ? 0 : log2(belief[0]));
-            logTwo = (one == 0 ? 0 : log2(one));
-            logThree = (two == 0 ? 0 : log2(two));
-
-            entropy -= (belief[0] * logOne)
-                    + (one * logTwo)
-                    + (two * logThree);
-        }*/
-
-        // TODO: IMPLEMENT ENTROPY MEASURE
-
-        return entropy / l;
+        return entropy;
     }
 
     /**
@@ -396,11 +355,10 @@ public class DempsterShafer
 
         auto qualities = [0.8, 0.2];
         auto massFunction = randMassEvidence(powerSet, qualities, rand);
-        auto temp = [0.8, 0, 0.2];
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(equal!approxEqual(massFunction, temp));
+        assert(equal!approxEqual(massFunction, [0.8, 0, 0.2]));
 
         writeln("\t\tPASSED.");
     }
@@ -440,7 +398,24 @@ public class DempsterShafer
 
     unittest
     {
+        import std.algorithm.comparison : equal;
+        import std.math   : approxEqual;
+        import std.stdio  : writeln;
 
+        writeln("Unit tests:\tpignisticDist");
+
+        auto l = 2;
+        auto powerSet = generatePowerSet(l);
+
+        double[] probDist = [0.2, 0.2, 0.6];
+        auto uniformDist = pignisticDist(powerSet, l, probDist);
+        assert(equal!approxEqual(uniformDist, [0.5,0.5]));
+
+        probDist = [0.2, 0.1, 0.7];
+        uniformDist = pignisticDist(powerSet, l, probDist);
+        assert(equal!approxEqual(uniformDist, [0.55,0.45]));
+
+        writeln("\t\tPASSED.");
     }
 
     /**
