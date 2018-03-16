@@ -9,6 +9,9 @@
 # Sublime Text #
 *.sublime*
 
+# VSCode #
+*.code*
+
 # Results Directory #
 results/
 

@@ -8,7 +8,7 @@ public final class Operators
     /**
      * Consensus operator for uncertain three-valued beliefs.
      */
-    static auto beliefConsensus(
+    static auto ref beliefConsensus(
         ref in double[2][] beliefs1,
         ref in double[2][] beliefs2) pure
     {

@@ -117,8 +117,7 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.025, 0.025, 0.05, 0.1, 0.8];
-    assert(qualities.sum == 1.0);
+    auto qualities = [0.825, 0.85, 0.85, 0.88, 0.9];
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -317,7 +316,7 @@ void main(string[] args)
 
                 auto snapshotPopulation = population.dup;
 
-                foreach (i, ref agent; snapshotPopulation)
+                foreach (i, ref agent; population)
                 {
                     consistent = true;
 

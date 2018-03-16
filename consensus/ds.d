@@ -11,7 +11,7 @@ public class DempsterShafer
     /**
      * Generate the payoff model.
      */
-    static double[] generatePayoff(
+    static auto ref generatePayoff(
         ref in int[] choices,
         ref in int l) pure
     {
@@ -30,7 +30,7 @@ public class DempsterShafer
     /**
      * Calculate the payoff associated with a given belief.
      */
-    static double calculatePayoff(
+    static auto ref calculatePayoff(
         ref in double[] payoffs,
         ref in int[][] powerSet,
         ref in double[] beliefs) pure
@@ -61,7 +61,7 @@ public class DempsterShafer
     /**
      * Calculate the minimum payoff value present in the population.
      */
-    static double minPayoff(ref in double[] payoffMap) pure
+    static auto ref minPayoff(ref in double[] payoffMap) pure
     {
         import std.algorithm.searching : minElement;
 
@@ -71,7 +71,7 @@ public class DempsterShafer
     /**
      * Calculate the maximum payoff value present in the population.
      */
-    static double maxPayoff(ref in double[] payoffMap) pure
+    static auto ref maxPayoff(ref in double[] payoffMap) pure
     {
         import std.algorithm.searching : maxElement;
 
@@ -81,7 +81,7 @@ public class DempsterShafer
     /**
      * Calculate the total payoff of the population.
      */
-    static double totalPayoff(
+    static auto ref totalPayoff(
         ref in double[] payoffMap,
         in double minPayoff) pure
     {
@@ -94,7 +94,7 @@ public class DempsterShafer
      * The selection algorithm for selecting two pairs of agents based on the
      * roulette-wheel selection method seen in genetic algorithms.
      */
-    static int[] rouletteSelection(
+    static auto ref rouletteSelection(
         ref from!"std.random".Random rand,
         ref double[] payoffMap,
         ref int l,
@@ -135,7 +135,7 @@ public class DempsterShafer
      * The Hellinger distance for two discrete probability distributions,
      * applied to the pignistic distributions of each agent's beliefs.
      */
-    static double distance(
+    static auto ref distance(
         ref in int[][] powerSet,
         ref in int l,
         ref in double[] beliefs1,
@@ -159,7 +159,7 @@ public class DempsterShafer
     /**
      * Calculates the entropy of an agent's beliefs: a measure of uncertainty.
      */
-    static double entropy(
+    static auto ref entropy(
         ref in int[][] powerSet,
         ref in int l,
         ref in double[] beliefs) pure
@@ -183,7 +183,7 @@ public class DempsterShafer
     /**
      * Inconsistency measure between two beliefs.
      */
-    static double inconsistency(
+    static auto ref inconsistency(
         ref in int[][] powerSet,
         ref in int l,
         ref in double[] beliefs1,
