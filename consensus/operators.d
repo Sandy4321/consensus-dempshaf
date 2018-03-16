@@ -33,15 +33,15 @@ public final class Operators
     }
 
     /**
-     * Consensus operator for uncertain three-valued beliefs.
+     * Consensus operator for Dempster-Shafer mass functions.
      */
 
-    static auto ref ruleOfCombination(
+    static auto ref consensus(
         ref in int[][] powerSet,
         in double[] beliefs1,
         in double[] beliefs2) //pure
     {
-        import std.algorithm;
+        import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual;
 
         auto beliefs = new double[powerSet.length];

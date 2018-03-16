@@ -15,8 +15,8 @@ public class DempsterShafer
         ref in int[] choices,
         ref in int l) pure
     {
-        import std.algorithm : sum;
-        import std.conv      : to;
+        import std.algorithm.iteration : sum;
+        import std.conv : to;
 
         auto payoff = new double[l];
         auto choiceSum = choices[0 .. l].sum;
@@ -35,7 +35,7 @@ public class DempsterShafer
         ref in int[][] powerSet,
         ref in double[] beliefs) pure
     {
-        import std.algorithm : maxElement;
+        import std.algorithm.searching : maxElement;
 
         double payoff = 0.0;
         auto maximalPayoff = payoffs.maxElement;
@@ -85,7 +85,7 @@ public class DempsterShafer
         ref in double[] payoffMap,
         in double minPayoff) pure
     {
-        import std.algorithm.iteration;
+        import std.algorithm.iteration : map, sum;
 
         return payoffMap.map!(x => x - minPayoff).sum;
     }
@@ -164,8 +164,7 @@ public class DempsterShafer
         ref in int l,
         ref in double[] beliefs) pure
     {
-        import std.math : approxEqual;
-        import std.math : log2;
+        import std.math : approxEqual, log2;
 
         auto pignisticBel = pignisticDist(powerSet, l, beliefs);
 
@@ -209,7 +208,7 @@ public class DempsterShafer
      */
     static auto ref generatePowerSet(ref in int l) pure
     {
-        import std.algorithm : sort;
+        import std.algorithm.sorting : sort;
 
         auto powerSet = new int[][]((2^^l));
         auto props = new int[l];
@@ -294,9 +293,9 @@ public class DempsterShafer
     unittest
     {
         import std.algorithm.comparison : equal;
-        import std.math   : approxEqual;
+        import std.math : approxEqual;
         import std.random : Random;
-        import std.stdio  : writeln;
+        import std.stdio : writeln;
 
         writeln("Unit tests:\tmassEvidence");
 
@@ -341,9 +340,9 @@ public class DempsterShafer
     unittest
     {
         import std.algorithm.comparison : equal;
-        import std.math   : approxEqual;
+        import std.math : approxEqual;
         import std.random : Random;
-        import std.stdio  : writeln;
+        import std.stdio : writeln;
 
         writeln("Unit tests:\trandMassEvidence");
 
@@ -399,8 +398,8 @@ public class DempsterShafer
     unittest
     {
         import std.algorithm.comparison : equal;
-        import std.math   : approxEqual;
-        import std.stdio  : writeln;
+        import std.math : approxEqual;
+        import std.stdio : writeln;
 
         writeln("Unit tests:\tpignisticDist");
 

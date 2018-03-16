@@ -6,12 +6,6 @@ import dempshaf.consensus.ds;
 
 import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
 
-version (evidence_only)
-{
-    // VERSION: EVIDENCE_ONLY implies EVIDENCE is also TRUE.
-    version = evidence;
-}
-
 void main(string[] args)
 {
     /*
@@ -19,15 +13,14 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1_00; //50_000
-    immutable auto iterStep = iterations / 1; // iterations / 100
-    immutable auto thresholdStep = 2;
-    immutable auto testSet = 100; // 100
-    immutable double evidenceNoise = 1.0;
+    immutable auto iterations = 1_00;           //50_000
+    immutable auto iterStep = iterations / 1;   // iterations / 100
+    immutable auto thresholdStep = 2;           // 2
+    immutable auto testSet = 100;               // 100
     immutable bool setSeed = true;
 
     bool randomSelect = true, groupSizeSet;
-    int l, n, thresholdStart, thresholdEnd, groupSize = 2, evidenceRate, noiseRate;
+    int l, n, thresholdStart, thresholdEnd, groupSize = 2;
     double pRaw = 0.66;
     int p = 66;
     string boolThreeInit = "three_valued";
@@ -53,7 +46,6 @@ void main(string[] args)
             thresholdEnd = to!int(to!double(s) * 100);
         },
         "random", &randomSelect,
-        "rate", &evidenceRate,
         "group",
         (string _, string s)
         {
@@ -99,10 +91,6 @@ void main(string[] args)
 
     if (groupSizeSet)
         writeln("Group size: ", groupSize);
-    version (evidence)
-        writeln("Random Evidence Allocation: " ~ to!string(evidenceRate) ~ "%");
-    version (noisy)
-        writeln("Evidence Noise Rate: " ~ to!string(noiseRate) ~ "%");
 
     auto seed = setSeed ? 128 : unpredictableSeed;
     auto rand = Random(seed);
@@ -311,7 +299,7 @@ void main(string[] args)
                     */
                 foreach(i, ref agent; population)
                 {
-                    agent.beliefs = Operators.ruleOfCombination(
+                    agent.beliefs = Operators.consensus(
                         powerSet,
                         agent.beliefs,
                         DempsterShafer.randMassEvidence(
@@ -355,7 +343,7 @@ void main(string[] args)
                     {
                         // Form a new belief via Dempster-Shafer rule
                         // of combination.
-                        newBeliefs = Operators.ruleOfCombination(
+                        newBeliefs = Operators.consensus(
                             powerSet,
                             agent.beliefs,
                             selected.beliefs
@@ -389,23 +377,6 @@ void main(string[] args)
         string groupSizeFN;
         if (groupSizeSet)
             groupSizeFN = "_" ~ to!string(groupSize);
-        string evidenceRateFN;
-        version (evidence_only)
-        {
-            evidenceRateFN ~= "_eo_" ~ to!string(evidenceRate);
-        }
-        else
-        {
-            version (evidence)
-            {
-                evidenceRateFN ~= "_ev_" ~ to!string(evidenceRate);
-            }
-        }
-        string noisyEvidence;
-        version (noisy)
-        {
-            noisyEvidence ~= "_noisy_" ~ to!string(noiseRate);
-        }
 
         /*
          * Change the directory to store group results separately from the standard
@@ -437,42 +408,42 @@ void main(string[] args)
 
         // Distance
         fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, distanceResults);
 
         // Inconsistency
         fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, inconsistResults);
 
         // Entropy
         fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, entropyResults);
 
         // Unique Beliefs
         fileName = "unique_beliefs" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, uniqueResults);
 
         // Payoff
         fileName = "payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, payoffResults);
 
         // Maximum payoff
         fileName = "max_payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, maxPayoffResults);
 
         // Best-choice belief
         fileName = "average_belief" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, bestChoiceResults);
 
         // Cardinality
         fileName = "cardinality" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-         ~ evidenceRateFN ~ noisyEvidence ~ "_" ~ fileThreshold ~ fileExt;
+        ~ "_" ~ fileThreshold ~ fileExt;
         writeToFile(directory, fileName, append, cardMassResults);
     }
 }
