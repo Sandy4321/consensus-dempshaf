@@ -1,0 +1,9 @@
+{
+	"name": "dempshaf",
+	"authors": [
+		"michael"
+	],
+	"description": "Dempster-Shafer model of multi-agent consensus.",
+	"copyright": "Copyright © 2018, michael",
+	"license": "MIT"
+}
