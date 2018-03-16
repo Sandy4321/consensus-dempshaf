@@ -1,13 +1,5 @@
-.dub
 docs.json
-__dummy.html
 docs/
-dempshaf.so
-dempshaf.dylib
-dempshaf.dll
-dempshaf.a
-dempshaf.lib
-dempshaf-test-*
 *.exe
 *.o
 *.obj
@@ -21,3 +13,6 @@ dempshaf-test-*
 
 # Results Directory #
 results/
+
+# Executable names on linux
+world
