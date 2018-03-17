@@ -16,7 +16,7 @@ public final class Agent
     /**
      * Set the beliefs of an agent, which is a mass function.
      */
-    auto beliefs(ref double[] beliefs)
+    void beliefs(ref double[] beliefs)
     {
         import std.string : format;
         import std.conv   : to;
@@ -45,7 +45,7 @@ public final class Agent
     /**
      * Set the payoff of an agent.
      */
-    auto ref payoff(ref in double payoff) pure
+    void payoff(ref in double payoff) pure
     {
         this.mPayoff = payoff;
     }
@@ -61,7 +61,7 @@ public final class Agent
     /**
      * Increment the interaction count of the agent.
      */
-    auto ref incrementInteractions() pure
+    void incrementInteractions() pure
     {
         this.interactions++;
     }
@@ -77,7 +77,7 @@ public final class Agent
     /**
      * Reset the agent's interactions count.
      */
-    auto ref resetInteractions() pure
+    void resetInteractions() pure
     {
         this.interactions = 0;
     }
