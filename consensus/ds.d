@@ -275,12 +275,27 @@ public class DempsterShafer
      */
     static auto ref massEvidence(
         ref in int[][] powerSet,
+        ref in int l,
         ref in double[] qualities,
+        ref in double[] beliefs,
         ref from!"std.random".Random rand) pure
     {
-        import std.random : uniform;
+        import std.random : uniform01;
 
-        auto choice = uniform(0, qualities.length, rand);
+        auto pignisticBel = pignisticDist(powerSet, l, beliefs);
+        auto prob = uniform01(rand);
+        auto sum = 0.0;
+        int choice;
+        foreach (int i, ref bel; pignisticBel)
+        {
+            sum += bel;
+            if (sum >= prob)
+            {
+                choice = i;
+                break;
+            }
+        }
+
         auto massFunction = new double[](powerSet.length);
         massFunction[] = 0.0;
 
@@ -294,24 +309,36 @@ public class DempsterShafer
     {
         import std.algorithm.comparison : equal;
         import std.math : approxEqual;
-        import std.random : Random;
+        import std.random : Random, unpredictableSeed;
         import std.stdio : writeln;
 
         writeln("Unit tests:\tmassEvidence");
 
-        auto rand = Random();
+        auto rand = Random(unpredictableSeed);
 
         auto l = 2;
         auto powerSet = generatePowerSet(l);
         assert(powerSet == [[0], [1], [0, 1]]);
 
         auto qualities = [0.8, 0.2];
-        auto massFunction = massEvidence(powerSet, qualities, rand);
-        auto temp = [0.8, 0, 0.2];
+        auto beliefs = [1.0, 0.0, 0.0];
+        auto massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(equal!approxEqual(massFunction, temp));
+        assert(equal!approxEqual(massFunction, [0.8, 0, 0.2]));
+
+        beliefs = [0.0, 1.0, 0.0];
+        massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
+        assert(equal!approxEqual(massFunction, [0, 0.2, 0.8]));
+
+        beliefs = [0.5, 0.5, 0.0];
+        massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
+        assert(
+            equal!approxEqual(massFunction, [0.8, 0, 0.2]) ||
+            equal!approxEqual(massFunction, [0, 0.2, 0.8])
+        );
+
 
         writeln("\t\tPASSED.");
     }
@@ -341,12 +368,12 @@ public class DempsterShafer
     {
         import std.algorithm.comparison : equal;
         import std.math : approxEqual;
-        import std.random : Random;
+        import std.random : Random, unpredictableSeed;
         import std.stdio : writeln;
 
         writeln("Unit tests:\trandMassEvidence");
 
-        auto rand = Random();
+        auto rand = Random(unpredictableSeed);
 
         auto l = 2;
         auto powerSet = generatePowerSet(l);
@@ -357,19 +384,12 @@ public class DempsterShafer
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(equal!approxEqual(massFunction, [0.8, 0, 0.2]));
+        assert(
+            equal!approxEqual(massFunction, [0.8, 0, 0.2]) ||
+            equal!approxEqual(massFunction, [0, 0.2, 0.8])
+        );
 
         writeln("\t\tPASSED.");
-    }
-
-    /**
-     * Calculates the mass assignment of an agent's belief and plausibility measures.
-     */
-    static auto ref massFunction(
-        ref in double[][] powerSet,
-        ref in double[] beliefs) pure
-    {
-        return;
     }
 
     /**
@@ -415,15 +435,5 @@ public class DempsterShafer
         assert(equal!approxEqual(uniformDist, [0.55,0.45]));
 
         writeln("\t\tPASSED.");
-    }
-
-    /**
-     * Calculates the belief assignment from an agent's mass function.
-     */
-    static auto ref beliefAssignment(
-        ref in double[][] powerSet,
-        ref in double[][] masses) pure
-    {
-        return;
     }
 }

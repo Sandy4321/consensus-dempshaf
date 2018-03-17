@@ -8,7 +8,10 @@ We are interested in looking at a range of problems within this model, including
 
 #### Part of project T-B PHASE | 2017 - 2022__
 
+#### Run command:
+
+rdmd -I../ world 5 100 --dist=0 --thrStart=1.0 --thrEnd=1.0
 
 #### Useful notes
 
-- rdmd -I../ -unittest -main dir/filename
+rdmd -I../ -unittest -main dir/filename

@@ -45,7 +45,7 @@ public final class Agent
     /**
      * Set the payoff of an agent.
      */
-    void payoff(ref in double payoff) pure
+    auto ref payoff(ref in double payoff) pure
     {
         this.mPayoff = payoff;
     }
@@ -61,7 +61,7 @@ public final class Agent
     /**
      * Increment the interaction count of the agent.
      */
-    void incrementInteractions() pure
+    auto ref incrementInteractions() pure
     {
         this.interactions++;
     }
@@ -77,7 +77,7 @@ public final class Agent
     /**
      * Reset the agent's interactions count.
      */
-    void resetInteractions() pure
+    auto ref resetInteractions() pure
     {
         this.interactions = 0;
     }

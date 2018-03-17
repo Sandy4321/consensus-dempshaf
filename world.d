@@ -13,7 +13,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1_00;           //50_000
+    immutable auto iterations = 100;           //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto thresholdStep = 2;           // 2
     immutable auto testSet = 100;               // 100
@@ -117,7 +117,7 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.825, 0.85, 0.85, 0.88, 0.9];
+    auto qualities = [0.825, 0.85, 0.85, 0.88, 1.0];
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -301,9 +301,16 @@ void main(string[] args)
                     agent.beliefs = Operators.consensus(
                         powerSet,
                         agent.beliefs,
-                        DempsterShafer.randMassEvidence(
+                        /* DempsterShafer.randMassEvidence(
                             powerSet,
                             qualities,
+                            rand
+                        ) */
+                        DempsterShafer.massEvidence(
+                            powerSet,
+                            l,
+                            qualities,
+                            agent.beliefs,
                             rand
                         )
                     );
