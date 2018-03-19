@@ -347,8 +347,7 @@ void main(string[] args)
 
                     if (consistent)
                     {
-                        // Form a new belief via Dempster-Shafer rule
-                        // of combination.
+                        // Form a new belief via the consensus operator.
                         newBeliefs = Operators.consensus(
                             powerSet,
                             agent.beliefs,
