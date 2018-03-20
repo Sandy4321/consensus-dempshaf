@@ -13,7 +13,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 100;           //50_000
+    immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto thresholdStep = 2;           // 2
     immutable auto testSet = 100;               // 100

@@ -87,4 +87,59 @@ public final class Operators
 
         return beliefs;
     }
+
+    /**
+     * Dempster-Shafer's rule of combination operator.
+     */
+
+    static auto ref combination(
+        ref in int[][] powerSet,
+        in double[] beliefs1,
+        in double[] beliefs2) //pure
+    {
+        import std.algorithm : setIntersection, sort, sum;
+        import std.math : approxEqual;
+
+        auto beliefs = new double[powerSet.length];
+        beliefs[] = 0;
+
+        foreach (i, ref bel1; beliefs1)
+        {
+            // If the mass is 0, skip this set.
+            if (approxEqual(bel1, 0.0))
+                continue;
+            foreach (j, ref bel2; beliefs2)
+            {
+                // If the mass is 0, skip this set.
+                if (approxEqual(bel2, 0.0))
+                    continue;
+
+                int[] currentSet;
+                auto intersection = setIntersection(powerSet[i], powerSet[j]);
+
+                if (intersection.empty)
+                {
+                    // If the intersection is the empty set, add to empty set
+                    // and renormalise later.
+                }
+                else
+                {
+                    // If the intersection is not empty, recreate the intersection set.
+                    foreach (elem; intersection)
+                        currentSet ~= elem;
+                }
+                foreach (k, ref set; powerSet)
+                {
+                    if (currentSet == set)
+                    {
+                        beliefs[k] += bel1 * bel2;
+                    }
+                }
+            }
+        }
+
+        beliefs[] /= beliefs.sum;
+
+        return beliefs;
+    }
 }
