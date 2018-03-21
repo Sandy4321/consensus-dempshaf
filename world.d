@@ -100,7 +100,6 @@ void main(string[] args)
 
     auto seed = setSeed ? 128 : unpredictableSeed;
     auto rand = Random(seed);
-    auto beliefDist = Random(seed);
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
@@ -128,7 +127,7 @@ void main(string[] args)
 
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
-    auto belLength = to!int(powerSet.length);
+    immutable auto belLength = to!int(powerSet.length);
     writeln(powerSet);
 
     // Find the choice with the highest payoff, and store its index in the power set.
@@ -149,7 +148,6 @@ void main(string[] args)
         writeln("threshold value: ", threshold / 100.0);
 
         rand = Random(seed);
-        beliefDist = Random(seed);
 
         /*
          * Test loop;
@@ -395,9 +393,6 @@ void main(string[] args)
         if (randomSelect)
             randomFN = "random_";
         immutable auto fileThreshold = format("%.2f", threshold / 100.0);
-        string groupSizeFN;
-        if (groupSizeSet)
-            groupSizeFN = "_" ~ to!string(groupSize);
 
         /*
          * Change the directory to store group results separately from the standard
