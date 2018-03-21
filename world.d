@@ -132,10 +132,6 @@ void main(string[] args)
 
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;
-    foreach (int i, ref set; powerSet)
-        if (set.length == 1)
-            if (set[0] == bestChoice)
-               bestChoice = i;
 
     /*
      * Main test loop;
