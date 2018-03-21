@@ -283,7 +283,7 @@ public class DempsterShafer
         import std.random : uniform01;
 
         auto pignisticBel = pignisticDist(powerSet, l, beliefs);
-        auto prob = uniform01(rand);
+        immutable auto prob = uniform01(rand);
         auto sum = 0.0;
         int choice;
         foreach (int i, ref bel; pignisticBel)

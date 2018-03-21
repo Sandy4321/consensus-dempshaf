@@ -122,7 +122,7 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.96, 0.97, 0.98, 0.99, 1.0];
+    auto qualities = [0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.0];
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -472,7 +472,7 @@ private void writeToFile(T)(string directory, string fileName, string append, T[
         foreach (j, ref test; index)
         {
             file.write(results[i][j]);
-            file.write((j == results[i].length - 1) ? "\n" : ",");
+            file.write((j == cast(ulong) results[i].length - 1) ? "\n" : ",");
         }
     }
     file.close();
@@ -489,7 +489,7 @@ private void writeBeliefsToFile(T)(string directory, string fileName, string app
             foreach (k, ref belief; test)
             {
                 file.write(results[i][j][k]);
-                file.write((k == results[i][j].length - 1) ? "\n" : ",");
+                file.write((k == cast(ulong) results[i][j].length - 1) ? "\n" : ",");
             }
         }
     }
