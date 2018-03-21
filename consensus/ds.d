@@ -33,14 +33,17 @@ public class DempsterShafer
     static auto ref calculatePayoff(
         ref in double[] payoffs,
         ref in int[][] powerSet,
-        ref in double[] beliefs) pure
+        ref in double[int] beliefs) pure
     {
         import std.algorithm.searching : maxElement;
 
         double payoff = 0.0;
         auto maximalPayoff = payoffs.maxElement;
-        auto pignistic = new double[](payoffs.length);
-        pignistic[] = 0;
+        auto pignistic = pignisticDist(
+            powerSet,
+            payoffs.length,
+            beliefs
+        );
 
         foreach (i, ref set; powerSet)
         {
@@ -138,8 +141,8 @@ public class DempsterShafer
     static auto ref distance(
         ref in int[][] powerSet,
         ref in int l,
-        ref in double[] beliefs1,
-        ref in double[] beliefs2) pure
+        ref in double[int] beliefs1,
+        ref in double[int] beliefs2) pure
     {
         import std.math : sqrt;
 
@@ -162,7 +165,7 @@ public class DempsterShafer
     static auto ref entropy(
         ref in int[][] powerSet,
         ref in int l,
-        ref in double[] beliefs) pure
+        ref in double[int] beliefs) pure
     {
         import std.math : approxEqual, log2;
 
@@ -186,8 +189,8 @@ public class DempsterShafer
     static auto ref inconsistency(
         ref in int[][] powerSet,
         ref in int l,
-        ref in double[] beliefs1,
-        ref in double[] beliefs2) pure
+        ref in double[int] beliefs1,
+        ref in double[int] beliefs2) pure
     {
         auto pignisticBel1 = pignisticDist(powerSet, l, beliefs1);
         auto pignisticBel2 = pignisticDist(powerSet, l, beliefs2);
@@ -277,7 +280,7 @@ public class DempsterShafer
         ref in int[][] powerSet,
         ref in int l,
         ref in double[] qualities,
-        ref in double[] beliefs,
+        ref in double[int] beliefs,
         ref from!"std.random".Random rand) pure
     {
         import std.random : uniform01;
@@ -399,7 +402,7 @@ public class DempsterShafer
     static auto ref pignisticDist(
         ref in int[][] powerSet,
         ref in int l,
-        ref in double[] beliefs) pure
+        ref in double[int] beliefs) pure
     {
         auto pignistic = new double[](l);
         pignistic[] = 0;

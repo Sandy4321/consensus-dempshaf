@@ -163,22 +163,21 @@ void main(string[] args)
 
             foreach (agentIndex, ref agent; population)
             {
-                auto beliefs = new double[](belLength);
+                double[int] beliefs;
                 double payoff;
 
                 // assign uniform masses to the power set P^W.
                 if (pRaw == 1)
                 {
-                    foreach (i; 0 .. belLength)
+                    foreach (int i; 0 .. belLength)
                     {
-                        beliefs[] = 1.0 / belLength;
+                        beliefs[i] = 1.0 / belLength;
                     }
                 }
                 // assign full mass to the set W; complete ignorance.
                 else if (pRaw == 0)
                 {
-                    beliefs[] = 0.0;
-                    beliefs[$-1] = 1.0;
+                    beliefs[belLength - 1] = 1.0;
                 }
 
                 payoff = DempsterShafer.calculatePayoff(
@@ -200,7 +199,7 @@ void main(string[] args)
              */
 
             int iterIndex;
-            double[][] uniqueBeliefs;
+            double[int][] uniqueBeliefs;
             double distance, entropy, inconsist, bestBelief, cardinality;
             bool append;
             foreach (iter; 0 .. iterations + 1)
@@ -302,6 +301,7 @@ void main(string[] args)
                     */
                 foreach(i, ref agent; population)
                 {
+                    // If evidence should be provided for a random choice.
                     version (randomEvidence)
                     {
                         agent.beliefs = Operators.consensus(
@@ -314,6 +314,7 @@ void main(string[] args)
                             )
                         );
                     }
+                    // Else, evidence should favour the most prominent choice.
                     else
                     {
                         agent.beliefs = Operators.consensus(
