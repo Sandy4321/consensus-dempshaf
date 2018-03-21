@@ -89,6 +89,12 @@ void main(string[] args)
     writeln("Threshold end: ", thresholdEnd);
     writeln("Random selection: ", randomSelect);
 
+    write("Evidence Mass: ");
+    version (randomEvidence)
+        writeln("random");
+    else
+        writeln("probabilistic");
+
     if (groupSizeSet)
         writeln("Group size: ", groupSize);
 
@@ -117,7 +123,7 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.825, 0.85, 0.85, 0.88, 1.0];
+    auto qualities = [0.96, 0.97, 0.98, 0.99, 1.0];
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -298,22 +304,32 @@ void main(string[] args)
                     */
                 foreach(i, ref agent; population)
                 {
-                    agent.beliefs = Operators.consensus(
-                        powerSet,
-                        agent.beliefs,
-                        /* DempsterShafer.randMassEvidence(
+                    version (randomEvidence)
+                    {
+                        agent.beliefs = Operators.consensus(
                             powerSet,
-                            qualities,
-                            rand
-                        ) */
-                        DempsterShafer.massEvidence(
-                            powerSet,
-                            l,
-                            qualities,
                             agent.beliefs,
-                            rand
-                        )
-                    );
+                            DempsterShafer.randMassEvidence(
+                                powerSet,
+                                qualities,
+                                rand
+                            )
+                        );
+                    }
+                    else
+                    {
+                        agent.beliefs = Operators.consensus(
+                            powerSet,
+                            agent.beliefs,
+                            DempsterShafer.massEvidence(
+                                powerSet,
+                                l,
+                                qualities,
+                                agent.beliefs,
+                                rand
+                            )
+                        );
+                    }
                 }
 
                 bool consistent;
