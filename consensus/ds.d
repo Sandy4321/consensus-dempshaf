@@ -36,19 +36,16 @@ public class DempsterShafer
         ref in double[] beliefs) pure
     {
         import std.algorithm.searching : maxElement;
+        import std.conv : to;
 
         double payoff = 0.0;
         auto maximalPayoff = payoffs.maxElement;
-        auto pignistic = new double[](payoffs.length);
-        pignistic[] = 0;
-
-        foreach (i, ref set; powerSet)
-        {
-            foreach (ref choice; set)
-            {
-                pignistic[choice] += beliefs[i]/set.length;
-            }
-        }
+        immutable int l = payoffs.length.to!int;
+        auto pignistic = pignisticDist(
+            powerSet,
+            l,
+            beliefs
+        );
 
         foreach (i, ref prob; pignistic)
         {

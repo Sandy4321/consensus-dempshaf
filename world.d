@@ -122,7 +122,7 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.0];
+    auto qualities = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
     writeln(qualities);
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -131,7 +131,7 @@ void main(string[] args)
     writeln(powerSet);
 
     // Find the choice with the highest payoff, and store its index in the power set.
-    int bestChoice = qualities.maxIndex.to!int;
+    immutable int bestChoice = qualities.maxIndex.to!int;
 
     /*
      * Main test loop;
