@@ -62,7 +62,7 @@ for agents in population:
 			if evidence == "":
 				evidence_rate = ""
 			if evidence_rate != "" and lang != 5:
-				continue;
+				continue
 
 			print('rdmd --compiler=ldmd2 -I../ {0}{9}world {1} {2} {3:.2f} {4:.2f} {5:.2f} {6} {7} {8}'.format(
 				boolean,

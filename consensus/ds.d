@@ -39,19 +39,12 @@ public class DempsterShafer
 
         double payoff = 0.0;
         auto maximalPayoff = payoffs.maxElement;
+        immutable int l = payoffs.length;
         auto pignistic = pignisticDist(
             powerSet,
-            payoffs.length,
+            l,
             beliefs
         );
-
-        foreach (i, ref set; powerSet)
-        {
-            foreach (ref choice; set)
-            {
-                pignistic[choice] += beliefs[i]/set.length;
-            }
-        }
 
         foreach (i, ref prob; pignistic)
         {
@@ -407,11 +400,11 @@ public class DempsterShafer
         auto pignistic = new double[](l);
         pignistic[] = 0;
 
-        foreach (i, ref set; powerSet)
+        foreach (ref set; beliefs.byKey)
         {
-            foreach (ref choice; set)
+            foreach (ref choice; powerSet[set])
             {
-                pignistic[choice] += beliefs[i]/set.length;
+                pignistic[choice] += beliefs[set]/powerSet[set].length;
             }
         }
 
