@@ -36,10 +36,11 @@ public class DempsterShafer
         ref in double[int] beliefs) pure
     {
         import std.algorithm.searching : maxElement;
+        import std.conv : to;
 
         double payoff = 0.0;
         auto maximalPayoff = payoffs.maxElement;
-        immutable int l = payoffs.length;
+        immutable int l = payoffs.length.to!int;
         auto pignistic = pignisticDist(
             powerSet,
             l,
@@ -292,11 +293,10 @@ public class DempsterShafer
             }
         }
 
-        auto massFunction = new double[](powerSet.length);
-        massFunction[] = 0.0;
+        double[int] massFunction;
 
         massFunction[choice] = qualities[choice];
-        massFunction[$-1] = 1.0 - qualities[choice];
+        massFunction[l-1] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -317,22 +317,23 @@ public class DempsterShafer
         assert(powerSet == [[0], [1], [0, 1]]);
 
         auto qualities = [0.8, 0.2];
-        auto beliefs = [1.0, 0.0, 0.0];
+        double[int] beliefs;
+        beliefs[0] = 1.0; beliefs[1] = 0.0; beliefs[2] =  0.0;
         auto massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(equal!approxEqual(massFunction, [0.8, 0, 0.2]));
+        assert(equal!approxEqual(massFunction.byValue, [0.8, 0, 0.2]));
 
-        beliefs = [0.0, 1.0, 0.0];
+        beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
         massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
-        assert(equal!approxEqual(massFunction, [0, 0.2, 0.8]));
+        assert(equal!approxEqual(massFunction.byValue, [0, 0.2, 0.8]));
 
-        beliefs = [0.5, 0.5, 0.0];
+        beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
         massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
         assert(
-            equal!approxEqual(massFunction, [0.8, 0, 0.2]) ||
-            equal!approxEqual(massFunction, [0, 0.2, 0.8])
+            equal!approxEqual(massFunction.byValue, [0.8, 0, 0.2]) ||
+            equal!approxEqual(massFunction.byValue, [0, 0.2, 0.8])
         );
 
 
@@ -400,11 +401,11 @@ public class DempsterShafer
         auto pignistic = new double[](l);
         pignistic[] = 0;
 
-        foreach (ref set; beliefs.byKey)
+        foreach (ref key, ref value; beliefs)
         {
-            foreach (ref choice; powerSet[set])
+            foreach (ref choice; powerSet[key])
             {
-                pignistic[choice] += beliefs[set]/powerSet[set].length;
+                pignistic[choice] += value/powerSet[key].length;
             }
         }
 

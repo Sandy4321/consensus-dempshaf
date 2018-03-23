@@ -218,8 +218,13 @@ void main(string[] args)
                         append = true;
                         foreach (unique; uniqueBeliefs)
                         {
-                            // Using approxEqual to adequately compare arrays of doubles.
-                            if (equal!approxEqual(unique, beliefs))
+                            // First compare whether the keys match. If they do, then
+                            // the same subset has already been found. Then, check
+                            // whether the masses for those subsets are the same.
+                            if (
+                                equal(unique.keys, beliefs.keys) &&
+                                equal!approxEqual(unique.values, beliefs.values)
+                            )
                             {
                                 append = false;
                                 break;

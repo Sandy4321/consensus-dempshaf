@@ -38,8 +38,8 @@ public final class Operators
 
     static auto ref consensus(
         ref in int[][] powerSet,
-        in double[] beliefs1,
-        in double[] beliefs2) //pure
+        in double[int] beliefs1,
+        in double[int] beliefs2) //pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual;
@@ -94,8 +94,8 @@ public final class Operators
 
     static auto ref combination(
         ref in int[][] powerSet,
-        in double[] beliefs1,
-        in double[] beliefs2) //pure
+        in double[int] beliefs1,
+        in double[int] beliefs2) //pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual;
