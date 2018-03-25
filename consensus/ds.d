@@ -275,7 +275,7 @@ public class DempsterShafer
         ref in int l,
         ref in double[] qualities,
         ref in double[int] beliefs,
-        ref from!"std.random".Random rand) //pure
+        ref from!"std.random".Random rand) pure
     {
         import std.random : uniform01;
         auto pignisticBel = pignisticDist(powerSet, l, beliefs);
