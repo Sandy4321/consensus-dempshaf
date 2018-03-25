@@ -275,10 +275,9 @@ public class DempsterShafer
         ref in int l,
         ref in double[] qualities,
         ref in double[int] beliefs,
-        ref from!"std.random".Random rand) pure
+        ref from!"std.random".Random rand) //pure
     {
         import std.random : uniform01;
-
         auto pignisticBel = pignisticDist(powerSet, l, beliefs);
         immutable auto prob = uniform01(rand);
         auto sum = 0.0;
@@ -296,7 +295,7 @@ public class DempsterShafer
         double[int] massFunction;
 
         massFunction[choice] = qualities[choice];
-        massFunction[l-1] = 1.0 - qualities[choice];
+        massFunction[(2^^l)-2] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -323,18 +322,26 @@ public class DempsterShafer
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(equal!approxEqual(massFunction.byValue, [0.8, 0, 0.2]));
+        assert(approxEqual(massFunction[0], 0.8));
+        assert(approxEqual(massFunction[2], 0.2));
 
         beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
         massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
-        assert(equal!approxEqual(massFunction.byValue, [0, 0.2, 0.8]));
+        assert(approxEqual(massFunction[1], 0.2));
+        assert(approxEqual(massFunction[2], 0.8));
 
         beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
         massFunction = massEvidence(powerSet, l, qualities, beliefs, rand);
-        assert(
-            equal!approxEqual(massFunction.byValue, [0.8, 0, 0.2]) ||
-            equal!approxEqual(massFunction.byValue, [0, 0.2, 0.8])
-        );
+        if (0 in massFunction)
+            assert(
+                approxEqual(massFunction[0], 0.8) &&
+                approxEqual(massFunction[2], 0.2)
+            );
+        else
+            assert(
+                approxEqual(massFunction[1], 0.2) &&
+                approxEqual(massFunction[2], 0.8)
+            );
 
 
         writeln("\t\tPASSED.");
@@ -349,14 +356,16 @@ public class DempsterShafer
         ref in double[] qualities,
         ref from!"std.random".Random rand) pure
     {
+        import std.conv : to;
         import std.random : uniform;
 
-        auto choice = uniform(0, qualities.length, rand);
-        auto massFunction = new double[](powerSet.length);
-        massFunction[] = 0.0;
+        immutable int l = qualities.length.to!int;
+
+        auto choice = uniform(0, l, rand);
+        double[int] massFunction;
 
         massFunction[choice] = qualities[choice];
-        massFunction[$-1] = 1.0 - qualities[choice];
+        massFunction[(2^^l)-2] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -381,10 +390,16 @@ public class DempsterShafer
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(
-            equal!approxEqual(massFunction, [0.8, 0, 0.2]) ||
-            equal!approxEqual(massFunction, [0, 0.2, 0.8])
-        );
+        if (0 in massFunction)
+            assert(
+                approxEqual(massFunction[0], 0.8) &&
+                approxEqual(massFunction[2], 0.2)
+            );
+        else
+            assert(
+                approxEqual(massFunction[1], 0.2) &&
+                approxEqual(massFunction[2], 0.8)
+            );
 
         writeln("\t\tPASSED.");
     }
@@ -423,11 +438,16 @@ public class DempsterShafer
         auto l = 2;
         auto powerSet = generatePowerSet(l);
 
-        double[] probDist = [0.2, 0.2, 0.6];
+        double[int] probDist;
+        probDist[0] = 0.2;
+        probDist[1] = 0.2;
+        probDist[2] = 0.6;
         auto uniformDist = pignisticDist(powerSet, l, probDist);
         assert(equal!approxEqual(uniformDist, [0.5,0.5]));
 
-        probDist = [0.2, 0.1, 0.7];
+        probDist[0] = 0.2;
+        probDist[1] = 0.1;
+        probDist[2] = 0.7;
         uniformDist = pignisticDist(powerSet, l, probDist);
         assert(equal!approxEqual(uniformDist, [0.55,0.45]));
 

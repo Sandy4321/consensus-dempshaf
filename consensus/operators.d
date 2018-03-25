@@ -39,13 +39,12 @@ public final class Operators
     static auto ref consensus(
         ref in int[][] powerSet,
         in double[int] beliefs1,
-        in double[int] beliefs2) //pure
+        in double[int] beliefs2) pure
     {
         import std.algorithm : find, setIntersection, sort, sum;
         import std.math : approxEqual;
 
         double[int] beliefs;
-        int[] indices;
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -78,14 +77,12 @@ public final class Operators
                     if (currentSet == set)
                     {
                         beliefs[k] += bel1 * bel2;
-                        if (!indices.find(k))
-                            indices ~= k;
                     }
                 }
             }
         }
 
-        foreach (ref index; indices)
+        foreach (ref index; beliefs.byKey)
             beliefs[index] /= beliefs.byValue.sum;
 
         return beliefs;
