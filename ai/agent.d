@@ -8,7 +8,7 @@ public final class Agent
 {
     private
     {
-        double[] mBeliefs;
+        double[int] mBeliefs;
         double mPayoff;
         int interactions;
     }
@@ -16,10 +16,10 @@ public final class Agent
     /**
      * Set the beliefs of an agent, which is a mass function.
      */
-    void beliefs(ref double[] beliefs)
+    void beliefs(ref double[int] beliefs)
     {
         import std.string : format;
-        import std.conv   : to;
+        import std.conv : to;
 
         this.mBeliefs = beliefs;
         string tempProp;

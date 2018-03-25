@@ -38,14 +38,13 @@ public final class Operators
 
     static auto ref consensus(
         ref in int[][] powerSet,
-        in double[] beliefs1,
-        in double[] beliefs2) //pure
+        in double[int] beliefs1,
+        in double[int] beliefs2) pure
     {
-        import std.algorithm : setIntersection, sort, sum;
+        import std.algorithm : find, setIntersection, sort, sum;
         import std.math : approxEqual;
 
-        auto beliefs = new double[powerSet.length];
-        beliefs[] = 0;
+        double[int] beliefs;
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -73,7 +72,7 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (k, ref set; powerSet)
+                foreach (int k, ref set; powerSet)
                 {
                     if (currentSet == set)
                     {
@@ -83,7 +82,8 @@ public final class Operators
             }
         }
 
-        beliefs[] /= beliefs.sum;
+        foreach (ref index; beliefs.byKey)
+            beliefs[index] /= beliefs.byValue.sum;
 
         return beliefs;
     }
@@ -94,8 +94,8 @@ public final class Operators
 
     static auto ref combination(
         ref in int[][] powerSet,
-        in double[] beliefs1,
-        in double[] beliefs2) //pure
+        in double[int] beliefs1,
+        in double[int] beliefs2) //pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual;

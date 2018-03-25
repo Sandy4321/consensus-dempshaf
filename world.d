@@ -122,8 +122,15 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
+<<<<<<< HEAD
     auto qualities = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+=======
+    //auto qualities = [0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.0];
+    auto qualities = [0.025, 0.025, 0.05, 0.1, 0.8];
+>>>>>>> minimal-beliefs
     writeln(qualities);
+    // Ensure that the number of quality values matches the number of choices given.
+    assert(qualities.length == l);
 
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
@@ -159,22 +166,21 @@ void main(string[] args)
 
             foreach (agentIndex, ref agent; population)
             {
-                auto beliefs = new double[](belLength);
+                double[int] beliefs;
                 double payoff;
 
                 // assign uniform masses to the power set P^W.
                 if (pRaw == 1)
                 {
-                    foreach (i; 0 .. belLength)
+                    foreach (int i; 0 .. belLength)
                     {
-                        beliefs[] = 1.0 / belLength;
+                        beliefs[i] = 1.0 / belLength;
                     }
                 }
                 // assign full mass to the set W; complete ignorance.
                 else if (pRaw == 0)
                 {
-                    beliefs[] = 0.0;
-                    beliefs[$-1] = 1.0;
+                    beliefs[belLength - 1] = 1.0;
                 }
 
                 payoff = DempsterShafer.calculatePayoff(
@@ -196,7 +202,7 @@ void main(string[] args)
              */
 
             int iterIndex;
-            double[][] uniqueBeliefs;
+            double[int][] uniqueBeliefs;
             double distance, entropy, inconsist, bestBelief, cardinality;
             bool append;
             foreach (iter; 0 .. iterations + 1)
@@ -217,8 +223,13 @@ void main(string[] args)
                         append = true;
                         foreach (unique; uniqueBeliefs)
                         {
-                            // Using approxEqual to adequately compare arrays of doubles.
-                            if (equal!approxEqual(unique, beliefs))
+                            // First compare whether the keys match. If they do, then
+                            // the same subset has already been found. Then, check
+                            // whether the masses for those subsets are the same.
+                            if (
+                                equal(unique.keys, beliefs.keys) &&
+                                equal!approxEqual(unique.values, beliefs.values)
+                            )
                             {
                                 append = false;
                                 break;
@@ -250,7 +261,8 @@ void main(string[] args)
                             );
                         }
 
-                        bestBelief += beliefs[bestChoice];
+                        if (bestChoice in beliefs)
+                            bestBelief += beliefs[bestChoice];
 
                         foreach (j, ref bel; beliefs)
                         {
@@ -298,6 +310,7 @@ void main(string[] args)
                     */
                 foreach(i, ref agent; population)
                 {
+                    // If evidence should be provided for a random choice.
                     version (randomEvidence)
                     {
                         agent.beliefs = Operators.consensus(
@@ -310,6 +323,7 @@ void main(string[] args)
                             )
                         );
                     }
+                    // Else, evidence should favour the most prominent choice.
                     else
                     {
                         agent.beliefs = Operators.consensus(
