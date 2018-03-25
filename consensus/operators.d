@@ -41,11 +41,11 @@ public final class Operators
         in double[int] beliefs1,
         in double[int] beliefs2) //pure
     {
-        import std.algorithm : setIntersection, sort, sum;
+        import std.algorithm : find, setIntersection, sort, sum;
         import std.math : approxEqual;
 
-        auto beliefs = new double[powerSet.length];
-        beliefs[] = 0;
+        double[int] beliefs;
+        int[] indices;
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -73,17 +73,20 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (k, ref set; powerSet)
+                foreach (int k, ref set; powerSet)
                 {
                     if (currentSet == set)
                     {
                         beliefs[k] += bel1 * bel2;
+                        if (!indices.find(k))
+                            indices ~= k;
                     }
                 }
             }
         }
 
-        beliefs[] /= beliefs.sum;
+        foreach (ref index; indices)
+            beliefs[index] /= beliefs.byValue.sum;
 
         return beliefs;
     }
