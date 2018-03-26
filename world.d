@@ -336,7 +336,7 @@ void main(string[] args)
                 }
 
                 bool consistent;
-                double inconsistency;
+                // double inconsistency;
                 Agent selected;
                 int selection;
 
