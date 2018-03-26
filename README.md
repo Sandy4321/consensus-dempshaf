@@ -6,7 +6,7 @@ We are interested in looking at a range of problems within this model, including
 
 - Consensus operator (Ph.D.) vs Dempster's rule of combination.
 
-#### Part of project T-B PHASE | 2017 - 2022__
+#### Part of project T-B PHASE | 2017 - 2022
 
 #### Run command:
 
