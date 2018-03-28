@@ -23,7 +23,7 @@ void main(string[] args)
     int l, n, thresholdStart, thresholdEnd, groupSize = 2;
     double pRaw = 0.66;
     int p = 66;
-    string boolThreeInit = "three_valued";
+    string distribution = "ignorant";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
 
@@ -82,8 +82,8 @@ void main(string[] args)
     writeln("P value: ", pRaw, " :: ", p);
     if (p == 100)
     {
-        writeln("==> ! Boolean initialisation !");
-        boolThreeInit = "boolean";
+        writeln("==> ! Uniform distribution !");
+        distribution = "uniform";
     }
     writeln("Threshold start: ", thresholdStart);
     writeln("Threshold end: ", thresholdEnd);
@@ -391,13 +391,9 @@ void main(string[] args)
         // Write results to disk for current threshold
         string fileName;
         immutable string fileExt = ".csv";
-        string booleanFN = "";
         string randomFN = "";
-        version (boolean)
-            booleanFN = "boolean_";
         if (randomSelect)
             randomFN = "random_";
-        immutable auto fileThreshold = format("%.2f", threshold / 100.0);
 
         /*
          * Change the directory to store group results separately from the standard
@@ -408,8 +404,8 @@ void main(string[] args)
         if (groupSize != 2)
         {
             directory = format(
-                "../results/test_results/dempshaf/%s_initialisation/%s_agents/%s/%s_per_group/",
-                boolThreeInit,
+                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s_per_group/",
+                distribution,
                 n,
                 l,
                 groupSize
@@ -418,8 +414,8 @@ void main(string[] args)
         else
         {
             directory = format(
-                "../results/test_results/dempshaf/%s_initialisation/%s_agents/%s/",
-                boolThreeInit,
+                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/",
+                distribution,
                 n,
                 l
             );
@@ -428,43 +424,35 @@ void main(string[] args)
         auto append = "w";
 
         // Distance
-        fileName = "distance" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "distance" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, distanceResults);
 
         // Inconsistency
-        fileName = "inconsistency" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "inconsistency" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, inconsistResults);
 
         // Entropy
-        fileName = "entropy" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "entropy" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, entropyResults);
 
         // Unique Beliefs
-        fileName = "unique_beliefs" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, uniqueResults);
 
         // Payoff
-        fileName = "payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "payoff" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, payoffResults);
 
         // Maximum payoff
-        fileName = "max_payoff" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "max_payoff" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, maxPayoffResults);
 
         // Best-choice belief
-        fileName = "average_belief" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "average_belief" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, bestChoiceResults);
 
         // Cardinality
-        fileName = "cardinality" ~ "_" ~ booleanFN ~ randomFN ~ to!string(pRaw)
-        ~ "_" ~ fileThreshold ~ fileExt;
+        fileName = "cardinality" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
         writeToFile(directory, fileName, append, cardMassResults);
     }
 }
