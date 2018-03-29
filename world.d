@@ -122,7 +122,7 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 1.0];
+    auto qualities = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
     writeln(qualities);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
@@ -414,10 +414,11 @@ void main(string[] args)
         else
         {
             directory = format(
-                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/",
+                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
                 distribution,
                 n,
-                l
+                l,
+                qualities.to!string
             );
         }
 
