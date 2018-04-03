@@ -418,7 +418,8 @@ void main(string[] args)
                 distribution,
                 n,
                 l,
-                qualities.to!string
+                qualities.map!(x => format("%.1f", x))
+                         .to!string.filter!(x => x != '"')
             );
         }
 
