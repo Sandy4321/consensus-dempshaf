@@ -39,7 +39,8 @@ public final class Operators
     static auto ref consensus(
         ref in int[][] powerSet,
         in double[int] beliefs1,
-        in double[int] beliefs2) pure
+        in double[int] beliefs2,
+        ref in double lambda) pure
     {
         import std.algorithm : find, setIntersection, sort, sum;
         import std.math : approxEqual;
@@ -82,8 +83,21 @@ public final class Operators
             }
         }
 
+        //
         foreach (ref index; beliefs.byKey)
-            beliefs[index] /= beliefs.byValue.sum;
+        {
+            if (index != cast(int) powerSet.length - 1)
+                beliefs[index] *= 1 - lambda;
+            else
+                beliefs[index] *= 1 + lambda;
+        }
+        immutable auto normaliser = beliefs.byValue.sum;
+
+
+        foreach (ref index; beliefs.byKey)
+        {
+            beliefs[index] /= normaliser;
+        }
 
         return beliefs;
     }

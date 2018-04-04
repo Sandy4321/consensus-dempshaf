@@ -17,6 +17,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto thresholdStep = 2;           // 2
     immutable auto testSet = 100;               // 100
+    immutable auto lambda = 0.1;                // 0 would be regular combination
     immutable bool setSeed = true;
 
     bool randomSelect = true, groupSizeSet;
@@ -122,7 +123,8 @@ void main(string[] args)
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
     //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
+    auto qualities = [0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0];
+    auto qualitiesString = "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]";
     writeln(qualities);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
@@ -314,8 +316,9 @@ void main(string[] args)
                             DempsterShafer.randMassEvidence(
                                 powerSet,
                                 qualities,
-                                rand
-                            )
+                                rand,
+                            ),
+                            lambda
                         );
                     }
                     // Else, evidence should favour the most prominent choice.
@@ -330,7 +333,8 @@ void main(string[] args)
                                 qualities,
                                 agent.beliefs,
                                 rand
-                            )
+                            ),
+                            lambda
                         );
                     }
                 }
@@ -370,7 +374,8 @@ void main(string[] args)
                         newBeliefs = Operators.consensus(
                             powerSet,
                             agent.beliefs,
-                            selected.beliefs
+                            selected.beliefs,
+                            lambda
                         );
                     }
 
@@ -418,8 +423,9 @@ void main(string[] args)
                 distribution,
                 n,
                 l,
-                qualities.map!(x => format("%.1f", x))
-                         .to!string.filter!(x => x != '"')
+                // qualities.map!(x => format("%.1f", x))
+                //          .to!string.filter!(x => x != '"')
+                qualitiesString
             );
         }
 
