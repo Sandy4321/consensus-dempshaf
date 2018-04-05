@@ -163,15 +163,15 @@ public class DempsterShafer
     {
         import std.math : approxEqual, log2;
 
-        auto pignisticBel = pignisticDist(powerSet, l, beliefs);
-
         double entropy = 0.0;
 
-        foreach (belief; pignisticBel)
+        foreach (index, belief; beliefs)
         {
             if (approxEqual(belief, 0.0))
                 continue;
-            entropy -= belief * log2(belief);
+            entropy -= belief * log2(
+                belief/(pow(2, powerSet[index].length)-1)
+            );
         }
 
         return entropy;
