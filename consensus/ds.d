@@ -161,7 +161,7 @@ public class DempsterShafer
         ref in int l,
         ref in double[int] beliefs) pure
     {
-        import std.math : approxEqual, log2;
+        import std.math : approxEqual, log2, pow;
 
         double entropy = 0.0;
 
