@@ -154,7 +154,7 @@ public class DempsterShafer
     }
 
     /**
-     * Calculates the entropy of an agent's beliefs: a measure of uncertainty.
+     * Calculates the Deng entropy of an agent's mass function: a measure of uncertainty.
      */
     static auto ref entropy(
         ref in int[][] powerSet,
