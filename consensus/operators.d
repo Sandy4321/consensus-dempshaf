@@ -83,16 +83,17 @@ public final class Operators
             }
         }
 
-        //
         foreach (ref index; beliefs.byKey)
         {
-            if (index != cast(int) powerSet.length - 1)
-                beliefs[index] *= 1 - lambda;
-            else
-                beliefs[index] *= 1 + lambda;
+            beliefs[index] *= 1 - lambda;
         }
-        immutable auto normaliser = beliefs.byValue.sum;
 
+        if (!beliefs.byKey.find(cast(int) powerSet.length - 1).empty)
+        {
+            beliefs[cast(int) powerSet.length - 1] += lambda;
+        }
+
+        immutable auto normaliser = beliefs.byValue.sum;
 
         foreach (ref index; beliefs.byKey)
         {
