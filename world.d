@@ -122,9 +122,24 @@ void main(string[] args)
     int[] choices;
     foreach (i; 0 .. l) choices ~= i + 1;
     writeln(choices);
-    //auto qualities = DempsterShafer.generatePayoff(choices,l);
-    auto qualities = [0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0];
-    auto qualitiesString = "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]";
+
+    //*************************************
+    immutable auto qualityIndex = args[$-1].to!int;
+    //*************************************
+    immutable auto masterQStrings = [
+        "[0.025, 0.025, 0.05, 0.1, 0.8]",
+        "[0.96, 0.97, 0.98, 0.99, 1.0]",
+        "[0.825, 0.85, 0.85, 0.88, 0.95]",
+
+        "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 1.0]",
+        "[0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0]",
+        "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]"
+    ];
+    double[][] masterQualities;
+    static foreach (qstring; masterQStrings)
+        masterQualities ~= mixin(qstring);
+    auto qualities = masterQualities[qualityIndex];
+    auto qualitiesString = masterQStrings[qualityIndex];
     writeln(qualities);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
