@@ -175,6 +175,9 @@ void main(string[] args)
             stdout.flush();
             if (test == testSet - 1) writeln();
 
+            qualities = masterQualities[qualityIndex].dup;
+            bestChoice = qualities.maxIndex.to!int;
+
             auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
