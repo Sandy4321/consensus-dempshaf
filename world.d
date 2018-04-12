@@ -18,6 +18,7 @@ void main(string[] args)
     immutable auto thresholdStep = 2;           // 2
     immutable auto testSet = 100;               // 100
     immutable auto lambda = 0.1;                // 0 would be regular combination
+    immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
     bool randomSelect = true, groupSizeSet;
@@ -147,10 +148,10 @@ void main(string[] args)
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
     immutable auto belLength = to!int(powerSet.length);
-    writeln(powerSet);
+    // writeln(powerSet);
 
     // Find the choice with the highest payoff, and store its index in the power set.
-    immutable int bestChoice = qualities.maxIndex.to!int;
+    int bestChoice = qualities.maxIndex.to!int;
 
     /*
      * Main test loop;
@@ -219,6 +220,19 @@ void main(string[] args)
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
+                /*
+                 * If VERSION == alterQ then we alter the quality value of the
+                 * best choice to see how the population can react.
+                 */
+                version (alterQ)
+                {
+                    if (iter == alterIter)
+                    {
+                        qualities[bestChoice] = qualities[bestChoice - 1] / 2.0;
+                        bestChoice = qualities.maxIndex.to!int;
+                    }
+                }
+
                 /*
                  * Extract the data for each agent in the population, to be used
                  * throughout the simulation as well as for plotting results later.
