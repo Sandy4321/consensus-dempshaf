@@ -17,7 +17,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto thresholdStep = 2;           // 2
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.1;                // 0 would be regular combination
+    immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
@@ -91,7 +91,7 @@ void main(string[] args)
     writeln("Threshold end: ", thresholdEnd);
     writeln("Random selection: ", randomSelect);
 
-    write("Evidence Mass: ");
+    write("Evidence mass: ");
     version (randomEvidence)
         writeln("random");
     else
@@ -111,7 +111,7 @@ void main(string[] args)
     auto uniqueResults      = new string[][](arraySize, testSet);
     auto payoffResults      = new string[][](arraySize, testSet);
     auto maxPayoffResults   = new string[][](arraySize, testSet);
-    auto bestChoiceResults  = new string[][](arraySize, testSet);
+    auto choiceResults      = new string[][](arraySize, testSet);
     auto cardMassResults    = new string[][](arraySize, testSet);
 
     // Initialize the population of agents according to population size l
@@ -218,8 +218,9 @@ void main(string[] args)
              */
 
             int iterIndex;
+            double[int] choiceBeliefs;
             double[int][] uniqueBeliefs;
-            double distance, entropy, inconsist, bestBelief, cardinality;
+            double distance, entropy, inconsist, cardinality;
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
@@ -242,8 +243,10 @@ void main(string[] args)
                  */
                 if (iter % (iterations / iterStep) == 0)
                 {
+                    foreach (index; 0 .. l)
+                        choiceBeliefs[index] = 0.0;
                     uniqueBeliefs.length = 0;
-                    distance = entropy = inconsist = bestBelief = cardinality = 0.0;
+                    distance = entropy = inconsist = cardinality = 0.0;
 
                     foreach (i, ref agent; population)
                     {
@@ -290,8 +293,9 @@ void main(string[] args)
                             );
                         }
 
-                        if (bestChoice in beliefs)
-                            bestBelief += beliefs[bestChoice];
+                        foreach (index; 0 .. l)
+                            if (index in beliefs)
+                                choiceBeliefs[index] += beliefs[index];
 
                         foreach (j, ref bel; beliefs)
                         {
@@ -302,7 +306,8 @@ void main(string[] args)
                     distance = (2 * distance) / (n * (n - 1));
                     entropy /= n;
                     inconsist = (2 * inconsist) / (n * (n - 1));
-                    bestBelief /= n;
+                    foreach (index; 0 .. l)
+                        choiceBeliefs[index] /= n;
                     cardinality /= n;
 
                     // Format and tore the resulting simulation data into their
@@ -312,7 +317,12 @@ void main(string[] args)
                     inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
                     entropyResults[iterIndex][test]    = format("%.4f", entropy);
                     uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
-                    bestChoiceResults[iterIndex][test] = format("%.4f", bestBelief);
+                    choiceResults[iterIndex][test]     = "[";
+                    foreach (key, value; choiceBeliefs)
+                        choiceResults[iterIndex][test] ~= format(
+                            "%.4f", value
+                        ) ~ ",";
+                    choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
                     cardMassResults[iterIndex][test]   = format("%.4f", cardinality);
 
                     payoffResults[iterIndex][test] = format(
@@ -488,8 +498,8 @@ void main(string[] args)
         writeToFile(directory, fileName, append, maxPayoffResults);
 
         // Best-choice belief
-        fileName = "average_belief" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
-        writeToFile(directory, fileName, append, bestChoiceResults);
+        fileName = "average_beliefs" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        writeToFile(directory, fileName, append, choiceResults);
 
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
