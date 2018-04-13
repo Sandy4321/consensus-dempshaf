@@ -5,6 +5,7 @@ This is a version of the kind of consensus model developed during my Ph.D. in wh
 We are interested in looking at a range of problems within this model, including:
 
 - Consensus operator (Ph.D.) vs Dempster's rule of combination.
+- Recovery from changes in qualities of choices; dropping quality value of dominant choice to see how the population reacts to changes in the environment.
 
 #### Part of project T-B PHASE | 2017 - 2022
 
