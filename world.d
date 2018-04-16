@@ -25,7 +25,7 @@ void main(string[] args)
     int l, n, thresholdStart, thresholdEnd, groupSize = 2;
     double pRaw = 0.66;
     int p = 66;
-    string distribution = "ignorant";
+    string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
 
@@ -82,6 +82,8 @@ void main(string[] args)
 
     // Additional processing of arguments
     writeln("P value: ", pRaw, " :: ", p);
+    if (approxEqual(pRaw, 0.0))
+        distribution = "ignorant";
     if (p == 100)
     {
         writeln("==> ! Uniform distribution !");
@@ -440,69 +442,55 @@ void main(string[] args)
         immutable string fileExt = ".csv";
         string randomFN = "";
         if (randomSelect)
-            randomFN = "random_";
+            randomFN = "random";
 
         /*
          * Change the directory to store group results separately from the standard
          * results directory.
          */
 
-        string directory;
-        if (groupSize != 2)
-        {
-            directory = format(
-                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s_per_group/",
-                distribution,
-                n,
-                l,
-                groupSize
-            );
-        }
-        else
-        {
-            directory = format(
-                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
-                distribution,
-                n,
-                l,
-                // qualities.map!(x => format("%.1f", x))
-                //          .to!string.filter!(x => x != '"')
-                qualitiesString
-            );
-        }
+        string directory = format(
+            "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
+            distribution,
+            n,
+            l,
+            // qualities.map!(x => format("%.1f", x))
+            //          .to!string.filter!(x => x != '"')
+            qualitiesString
+        );
 
         auto append = "w";
 
         // Distance
-        fileName = "distance" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "distance" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, distanceResults);
 
         // Inconsistency
-        fileName = "inconsistency" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, inconsistResults);
 
         // Entropy
-        fileName = "entropy" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, entropyResults);
 
         // Unique Beliefs
-        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, uniqueResults);
 
         // Payoff
-        fileName = "payoff" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "payoff" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, payoffResults);
 
         // Maximum payoff
-        fileName = "max_payoff" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, maxPayoffResults);
 
         // Best-choice belief
-        fileName = "average_beliefs" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "average_beliefs" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, choiceResults);
 
         // Cardinality
-        fileName = "cardinality" ~ "_" ~ randomFN ~ to!string(pRaw) ~ fileExt;
+        fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, cardMassResults);
     }
 }
