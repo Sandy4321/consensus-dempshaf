@@ -21,8 +21,8 @@ void main(string[] args)
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
-    bool randomSelect = true, groupSizeSet;
-    int l, n, thresholdStart, thresholdEnd, groupSize = 2;
+    bool randomSelect = true;
+    int l, n, thresholdStart, thresholdEnd;
     double pRaw = 0.66;
     int p = 66;
     string distribution = "";
@@ -47,13 +47,7 @@ void main(string[] args)
         {
             thresholdEnd = to!int(to!double(s) * 100);
         },
-        "random", &randomSelect,
-        "group",
-        (string _, string s)
-        {
-            groupSize = to!int(s);
-            groupSizeSet = true;
-        }
+        "random", &randomSelect
     );
 
     foreach (i, arg; args)
@@ -93,15 +87,11 @@ void main(string[] args)
     writeln("Threshold start: ", thresholdStart);
     writeln("Threshold end: ", thresholdEnd);
     writeln("Random selection: ", randomSelect);
-
     write("Evidence mass: ");
     version (randomEvidence)
         writeln("random");
     else
         writeln("probabilistic");
-
-    if (groupSizeSet)
-        writeln("Group size: ", groupSize);
 
     auto seed = setSeed ? 128 : unpredictableSeed;
     auto rand = Random(seed);
