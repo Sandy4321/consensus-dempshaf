@@ -318,9 +318,9 @@ void main(string[] args)
                     entropyResults[iterIndex][test]    = format("%.4f", entropy);
                     uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
                     choiceResults[iterIndex][test]     = "[";
-                    foreach (key, value; choiceBeliefs)
+                    foreach (key; choiceBeliefs.keys.sort)
                         choiceResults[iterIndex][test] ~= format(
-                            "%.4f", value
+                            "%.4f", choiceBeliefs[key]
                         ) ~ ",";
                     choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
                     cardMassResults[iterIndex][test]   = format("%.4f", cardinality);
