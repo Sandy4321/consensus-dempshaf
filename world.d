@@ -17,7 +17,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto thresholdStep = 2;           // 2
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.0;                // 0 would be regular combination
+    immutable auto lambda = 0.1;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
@@ -89,6 +89,7 @@ void main(string[] args)
         writeln("==> ! Uniform distribution !");
         distribution = "uniform";
     }
+    writeln("Lambda value: ", lambda);
     writeln("Threshold start: ", thresholdStart);
     writeln("Threshold end: ", thresholdEnd);
     writeln("Random selection: ", randomSelect);
