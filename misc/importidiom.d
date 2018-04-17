@@ -1,4 +1,4 @@
-module dempshaf.importidiom;
+module dempshaf.misc.importidiom;
 
 template from(string moduleName)
 {
