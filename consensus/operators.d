@@ -117,6 +117,7 @@ public final class Operators
 
         auto beliefs = new double[powerSet.length];
         beliefs[] = 0;
+        auto emptySet = 0.0;
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -136,6 +137,7 @@ public final class Operators
                 {
                     // If the intersection is the empty set, add to empty set
                     // and renormalise later.
+                    emptySet += bel1 * bel2;
                 }
                 else
                 {
@@ -153,7 +155,17 @@ public final class Operators
             }
         }
 
-        beliefs[] /= beliefs.sum;
+        foreach (ref index; beliefs.byKey)
+        {
+            beliefs[index] /= 1.0 - emptySet;
+        }
+
+        immutable auto normaliser = beliefs.byValue.sum;
+
+        foreach (ref index; beliefs.byKey)
+        {
+            beliefs[index] /= normaliser;
+        }
 
         return beliefs;
     }
