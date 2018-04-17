@@ -66,6 +66,8 @@ public final class Operators
             beliefs[cast(int) powerSet.length - 1] += lambda;
         }
 
+        // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
+
         immutable auto normaliser = beliefs.byValue.sum;
 
         foreach (ref index; beliefs.byKey)
@@ -131,6 +133,8 @@ public final class Operators
         {
             beliefs[index] /= 1.0 - emptySet;
         }
+
+        // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
 
         immutable auto normaliser = beliefs.byValue.sum;
 
