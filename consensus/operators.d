@@ -88,8 +88,7 @@ public final class Operators
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual;
 
-        auto beliefs = new double[powerSet.length];
-        beliefs[] = 0;
+        double[int] beliefs;
         auto emptySet = 0.0;
 
         foreach (i, ref bel1; beliefs1)
@@ -118,7 +117,7 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (k, ref set; powerSet)
+                foreach (int k, ref set; powerSet)
                 {
                     if (currentSet == set)
                     {
