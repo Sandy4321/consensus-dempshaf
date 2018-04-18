@@ -112,7 +112,6 @@ public class DempsterShafer
             payoff = 0.0;
             foreach (int agent, ref value; payoffMap)
             {
-                //payoff += (value + l) / (totalPayoff + (n * l));
                 payoff += (value + (l + 1)) / (totalPayoff + (n * (l + 1)));
                 if (payoff < choice)
                 {

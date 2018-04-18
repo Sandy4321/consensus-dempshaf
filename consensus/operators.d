@@ -8,7 +8,6 @@ public final class Operators
     /**
      * Consensus operator for Dempster-Shafer mass functions.
      */
-
     static auto ref consensus(
         ref in int[][] powerSet,
         in double[int] beliefs1,
@@ -81,7 +80,6 @@ public final class Operators
     /**
      * Dempster-Shafer's rule of combination operator.
      */
-
     static auto ref combination(
         ref in int[][] powerSet,
         in double[int] beliefs1,
