@@ -22,13 +22,13 @@ public final class Operators
         foreach (i, ref bel1; beliefs1)
         {
             // If the mass is 0, skip this set.
-            if (approxEqual(bel1, 0.0))
-                continue;
+            /* if (approxEqual(bel1, 0.0))
+                continue; */
             foreach (j, ref bel2; beliefs2)
             {
                 // If the mass is 0, skip this set.
-                if (approxEqual(bel2, 0.0))
-                    continue;
+                /* if (approxEqual(bel2, 0.0))
+                    continue; */
 
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
@@ -47,7 +47,7 @@ public final class Operators
                 }
                 foreach (int k, ref set; powerSet)
                 {
-                    if (currentSet == set)
+                    if (currentSet == set && bel1 * bel2 != 0)
                     {
                         beliefs[k] += bel1 * bel2;
                     }
@@ -83,33 +83,42 @@ public final class Operators
     static auto ref combination(
         ref in int[][] powerSet,
         in double[int] beliefs1,
-        in double[int] beliefs2) pure
+        in double[int] beliefs2) //pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual;
 
+        import std.stdio;
+
         double[int] beliefs;
         auto emptySet = 0.0;
+
+        writeln("-------------------------");
+        writeln("Beliefs1: ", beliefs1);
+        writeln("Beliefs2: ", beliefs2);
+        writeln("-------------------------");
 
         foreach (i, ref bel1; beliefs1)
         {
             // If the mass is 0, skip this set.
-            if (approxEqual(bel1, 0.0))
-                continue;
+            // if (approxEqual(bel1, 0.0))
+            //     continue;
             foreach (j, ref bel2; beliefs2)
             {
                 // If the mass is 0, skip this set.
-                if (approxEqual(bel2, 0.0))
-                    continue;
+                // if (approxEqual(bel2, 0.0))
+                //     continue;
 
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
+                writeln(intersection, ": ", powerSet[i], ", ", powerSet[j]);
 
                 if (intersection.empty)
                 {
                     // If the intersection is the empty set, add to empty set
                     // and renormalise later.
                     emptySet += bel1 * bel2;
+                    continue;
                 }
                 else
                 {
@@ -119,21 +128,34 @@ public final class Operators
                 }
                 foreach (int k, ref set; powerSet)
                 {
-                    if (currentSet == set)
+                    if (currentSet == set && bel1 * bel2 != 0)
                     {
                         beliefs[k] += bel1 * bel2;
                     }
                 }
             }
         }
+        writeln(beliefs.keys);
+        writeln(beliefs.values);
 
-        foreach (ref index; beliefs.byKey)
+        if (beliefs.length > 0)
         {
-            beliefs[index] /= 1.0 - emptySet;
+            foreach (ref index; beliefs.byKey)
+            {
+                beliefs[index] /= 1.0 - emptySet;
+            }
+        }
+        else
+        {
+            beliefs[cast(int) powerSet.length - 1] = 1.0;
         }
 
-        // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
+        writeln("Renormalised:", beliefs.keys);
+        writeln("Renormalised:", beliefs.values);
 
+        assert(beliefs.length > 0);
+
+        // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto normaliser = beliefs.byValue.sum;
 
         foreach (ref index; beliefs.byKey)
