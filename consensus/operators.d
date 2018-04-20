@@ -21,15 +21,8 @@ public final class Operators
 
         foreach (i, ref bel1; beliefs1)
         {
-            // If the mass is 0, skip this set.
-            /* if (approxEqual(bel1, 0.0))
-                continue; */
             foreach (j, ref bel2; beliefs2)
             {
-                // If the mass is 0, skip this set.
-                /* if (approxEqual(bel2, 0.0))
-                    continue; */
-
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
 
@@ -100,18 +93,11 @@ public final class Operators
 
         foreach (i, ref bel1; beliefs1)
         {
-            // If the mass is 0, skip this set.
-            // if (approxEqual(bel1, 0.0))
-            //     continue;
             foreach (j, ref bel2; beliefs2)
             {
-                // If the mass is 0, skip this set.
-                // if (approxEqual(bel2, 0.0))
-                //     continue;
-
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
-                writeln(intersection, ": ", powerSet[i], ", ", powerSet[j]);
+                /* writeln(intersection, ": ", powerSet[i], ", ", powerSet[j]); */
 
                 if (intersection.empty)
                 {
@@ -135,8 +121,8 @@ public final class Operators
                 }
             }
         }
-        writeln(beliefs.keys);
-        writeln(beliefs.values);
+        /* writeln(beliefs.keys);
+        writeln(beliefs.values); */
 
         if (beliefs.length == 1)
         {
@@ -156,24 +142,32 @@ public final class Operators
             assert(!beliefs[cast(int) powerSet.length - 1].isNaN);
         }
 
-        writeln("Lambda'd:", beliefs.values);
+        /* writeln("Normalised:", beliefs.values); */
 
         assert(beliefs.length > 0);
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
-        immutable auto normaliser = beliefs.byValue.sum;
-        writeln("Normaliser: ", normaliser);
+        immutable auto renormaliser = beliefs.byValue.sum;
+        /* writeln("Renormaliser: ", renormaliser); */
 
-        if (normaliser != 1.0)
+        if (renormaliser.isNaN)
+        {
+            writeln("Renormaliser: ", renormaliser);
+            writeln(beliefs.keys);
+            writeln(beliefs.values);
+            writeln("--------------");
+        }
+
+        if (renormaliser != 1.0)
         {
             foreach (ref index; beliefs.byKey)
             {
-                beliefs[index] /= normaliser;
+                beliefs[index] /= renormaliser;
                 assert(!beliefs[index].isNaN);
             }
         }
 
-        writeln("Renormalised:", beliefs.values);
+        /* writeln("Renormalised:", beliefs.values); */
 
         return beliefs;
     }
