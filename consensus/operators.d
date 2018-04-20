@@ -86,7 +86,7 @@ public final class Operators
         in double[int] beliefs2) //pure
     {
         import std.algorithm : setIntersection, sort, sum;
-        import std.math : approxEqual;
+        import std.math : approxEqual, isNaN;
 
         import std.stdio;
 
@@ -138,30 +138,42 @@ public final class Operators
         writeln(beliefs.keys);
         writeln(beliefs.values);
 
-        if (beliefs.length > 0)
+        if (beliefs.length == 1)
+        {
+            beliefs[beliefs.keys[0]] = 1.0;
+        }
+        else if (beliefs.length > 0)
         {
             foreach (ref index; beliefs.byKey)
             {
                 beliefs[index] /= 1.0 - emptySet;
+                assert(!beliefs[index].isNaN);
             }
         }
         else
         {
             beliefs[cast(int) powerSet.length - 1] = 1.0;
+            assert(!beliefs[cast(int) powerSet.length - 1].isNaN);
         }
 
-        writeln("Renormalised:", beliefs.keys);
-        writeln("Renormalised:", beliefs.values);
+        writeln("Lambda'd:", beliefs.values);
 
         assert(beliefs.length > 0);
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto normaliser = beliefs.byValue.sum;
+        writeln("Normaliser: ", normaliser);
 
-        foreach (ref index; beliefs.byKey)
+        if (normaliser != 1.0)
         {
-            beliefs[index] /= normaliser;
+            foreach (ref index; beliefs.byKey)
+            {
+                beliefs[index] /= normaliser;
+                assert(!beliefs[index].isNaN);
+            }
         }
+
+        writeln("Renormalised:", beliefs.values);
 
         return beliefs;
     }
