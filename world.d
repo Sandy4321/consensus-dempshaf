@@ -135,8 +135,6 @@ void main(string[] args)
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;
 
-    rand = Random(seed);
-
     /*
      * Main test loop;
      * The main experiment begins here.
