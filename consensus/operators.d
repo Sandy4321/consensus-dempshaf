@@ -21,8 +21,14 @@ public final class Operators
 
         foreach (i, ref bel1; beliefs1)
         {
+            // If the mass is 0, skip this set.
+            if (approxEqual(bel1, 0.0))
+                continue;
             foreach (j, ref bel2; beliefs2)
             {
+                // If the mass is 0, skip this set.
+                if (approxEqual(bel2, 0.0))
+                    continue;
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
 
@@ -40,7 +46,7 @@ public final class Operators
                 }
                 foreach (int k, ref set; powerSet)
                 {
-                    if (currentSet == set && bel1 * bel2 != 0)
+                    if (currentSet == set)
                     {
                         beliefs[k] += bel1 * bel2;
                     }
@@ -59,7 +65,6 @@ public final class Operators
         }
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
-
         immutable auto normaliser = beliefs.byValue.sum;
 
         foreach (ref index; beliefs.byKey)
@@ -76,29 +81,26 @@ public final class Operators
     static auto ref combination(
         ref in int[][] powerSet,
         in double[int] beliefs1,
-        in double[int] beliefs2) //pure
+        in double[int] beliefs2) pure
     {
         import std.algorithm : setIntersection, sort, sum;
-        import std.math : approxEqual, isNaN;
-
-        import std.stdio;
+        import std.math : approxEqual, isInfinity, isNaN;
 
         double[int] beliefs;
         auto emptySet = 0.0;
 
-        writeln("-------------------------");
-        writeln("Beliefs1: ", beliefs1);
-        writeln("Beliefs2: ", beliefs2);
-        writeln("-------------------------");
-
         foreach (i, ref bel1; beliefs1)
         {
+            // If the mass is 0, skip this set.
+            if (approxEqual(bel1, 0.0))
+                continue;
             foreach (j, ref bel2; beliefs2)
             {
+                // If the mass is 0, skip this set.
+                if (approxEqual(bel2, 0.0))
+                    continue;
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
-                /* writeln(intersection, ": ", powerSet[i], ", ", powerSet[j]); */
-
                 if (intersection.empty)
                 {
                     // If the intersection is the empty set, add to empty set
@@ -114,60 +116,46 @@ public final class Operators
                 }
                 foreach (int k, ref set; powerSet)
                 {
-                    if (currentSet == set && bel1 * bel2 != 0)
+                    if (currentSet == set)
                     {
                         beliefs[k] += bel1 * bel2;
                     }
                 }
             }
         }
-        /* writeln(beliefs.keys);
-        writeln(beliefs.values); */
+
+        assert(!beliefs.byValue.sum.isNaN && !beliefs.byValue.sum.isInfinity);
 
         if (beliefs.length == 1)
         {
             beliefs[beliefs.keys[0]] = 1.0;
         }
-        else if (beliefs.length > 0)
+        else if (beliefs.length > 1)
         {
             foreach (ref index; beliefs.byKey)
             {
                 beliefs[index] /= 1.0 - emptySet;
-                assert(!beliefs[index].isNaN);
+                assert(!beliefs[index].isNaN && !beliefs[index].isInfinity);
             }
         }
         else
         {
             beliefs[cast(int) powerSet.length - 1] = 1.0;
-            assert(!beliefs[cast(int) powerSet.length - 1].isNaN);
         }
-
-        /* writeln("Normalised:", beliefs.values); */
 
         assert(beliefs.length > 0);
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
-        /* writeln("Renormaliser: ", renormaliser); */
-
-        if (renormaliser.isNaN)
-        {
-            writeln("Renormaliser: ", renormaliser);
-            writeln(beliefs.keys);
-            writeln(beliefs.values);
-            writeln("--------------");
-        }
 
         if (renormaliser != 1.0)
         {
             foreach (ref index; beliefs.byKey)
             {
                 beliefs[index] /= renormaliser;
-                assert(!beliefs[index].isNaN);
+                assert(!beliefs[index].isNaN && !beliefs[index].isInfinity);
             }
         }
-
-        /* writeln("Renormalised:", beliefs.values); */
 
         return beliefs;
     }
