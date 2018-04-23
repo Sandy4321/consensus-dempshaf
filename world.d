@@ -4,7 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string;
+import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string, std.traits;
 
 void main(string[] args)
 {
@@ -16,9 +16,14 @@ void main(string[] args)
     immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.0;                // 0 would be regular combination
+    immutable auto lambda = 0.4;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
+
+    // An alias for one of two combination functions:
+    // Consensus operator, and Dempster's rule of combination
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
     bool randomSelect = true;
     int l, n;
@@ -38,7 +43,6 @@ void main(string[] args)
         },
         "random", &randomSelect
     );
-
     foreach (i, arg; args)
     {
         switch(i)
@@ -56,14 +60,11 @@ void main(string[] args)
             break;
         }
     }
-
     write("Logic: ");
     version (boolean)
         writeln("Boolean");
     else
         writeln("Three-valued");
-
-    // Additional processing of arguments
     writeln("P value: ", pRaw, " :: ", p);
     if (approxEqual(pRaw, 0.0))
         distribution = "ignorant";
@@ -72,6 +73,7 @@ void main(string[] args)
         writeln("==> ! Uniform distribution !");
         distribution = "uniform";
     }
+    writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$-1]);
     writeln("Lambda value: ", lambda);
     writeln("Random selection: ", randomSelect);
     write("Evidence mass: ");
@@ -136,9 +138,9 @@ void main(string[] args)
     rand = Random(seed);
 
     /*
-        * Main test loop;
-        * The main experiment begins here.
-        */
+     * Main test loop;
+     * The main experiment begins here.
+     */
     foreach (test; 0 .. testSet)
     {
         write("\rtest #", test + 1);
@@ -181,10 +183,10 @@ void main(string[] args)
         }
 
         /*
-            * Iteration loop;
-            * Agents interact according to broadcasting/listening rules,
-            * but states are not discrete and separate.
-            */
+        * Iteration loop;
+        * Agents interact according to broadcasting/listening rules,
+        * but states are not discrete and separate.
+        */
 
         int iterIndex;
         double[int] choiceBeliefs;
@@ -194,9 +196,9 @@ void main(string[] args)
         foreach (iter; 0 .. iterations + 1)
         {
             /*
-                * If VERSION == alterQ then we alter the quality value of the
-                * best choice to see how the population can react.
-                */
+            * If VERSION == alterQ then we alter the quality value of the
+            * best choice to see how the population can react.
+            */
             version (alterQ)
             {
                 if (iter == alterIter)
@@ -207,9 +209,9 @@ void main(string[] args)
             }
 
             /*
-                * Extract the data for each agent in the population, to be used
-                * throughout the simulation as well as for plotting results later.
-                */
+            * Extract the data for each agent in the population, to be used
+            * throughout the simulation as well as for plotting results later.
+            */
             if (iter % (iterations / iterStep) == 0)
             {
                 foreach (index; 0 .. l)
@@ -311,31 +313,31 @@ void main(string[] args)
                 iterIndex++;
             }
             /*
-                * Begin by combining each agent's mass function with the new
-                * evidence mass function, which serves as a form of 'payoff'
-                * assumed to be received when the agent assesses its choice
-                * e.g. when a honeybee visits a site.
-                */
+            * Begin by combining each agent's mass function with the new
+            * evidence mass function, which serves as a form of 'payoff'
+            * assumed to be received when the agent assesses its choice
+            * e.g. when a honeybee visits a site.
+            */
             foreach(i, ref agent; population)
             {
                 // If evidence should be provided for a random choice.
                 version (randomEvidence)
                 {
-                    agent.beliefs = Operators.combination(
+                    agent.beliefs = combination(
                         powerSet,
                         agent.beliefs,
                         DempsterShafer.randMassEvidence(
                             powerSet,
                             qualities,
                             rand,
-                        )//,
-                        //lambda
+                        ),
+                        lambda
                     );
                 }
                 // Else, evidence should favour the most prominent choice.
                 else
                 {
-                    agent.beliefs = Operators.combination(
+                    agent.beliefs = combination(
                         powerSet,
                         agent.beliefs,
                         DempsterShafer.massEvidence(
@@ -344,38 +346,29 @@ void main(string[] args)
                             qualities,
                             agent.beliefs,
                             rand
-                        )//,
-                        //lambda
+                        ),
+                        lambda
                     );
                 }
             }
 
-            bool consistent;
             Agent selected;
             int selection;
-
             auto snapshotPopulation = population.dup;
 
             foreach (i, ref agent; population)
             {
-                consistent = true;
 
                 do selection = uniform(0, n, rand);
                 while (i == selection);
                 selected = snapshotPopulation[selection];
 
-                auto newBeliefs = agent.beliefs;
-
-                if (consistent)
-                {
-                    // Form a new belief via the consensus operator.
-                    newBeliefs = Operators.combination(
-                        powerSet,
-                        agent.beliefs,
-                        selected.beliefs//,
-                        //lambda
-                    );
-                }
+                auto newBeliefs = combination(
+                    powerSet,
+                    agent.beliefs,
+                    selected.beliefs,
+                    lambda
+                );
 
                 immutable auto newPayoff = DempsterShafer.calculatePayoff(
                     qualities,
@@ -399,9 +392,9 @@ void main(string[] args)
         randomFN = "random";
 
     /*
-        * Change the directory to store group results separately from the standard
-        * results directory.
-        */
+    * Change the directory to store group results separately from the standard
+    * results directory.
+    */
 
     string directory = format(
         "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
