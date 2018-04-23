@@ -54,15 +54,13 @@ public final class Operators
             }
         }
 
+        // Apply the lambda parameter to skew beliefs away from the usual fixed-points
+        // of 0 and 1.
         foreach (ref index; beliefs.byKey)
         {
             beliefs[index] *= 1 - lambda;
         }
-
-        if (!beliefs.byKey.find(cast(int) powerSet.length - 1).empty)
-        {
-            beliefs[cast(int) powerSet.length - 1] += lambda;
-        }
+        beliefs[cast(int) powerSet.length - 1] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto normaliser = beliefs.byValue.sum;
@@ -78,10 +76,11 @@ public final class Operators
     /**
      * Dempster-Shafer's rule of combination operator.
      */
-    static auto ref combination(
+    static auto ref dempsterRoC(
         ref in int[][] powerSet,
         in double[int] beliefs1,
-        in double[int] beliefs2) pure
+        in double[int] beliefs2,
+        ref in double lambda) pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual, isInfinity, isNaN;
@@ -144,6 +143,14 @@ public final class Operators
         }
 
         assert(beliefs.length > 0);
+
+        // Apply the lambda parameter to skew beliefs away from the usual fixed-points
+        // of 0 and 1.
+        foreach (ref index; beliefs.byKey)
+        {
+            beliefs[index] *= 1 - lambda;
+        }
+        beliefs[cast(int) powerSet.length - 1] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
