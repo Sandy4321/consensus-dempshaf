@@ -16,7 +16,7 @@ void main(string[] args)
     immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.4;                // 0 would be regular combination
+    immutable auto lambda = 0.1;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
@@ -75,6 +75,10 @@ void main(string[] args)
     }
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$-1]);
     writeln("Lambda value: ", lambda);
+    version (alterQ)
+    {
+        writeln("Altering value(s) after ", alterIter, " iterations.");
+    }
     writeln("Random selection: ", randomSelect);
     write("Evidence mass: ");
     version (randomEvidence)
