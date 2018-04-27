@@ -65,9 +65,12 @@ public final class Operators
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto normaliser = beliefs.byValue.sum;
 
-        foreach (ref index; beliefs.byKey)
+        if (renormaliser != 1.0)
         {
-            beliefs[index] /= normaliser;
+            foreach (ref index; beliefs.byKey)
+            {
+                beliefs[index] /= normaliser;
+            }
         }
 
         return beliefs;
@@ -139,7 +142,7 @@ public final class Operators
         }
         else
         {
-            beliefs[cast(int) powerSet.length - 1] = 1.0;
+            return beliefs1;
         }
 
         assert(beliefs.length > 0);
