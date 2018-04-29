@@ -92,10 +92,10 @@ public class DempsterShafer
      * roulette-wheel selection method seen in genetic algorithms.
      */
     static auto ref rouletteSelection(
-        ref from!"std.random".Random rand,
         ref double[] payoffMap,
         ref int l,
-        ref int amt)
+        ref int amt,
+        ref from!"std.random".Random rand)
     {
         import std.random : uniform;
 
