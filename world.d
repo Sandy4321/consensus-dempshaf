@@ -412,15 +412,30 @@ void main(string[] args)
     }
     else
     {
-        string directory = format(
-            "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
-            distribution,
-            n,
-            l,
-            // qualities.map!(x => fcuckooormat("%.1f", x))
-            //          .to!string.filter!(x => x != '"')
-            qualitiesString
-        );
+        static if (fullyQualifiedName!combination.canFind("dempster"))
+        {
+            string directory = format(
+                "../results/test_results/dempshaf/%s_distribution/%s_agents/dempsters_operator/%s/%s/",
+                distribution,
+                n,
+                l,
+                // qualities.map!(x => fcuckooormat("%.1f", x))
+                //          .to!string.filter!(x => x != '"')
+                qualitiesString
+            );
+        }
+        else
+        {
+            string directory = format(
+                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
+                distribution,
+                n,
+                l,
+                // qualities.map!(x => fcuckooormat("%.1f", x))
+                //          .to!string.filter!(x => x != '"')
+                qualitiesString
+            );
+        }
     }
 
     auto append = "w";
