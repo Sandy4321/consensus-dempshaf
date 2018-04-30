@@ -142,7 +142,7 @@ public final class Operators
         }
         else
         {
-            return beliefs1;
+            return cast(double[int]) beliefs1;
         }
 
         assert(beliefs.length > 0);
