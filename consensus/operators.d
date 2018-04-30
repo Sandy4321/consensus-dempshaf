@@ -142,6 +142,10 @@ public final class Operators
         }
         else
         {
+            // I think this could also be:
+            // beliefs1.to!(double[int])  -- brackets required for the [int] part.
+            // Can also make it beliefs1.castFrom!(double[int]).to!(double[int])
+            // to check the requirement that you're casting to the same type as before.
             return cast(double[int]) beliefs1;
         }
 
