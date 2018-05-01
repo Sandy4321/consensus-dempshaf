@@ -405,7 +405,7 @@ void main(string[] args)
             distribution,
             n,
             l,
-            // qualities.map!(x => fcuckooormat("%.1f", x))
+            // qualities.map!(x => format("%.1f", x))
             //          .to!string.filter!(x => x != '"')
             qualitiesString
         );
@@ -419,7 +419,7 @@ void main(string[] args)
                 distribution,
                 n,
                 l,
-                // qualities.map!(x => fcuckooormat("%.1f", x))
+                // qualities.map!(x => format("%.1f", x))
                 //          .to!string.filter!(x => x != '"')
                 qualitiesString
             );
@@ -431,7 +431,7 @@ void main(string[] args)
                 distribution,
                 n,
                 l,
-                // qualities.map!(x => fcuckooormat("%.1f", x))
+                // qualities.map!(x => format("%.1f", x))
                 //          .to!string.filter!(x => x != '"')
                 qualitiesString
             );
