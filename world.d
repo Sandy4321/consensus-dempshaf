@@ -216,7 +216,6 @@ void main(string[] args)
             */
             if (iter % (iterations / iterStep) == 0)
             {
-                continue;
                 foreach (index; 0 .. l)
                     choiceBeliefs[index] = 0.0;
                 uniqueBeliefs.length = 0;
