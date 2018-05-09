@@ -216,6 +216,7 @@ void main(string[] args)
             */
             if (iter % (iterations / iterStep) == 0)
             {
+                continue;
                 foreach (index; 0 .. l)
                     choiceBeliefs[index] = 0.0;
                 uniqueBeliefs.length = 0;
@@ -408,6 +409,14 @@ void main(string[] args)
     static if (fullyQualifiedName!combination.canFind("dempster"))
     {
         directory ~= "dempsters_operator/";
+    }
+    version(alterQ)
+    {
+        directory ~= fotmat("change_at_%s/", alterIter);
+    }
+    else
+    {
+        directory ~= "no_change/";
     }
     directory ~= format("%s/%s/", l, qualitiesString);
 
