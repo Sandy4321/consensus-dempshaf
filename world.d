@@ -16,14 +16,14 @@ void main(string[] args)
     immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.3;                // 0 would be regular combination
+    immutable auto lambda = 0.1;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     bool randomSelect = true;
     int l, n;
@@ -394,49 +394,22 @@ void main(string[] args)
         randomFN = "random";
 
     /*
-    * Change the directory to store group results separately from the standard
-    * results directory.
+    * Change the directory to store results in the appropriate directory structure.
     */
-
-    version(alterQ)
+    string directory = format(
+        "../results/test_results/dempshaf/%s_distribution/%s_agents/",
+        distribution,
+        n
+    );
+    static if (lambda > 0.0)
     {
-        string directory = format(
-            "../results/test_results/dempshaf/%s_distribution/%s_agents/alterQ/%s/%s/",
-            distribution,
-            n,
-            l,
-            // qualities.map!(x => format("%.1f", x))
-            //          .to!string.filter!(x => x != '"')
-            qualitiesString
-        );
+        directory ~= format("lambda_operator_%.1f/", lambda);
     }
-    else
+    static if (fullyQualifiedName!combination.canFind("dempster"))
     {
-        static if (fullyQualifiedName!combination.canFind("dempster"))
-        {
-            string directory = format(
-                "../results/test_results/dempshaf/%s_distribution/%s_agents/dempsters_operator/%s/%s/",
-                distribution,
-                n,
-                l,
-                // qualities.map!(x => format("%.1f", x))
-                //          .to!string.filter!(x => x != '"')
-                qualitiesString
-            );
-        }
-        else
-        {
-            string directory = format(
-                "../results/test_results/dempshaf/%s_distribution/%s_agents/%s/%s/",
-                distribution,
-                n,
-                l,
-                // qualities.map!(x => format("%.1f", x))
-                //          .to!string.filter!(x => x != '"')
-                qualitiesString
-            );
-        }
+        directory ~= "dempsters_operator/";
     }
+    directory ~= format("%s/%s/", l, qualitiesString);
 
     auto append = "w";
 
