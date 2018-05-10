@@ -411,7 +411,7 @@ void main(string[] args)
     }
     version(alterQ)
     {
-        directory ~= fotmat("change_at_%s/", alterIter);
+        directory ~= format("change_at_%s/", alterIter);
     }
     else
     {
