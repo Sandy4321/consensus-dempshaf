@@ -16,7 +16,7 @@ void main(string[] args)
     immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.3;                // 0 would be regular combination
+    immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
@@ -364,7 +364,6 @@ void main(string[] args)
 
                 foreach (i, ref agent; population)
                 {
-
                     do selection = uniform(0, n, rand);
                     while (i == selection);
                     selected = snapshotPopulation[selection];
