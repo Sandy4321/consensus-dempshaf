@@ -16,14 +16,15 @@ void main(string[] args)
     immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
-    immutable auto lambda = 0.1;                // 0 would be regular combination
+    immutable auto lambda = 0.3;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
+    immutable auto evidenceOnly = true;         // true for benchmarking
 
     bool randomSelect = true;
     int l, n;
@@ -85,6 +86,8 @@ void main(string[] args)
         writeln("random");
     else
         writeln("probabilistic");
+    if (evidenceOnly)
+        writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
 
     auto seed = setSeed ? 128 : unpredictableSeed;
     auto rand = Random(seed);
@@ -353,35 +356,37 @@ void main(string[] args)
                     );
                 }
             }
-
-            Agent selected;
-            int selection;
-            auto snapshotPopulation = population.dup;
-
-            foreach (i, ref agent; population)
+            static if (!evidenceOnly)
             {
+                Agent selected;
+                int selection;
+                auto snapshotPopulation = population.dup;
 
-                do selection = uniform(0, n, rand);
-                while (i == selection);
-                selected = snapshotPopulation[selection];
+                foreach (i, ref agent; population)
+                {
 
-                auto newBeliefs = combination(
-                    powerSet,
-                    agent.beliefs,
-                    selected.beliefs,
-                    lambda
-                );
+                    do selection = uniform(0, n, rand);
+                    while (i == selection);
+                    selected = snapshotPopulation[selection];
 
-                immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                    qualities,
-                    powerSet,
-                    newBeliefs
-                );
+                    auto newBeliefs = combination(
+                        powerSet,
+                        agent.beliefs,
+                        selected.beliefs,
+                        lambda
+                    );
 
-                agent.beliefs = newBeliefs;
-                agent.payoff  = newPayoff;
-                payoffMap[i]  = newPayoff;
-                agent.incrementInteractions;
+                    immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                        qualities,
+                        powerSet,
+                        newBeliefs
+                    );
+
+                    agent.beliefs = newBeliefs;
+                    agent.payoff  = newPayoff;
+                    payoffMap[i]  = newPayoff;
+                    agent.incrementInteractions;
+                }
             }
         }
     }
@@ -408,6 +413,14 @@ void main(string[] args)
     static if (fullyQualifiedName!combination.canFind("dempster"))
     {
         directory ~= "dempsters_operator/";
+    }
+    else
+    {
+        directory ~= "consensus_operator/";
+    }
+    static if (evidenceOnly)
+    {
+        directory ~= "evidence_only/";
     }
     version(alterQ)
     {
