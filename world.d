@@ -421,13 +421,16 @@ void main(string[] args)
     {
         directory ~= "evidence_only/";
     }
-    version(alterQ)
+    static if (lambda > 0.0)
     {
-        directory ~= format("change_at_%s/", alterIter);
-    }
-    else
-    {
-        directory ~= "no_change/";
+        version(alterQ)
+        {
+            directory ~= format("change_at_%s/", alterIter);
+        }
+        else
+        {
+            directory ~= "no_change/";
+        }
     }
     directory ~= format("%s/%s/", l, qualitiesString);
 
