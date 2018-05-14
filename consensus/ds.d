@@ -384,7 +384,7 @@ public class DempsterShafer
         assert(powerSet == [[0], [1], [0, 1]]);
 
         auto qualities = [0.8, 0.2];
-        auto massFunction = randMassEvidence(powerSet, qualities, rand);
+        auto massFunction = randMassEvidence(qualities, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
@@ -408,31 +408,41 @@ public class DempsterShafer
      */
     static auto ref negMassEvidence(
         ref in int[][] powerSet,
-        ref in int l,
         ref in double[] qualities,
-        ref in double[int] beliefs,
         ref in double alpha,
-        ref from!"std.random".Random rand) pure
+        ref from!"std.random".Random rand) //pure
     {
-        import std.random : uniform01;
-        auto pignisticBel = pignisticDist(powerSet, l, beliefs);
-        immutable auto prob = uniform01(rand);
-        auto sum = 0.0;
-        int choice;
-        foreach (int i, ref bel; pignisticBel)
+        import std.algorithm.iteration : map, filter;
+        import std.conv : to;
+        import std.random : randomChoice = choice, uniform01;
+        import std.range : array, iota;
+        import std.stdio : writeln;
+        int[] selection = iota(0, qualities.length.to!int).array;
+        int[] choices = [-1, -1];
+        int c = 0;
+        do
         {
-            sum += bel;
-            if (sum >= prob)
-            {
-                choice = i;
-                break;
-            }
+            choices[c] = selection.randomChoice(rand);
+            c = 1;
         }
+        while (choices[0] == choices[1]);
+
+        int choice = (qualities[choices[0]] < qualities[choices[1]]) ? choices[0]: choices[1];
 
         double[int] massFunction;
+        int[] evidenceSet = iota(0, qualities.length.to!int).filter!(a => a != choice).array;
+        int index;
+        foreach (int key, value; powerSet)
+        {
+            if (value == evidenceSet)
+                index = key;
+        }
 
-        massFunction[choice] = qualities[choice];
-        massFunction[(2^^l)-2] = 1.0 - qualities[choice];
+        writeln(index);
+        assert(index != int.init);
+
+        massFunction[index] = alpha;
+        massFunction[(2^^qualities.length.to!int)-2] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -448,15 +458,26 @@ public class DempsterShafer
 
         auto rand = Random(unpredictableSeed);
 
-        auto l = 2;
+        auto l = 3;
         auto powerSet = generatePowerSet(l);
-        assert(powerSet == [[0], [1], [0, 1]]);
+        assert(powerSet == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
 
-        auto qualities = [0.8, 0.2];
-        auto massFunction = negMassEvidence(powerSet, qualities, rand);
+        auto qualities = [0.8, 0.2, 0.1];
+        double alpha = 1.0;
+        auto massFunction = negMassEvidence(qualities, alpha, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
+        assert(approxEqual(massFunction[0], 0.8));
+        assert(approxEqual(massFunction[2], 0.2));
+
+/*         beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
+        massFunction = negMassEvidence(powerSet, l, qualities, beliefs, alpha, rand);
+        assert(approxEqual(massFunction[1], 0.2));
+        assert(approxEqual(massFunction[2], 0.8));
+
+        beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
+        massFunction = negMassEvidence(powerSet, l, qualities, beliefs, alpha, rand);
         if (0 in massFunction)
             assert(
                 approxEqual(massFunction[0], 0.8) &&
@@ -466,7 +487,9 @@ public class DempsterShafer
             assert(
                 approxEqual(massFunction[1], 0.2) &&
                 approxEqual(massFunction[2], 0.8)
-            );
+            ); */
+
+
 
         writeln("\t\tPASSED.");
     }
