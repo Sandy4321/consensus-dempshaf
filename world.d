@@ -22,8 +22,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = true;         // true for benchmarking
 
     bool randomSelect = true;

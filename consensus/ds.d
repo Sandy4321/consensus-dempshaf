@@ -410,27 +410,29 @@ public class DempsterShafer
         ref in int[][] powerSet,
         ref in double[] qualities,
         ref in double alpha,
-        ref from!"std.random".Random rand) //pure
+        ref from!"std.random".Random rand) pure
     {
         import std.algorithm.iteration : map, filter;
         import std.conv : to;
+        import std.math : approxEqual;
         import std.random : randomChoice = choice, uniform01;
         import std.range : array, iota;
-        import std.stdio : writeln;
         int[] selection = iota(0, qualities.length.to!int).array;
         int[] choices = [-1, -1];
-        int c = 0;
+        choices[0] = selection.randomChoice(rand);
         do
         {
-            choices[c] = selection.randomChoice(rand);
-            c = 1;
+            choices[1] = selection.randomChoice(rand);
         }
         while (choices[0] == choices[1]);
 
-        int choice = (qualities[choices[0]] < qualities[choices[1]]) ? choices[0]: choices[1];
+        int choice = (qualities[choices[0]] < qualities[choices[1]])
+                     ? choices[0]: choices[1];
 
         double[int] massFunction;
-        int[] evidenceSet = iota(0, qualities.length.to!int).filter!(a => a != choice).array;
+        int[] evidenceSet = iota(0, qualities.length.to!int)
+                            .filter!(a => a != choice)
+                            .array;
         int index;
         foreach (int key, value; powerSet)
         {
@@ -438,11 +440,19 @@ public class DempsterShafer
                 index = key;
         }
 
-        writeln(index);
         assert(index != int.init);
 
-        massFunction[index] = alpha;
-        massFunction[(2^^qualities.length.to!int)-2] = 1.0 - qualities[choice];
+        if (approxEqual(alpha, 1.0))
+            massFunction[(2^^qualities.length.to!int)-2] = 1.0;
+        else if (approxEqual(alpha, 0.0))
+        {
+            massFunction[index] = 1.0;
+        }
+        else
+        {
+            massFunction[index] = 1 - alpha;
+            massFunction[(2^^qualities.length.to!int)-2] = alpha;
+        }
 
         return massFunction;
     }
@@ -450,6 +460,8 @@ public class DempsterShafer
     unittest
     {
         import std.algorithm.comparison : equal;
+        import std.algorithm.mutation : remove;
+        import std.conv : to;
         import std.math : approxEqual;
         import std.random : Random, unpredictableSeed;
         import std.stdio : writeln;
@@ -463,33 +475,22 @@ public class DempsterShafer
         assert(powerSet == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
 
         auto qualities = [0.8, 0.2, 0.1];
-        double alpha = 1.0;
-        auto massFunction = negMassEvidence(qualities, alpha, rand);
+        double alpha = 0.0; // Alpha = 0 means "precise" negative info.
+        auto massFunction = negMassEvidence(powerSet, qualities, alpha, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(approxEqual(massFunction[0], 0.8));
-        assert(approxEqual(massFunction[2], 0.2));
+        assert(approxEqual(massFunction[massFunction.keys[0]], 1.0));
 
-/*         beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
-        massFunction = negMassEvidence(powerSet, l, qualities, beliefs, alpha, rand);
-        assert(approxEqual(massFunction[1], 0.2));
-        assert(approxEqual(massFunction[2], 0.8));
+        alpha = 1.0;
+        massFunction = negMassEvidence(powerSet, qualities, alpha, rand);
+        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 1.0));
 
-        beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
-        massFunction = negMassEvidence(powerSet, l, qualities, beliefs, alpha, rand);
-        if (0 in massFunction)
-            assert(
-                approxEqual(massFunction[0], 0.8) &&
-                approxEqual(massFunction[2], 0.2)
-            );
-        else
-            assert(
-                approxEqual(massFunction[1], 0.2) &&
-                approxEqual(massFunction[2], 0.8)
-            ); */
-
-
+        alpha = 0.5;
+        massFunction = negMassEvidence(powerSet, qualities, alpha, rand);
+        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 0.5));
+        massFunction.remove((2^^qualities.length.to!int)-2);
+        assert(approxEqual(massFunction[massFunction.keys[0]], 0.5));
 
         writeln("\t\tPASSED.");
     }
