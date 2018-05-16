@@ -22,8 +22,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = true;         // true for benchmarking
 
     bool randomSelect = true;
@@ -325,37 +325,46 @@ void main(string[] args)
             */
             foreach(i, ref agent; population)
             {
-                // If evidence should be provided for a random choice.
-                version (randomEvidence)
+                version (negativeEvidence)
                 {
-                    agent.beliefs = combination(
-                        powerSet,
-                        agent.beliefs,
-                        DempsterShafer.randMassEvidence(
-                            powerSet,
-                            qualities,
-                            rand,
-                        ),
-                        lambda
-                    );
+
                 }
-                // Else, evidence should favour the most prominent choice.
                 else
                 {
-                    agent.beliefs = combination(
-                        powerSet,
-                        agent.beliefs,
-                        DempsterShafer.massEvidence(
+                    // If evidence should be provided for a random choice.
+                    version (randomEvidence)
+                    {
+                        agent.beliefs = combination(
                             powerSet,
-                            l,
-                            qualities,
                             agent.beliefs,
-                            rand
-                        ),
-                        lambda
-                    );
+                            DempsterShafer.randMassEvidence(
+                                qualities,
+                                rand,
+                            ),
+                            lambda
+                        );
+                    }
+                    // Else, evidence should favour the most prominent choice.
+                    else
+                    {
+                        agent.beliefs = combination(
+                            powerSet,
+                            agent.beliefs,
+                            DempsterShafer.probMassEvidence(
+                                powerSet,
+                                l,
+                                qualities,
+                                agent.beliefs,
+                                rand
+                            ),
+                            lambda
+                        );
+                    }
                 }
             }
+            /*
+             * Agents conduct some form of belief-merging/"consensus".
+             */
             static if (!evidenceOnly)
             {
                 Agent selected;
