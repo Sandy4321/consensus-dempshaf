@@ -16,6 +16,7 @@ void main(string[] args)
     immutable auto iterations = 100;            //50_000
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
+    immutable auto alpha = 0.0;                 // 0.0
     immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
@@ -24,7 +25,7 @@ void main(string[] args)
     // Consensus operator, and Dempster's rule of combination
     // alias combination = Operators.consensus;
     alias combination = Operators.dempsterRoC;
-    immutable auto evidenceOnly = true;         // true for benchmarking
+    immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
     int l, n;
@@ -82,7 +83,9 @@ void main(string[] args)
     }
     writeln("Random selection: ", randomSelect);
     write("Evidence mass: ");
-    version (randomEvidence)
+    version (negativeEvidence)
+        writeln("negative");
+    else version (randomEvidence)
         writeln("random");
     else
         writeln("probabilistic");
@@ -327,7 +330,17 @@ void main(string[] args)
             {
                 version (negativeEvidence)
                 {
-
+                    agent.beliefs = combination(
+                        powerSet,
+                        agent.beliefs,
+                        DempsterShafer.negMassEvidence(
+                            powerSet,
+                            qualities,
+                            alpha,
+                            rand
+                        ),
+                        lambda
+                    );
                 }
                 else
                 {
@@ -425,6 +438,10 @@ void main(string[] args)
     else
     {
         directory ~= "consensus_operator/";
+    }
+    version(negativeEvidence)
+    {
+        directory ~= "negative_evidence/";
     }
     static if (evidenceOnly)
     {
