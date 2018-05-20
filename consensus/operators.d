@@ -12,6 +12,7 @@ public final class Operators
         ref in int[][] powerSet,
         in double[int] beliefs1,
         in double[int] beliefs2,
+        ref in double gamma,
         ref in double lambda) pure
     {
         import std.algorithm : find, setIntersection, sort, sum;
@@ -83,6 +84,7 @@ public final class Operators
         ref in int[][] powerSet,
         in double[int] beliefs1,
         in double[int] beliefs2,
+        ref in double gamma,
         ref in double lambda) pure
     {
         import std.algorithm : setIntersection, sort, sum;
