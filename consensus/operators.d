@@ -18,6 +18,8 @@ public final class Operators
         import std.algorithm : find, setIntersection, sort, sum;
         import std.math : approxEqual;
 
+        import dempshaf.consensus.ds;
+
         double[int] beliefs;
 
         foreach (i, ref bel1; beliefs1)
@@ -33,7 +35,10 @@ public final class Operators
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
 
-                if (intersection.empty)
+                if (intersection.empty || DempsterShafer.setSimilarity(
+                    powerSet[i],
+                    powerSet[j],
+                    gamma))
                 {
                     // If the intersection is the empty set, form the union instead.
                     currentSet = (powerSet[i] ~ powerSet[j]).dup;
