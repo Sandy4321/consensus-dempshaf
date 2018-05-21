@@ -4,7 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.algorithm, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string, std.traits;
+import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string, std.traits;
 
 void main(string[] args)
 {
@@ -17,7 +17,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
     immutable auto alpha = 0.0;                 // 0.0
-    immutable auto gamma = 0.0;                 // 0.0 - regular operator
+    immutable auto gamma = 0.0;
     immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
@@ -137,6 +137,20 @@ void main(string[] args)
     writeln(qualities);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
+
+    // Generate the set of threshold values relevant to the language size.
+    double[] thresholdSet;
+    thresholdSet ~= 0.0;
+    foreach (double i; 1 .. l + 1)
+    {
+        foreach (double j; 1 .. i)
+        {
+            thresholdSet ~= j/i;
+        }
+    }
+    thresholdSet ~= 1.0;
+    thresholdSet = thresholdSet.sort.uniq.array;
+    writeln(thresholdSet);
 
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
