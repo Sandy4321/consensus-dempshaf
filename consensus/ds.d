@@ -551,22 +551,16 @@ public class DempsterShafer
     static auto ref setSimilarity(
         ref in int[] set1,
         ref in int[] set2,
-        ref in double threshold) //pure
+        ref in double threshold) pure
     {
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;
         import std.range.primitives : walkLength;
-        import std.stdio : writeln;
 
         immutable auto setIntersec = setIntersection(set1, set2).walkLength;
         immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
 
-        writeln(setIntersec);
-        writeln(setUnion);
-        writeln(setIntersec.to!double / setUnion.to!double);
-        writeln(threshold);
-
-        return (setIntersec.to!double / setUnion.to!double) <= threshold;
+        return (setIntersec.to!double / setUnion.to!double) > threshold;
     }
 
     unittest
@@ -577,15 +571,15 @@ public class DempsterShafer
 
         auto set1 = [0, 1, 3, 5];
         auto set2 = [1, 2, 4, 5];
-        auto threshold = 0.3;
-        assert(setSimilarity(set1, set2, threshold));
-        threshold = 0.4;
+        auto threshold = 0.4;
         assert(!setSimilarity(set1, set2, threshold));
+        threshold = 0.3;
+        assert(setSimilarity(set1, set2, threshold));
 
         set1 = [0, 1, 2, 3, 4, 5];
         set2 = [0, 1, 2, 3, 4, 5];
         threshold = 1.0;
-        assert(setSimilarity(set1, set2, threshold));
+        assert(!setSimilarity(set1, set2, threshold));
 
         writeln("\t\tPASSED.");
     }

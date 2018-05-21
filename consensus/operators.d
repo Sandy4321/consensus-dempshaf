@@ -35,10 +35,13 @@ public final class Operators
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
 
-                if (intersection.empty || DempsterShafer.setSimilarity(
-                    powerSet[i],
-                    powerSet[j],
-                    gamma))
+                if (intersection.empty ||
+                    !DempsterShafer.setSimilarity(
+                        powerSet[i],
+                        powerSet[j],
+                        gamma
+                    )
+                )
                 {
                     // If the intersection is the empty set, form the union instead.
                     currentSet = (powerSet[i] ~ powerSet[j]).dup;
