@@ -12,7 +12,7 @@ public final class Operators
         ref in int[][] powerSet,
         in double[int] beliefs1,
         in double[int] beliefs2,
-        ref in double gamma,
+        ref in double threshold,
         ref in double lambda) pure
     {
         import std.algorithm : find, setIntersection, sort, sum;
@@ -39,7 +39,7 @@ public final class Operators
                     !DempsterShafer.setSimilarity(
                         powerSet[i],
                         powerSet[j],
-                        gamma
+                        threshold
                     )
                 )
                 {
@@ -92,7 +92,7 @@ public final class Operators
         ref in int[][] powerSet,
         in double[int] beliefs1,
         in double[int] beliefs2,
-        ref in double gamma,
+        ref in double threshold,
         ref in double lambda) pure
     {
         import std.algorithm : setIntersection, sort, sum;
@@ -136,8 +136,6 @@ public final class Operators
             }
         }
 
-        assert(!beliefs.byValue.sum.isNaN && !beliefs.byValue.sum.isInfinity);
-
         if (beliefs.length == 1)
         {
             beliefs[beliefs.keys[0]] = 1.0;
@@ -147,7 +145,6 @@ public final class Operators
             foreach (ref index; beliefs.byKey)
             {
                 beliefs[index] /= 1.0 - emptySet;
-                assert(!beliefs[index].isNaN && !beliefs[index].isInfinity);
             }
         }
         else
@@ -158,8 +155,6 @@ public final class Operators
             // to check the requirement that you're casting to the same type as before.
             return cast(double[int]) beliefs1;
         }
-
-        assert(beliefs.length > 0);
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
@@ -177,7 +172,6 @@ public final class Operators
             foreach (ref index; beliefs.byKey)
             {
                 beliefs[index] /= renormaliser;
-                assert(!beliefs[index].isNaN && !beliefs[index].isInfinity);
             }
         }
 
