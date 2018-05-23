@@ -15,8 +15,9 @@ public final class Operators
         ref in double threshold,
         ref in double lambda) pure
     {
-        import std.algorithm : find, setIntersection, sort, sum;
-        import std.math : approxEqual;
+        import std.algorithm : find, setIntersection, sort, sum, uniq;
+        import std.array : array;
+        import std.math : approxEqual, isNaN;
 
         import dempshaf.consensus.ds;
 
@@ -44,8 +45,7 @@ public final class Operators
                 )
                 {
                     // If the intersection is the empty set, form the union instead.
-                    currentSet = (powerSet[i] ~ powerSet[j]).dup;
-                    currentSet.sort;
+                    currentSet = (powerSet[i] ~ powerSet[j]).dup.sort.uniq.array;
                 }
                 else
                 {

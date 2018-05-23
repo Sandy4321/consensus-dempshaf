@@ -17,15 +17,15 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
     immutable auto alpha = 0.0;                 // 0.0
-    immutable auto gamma = 0.0;
+    immutable auto gamma = true;                // False disables thresholds
     immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -138,19 +138,26 @@ void main(string[] args)
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
 
-    // Generate the set of threshold values relevant to the language size.
-    double[] thresholdSet;
-    thresholdSet ~= 0.0;
-    foreach (double i; 1 .. l + 1)
+    static if (gamma)
     {
-        foreach (double j; 1 .. i)
+        // Generate the set of threshold values relevant to the language size.
+        double[] thresholdSet;
+        thresholdSet ~= 0.0;
+        foreach (double i; 1 .. l + 1)
         {
-            thresholdSet ~= j/i;
+            foreach (double j; 1 .. i)
+            {
+                thresholdSet ~= j/i;
+            }
         }
+        thresholdSet ~= 1.0;
+        thresholdSet = thresholdSet.sort.uniq.array;
+        writeln(thresholdSet);
     }
-    thresholdSet ~= 1.0;
-    thresholdSet = thresholdSet.sort.uniq.array;
-    writeln(thresholdSet);
+    else
+    {
+        double[] thresholdSet = [0.0];
+    }
 
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerSet(l);
@@ -161,357 +168,371 @@ void main(string[] args)
     int bestChoice = qualities.maxIndex.to!int;
 
     /*
-     * Main test loop;
-     * The main experiment begins here.
+     * For each threshold in thresholdSet, run the experiment using that value of gamma.
      */
-    foreach (test; 0 .. testSet)
+    foreach (threshold; thresholdSet[thresholdSet.length - 1 .. $])
     {
-        write("\rtest #", test + 1);
-        stdout.flush();
-        if (test == testSet - 1) writeln();
-
-        qualities = masterQualities[qualityIndex].dup;
-        bestChoice = qualities.maxIndex.to!int;
-
-        auto payoffMap = new double[n];
-
-        foreach (agentIndex, ref agent; population)
+        static if (gamma)
         {
-            double[int] beliefs;
-            double payoff;
-
-            // assign uniform masses to the power set P^W.
-            if (pRaw == 1)
-            {
-                foreach (int i; 0 .. belLength)
-                {
-                    beliefs[i] = 1.0 / belLength;
-                }
-            }
-            // assign full mass to the set W; complete ignorance.
-            else if (pRaw == 0)
-            {
-                beliefs[belLength - 1] = 1.0;
-            }
-
-            payoff = DempsterShafer.calculatePayoff(
-                qualities,
-                powerSet,
-                beliefs
-            );
-            agent.beliefs = beliefs;
-            agent.payoff = payoff;
-            payoffMap[agentIndex] = payoff;
-            agent.resetInteractions;
+            writeln("threshold #", threshold);
         }
-
         /*
-        * Iteration loop;
-        * Agents interact according to broadcasting/listening rules,
-        * but states are not discrete and separate.
+        * Main test loop;
+        * The main experiment begins here.
         */
-
-        int iterIndex;
-        double[int] choiceBeliefs;
-        double[int][] uniqueBeliefs;
-        double distance, entropy, inconsist, cardinality;
-        bool append;
-        foreach (iter; 0 .. iterations + 1)
+        foreach (test; 0 .. 1)
         {
-            /*
-            * If VERSION == alterQ then we alter the quality value of the
-            * best choice to see how the population can react.
-            */
-            version (alterQ)
+            write("\rtest #", test + 1);
+            stdout.flush();
+            if (test == testSet - 1) writeln();
+
+            qualities = masterQualities[qualityIndex].dup;
+            bestChoice = qualities.maxIndex.to!int;
+
+            auto payoffMap = new double[n];
+
+            foreach (agentIndex, ref agent; population)
             {
-                if (iter == alterIter)
+                double[int] beliefs;
+                double payoff;
+
+                // assign uniform masses to the power set P^W.
+                if (pRaw == 1)
                 {
-                    qualities[bestChoice] = qualities[bestChoice - 1] / 2.0;
-                    bestChoice = qualities.maxIndex.to!int;
+                    foreach (int i; 0 .. belLength)
+                    {
+                        beliefs[i] = 1.0 / belLength;
+                    }
                 }
+                // assign full mass to the set W; complete ignorance.
+                else if (pRaw == 0)
+                {
+                    beliefs[belLength - 1] = 1.0;
+                }
+
+                payoff = DempsterShafer.calculatePayoff(
+                    qualities,
+                    powerSet,
+                    beliefs
+                );
+                agent.beliefs = beliefs;
+                agent.payoff = payoff;
+                payoffMap[agentIndex] = payoff;
+                agent.resetInteractions;
             }
 
             /*
-            * Extract the data for each agent in the population, to be used
-            * throughout the simulation as well as for plotting results later.
+            * Iteration loop;
+            * Agents interact according to broadcasting/listening rules,
+            * but states are not discrete and separate.
             */
-            if (iter % (iterations / iterStep) == 0)
+
+            int iterIndex;
+            double[int] choiceBeliefs;
+            double[int][] uniqueBeliefs;
+            double distance, entropy, inconsist, cardinality;
+            bool append;
+            foreach (iter; 0 .. iterations + 1)
             {
-                foreach (index; 0 .. l)
-                    choiceBeliefs[index] = 0.0;
-                uniqueBeliefs.length = 0;
-                distance = entropy = inconsist = cardinality = 0.0;
-
-                foreach (i, ref agent; population)
+                /*
+                * If VERSION == alterQ then we alter the quality value of the
+                * best choice to see how the population can react.
+                */
+                version (alterQ)
                 {
-                    auto beliefs = agent.beliefs;
-
-                    append = true;
-                    foreach (unique; uniqueBeliefs)
+                    if (iter == alterIter)
                     {
-                        // First compare whether the keys match. If they do, then
-                        // the same subset has already been found. Then, check
-                        // whether the masses for those subsets are the same.
-                        if (
-                            equal(unique.keys, beliefs.keys) &&
-                            equal!approxEqual(unique.values, beliefs.values)
-                        )
-                        {
-                            append = false;
-                            break;
-                        }
+                        qualities[bestChoice] = qualities[bestChoice - 1] / 2.0;
+                        bestChoice = qualities.maxIndex.to!int;
                     }
-                    if (append) uniqueBeliefs ~= beliefs;
+                }
 
-                    // Calculate average entropy of agents' beliefs
-                    entropy += DempsterShafer.entropy(powerSet, l, beliefs);
-
-                    // Calculate average distance of agents to identify
-                    // possible consensus of the population
-                    auto distanceHold = 0.0;
-                    foreach (ref cmpAgent; population[i + 1 .. $])
-                    {
-                        if (agent == cmpAgent) continue;
-                        distanceHold = DempsterShafer.distance(
-                            powerSet,
-                            l,
-                            beliefs,
-                            cmpAgent.beliefs
-                        );
-                        distance += distanceHold;
-                        inconsist += DempsterShafer.inconsistency(
-                            powerSet,
-                            l,
-                            beliefs,
-                            cmpAgent.beliefs
-                        );
-                    }
-
+                /*
+                * Extract the data for each agent in the population, to be used
+                * throughout the simulation as well as for plotting results later.
+                */
+                if (iter % (iterations / iterStep) == 0)
+                {
                     foreach (index; 0 .. l)
-                        if (index in beliefs)
-                            choiceBeliefs[index] += beliefs[index];
+                        choiceBeliefs[index] = 0.0;
+                    uniqueBeliefs.length = 0;
+                    distance = entropy = inconsist = cardinality = 0.0;
 
-                    foreach (j, ref bel; beliefs)
+                    foreach (i, ref agent; population)
                     {
-                        cardinality += bel * powerSet[j].length;
-                    }
-                }
+                        auto beliefs = agent.beliefs;
 
-                distance = (2 * distance) / (n * (n - 1));
-                entropy /= n;
-                inconsist = (2 * inconsist) / (n * (n - 1));
-                foreach (index; 0 .. l)
-                    choiceBeliefs[index] /= n;
-                cardinality /= n;
+                        append = true;
+                        foreach (unique; uniqueBeliefs)
+                        {
+                            // First compare whether the keys match. If they do, then
+                            // the same subset has already been found. Then, check
+                            // whether the masses for those subsets are the same.
+                            if (
+                                equal(unique.keys, beliefs.keys) &&
+                                equal!approxEqual(unique.values, beliefs.values)
+                            )
+                            {
+                                append = false;
+                                break;
+                            }
+                        }
+                        if (append) uniqueBeliefs ~= beliefs;
 
-                // Format and tore the resulting simulation data into their
-                // respective arrays.
+                        // Calculate average entropy of agents' beliefs
+                        entropy += DempsterShafer.entropy(powerSet, l, beliefs);
 
-                distanceResults[iterIndex][test]   = format("%.4f", distance);
-                inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
-                entropyResults[iterIndex][test]    = format("%.4f", entropy);
-                uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
-                choiceResults[iterIndex][test]     = "[";
-                foreach (key; choiceBeliefs.keys.sort)
-                    choiceResults[iterIndex][test] ~= format(
-                        "%.4f", choiceBeliefs[key]
-                    ) ~ ",";
-                choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
-                cardMassResults[iterIndex][test]   = format("%.4f", cardinality);
-
-                payoffResults[iterIndex][test] = format(
-                    "%.4f",
-                    (
-                        (
-                            DempsterShafer.totalPayoff(payoffMap, 0.0)
-                        ) / n
-                    ) * 100
-                );
-                maxPayoffResults[iterIndex][test] = format(
-                    "%.4f",
-                    (
-                        DempsterShafer.maxPayoff(payoffMap)
-                    ) * 100
-                );
-                iterIndex++;
-            }
-            /*
-            * Begin by combining each agent's mass function with the new
-            * evidence mass function, which serves as a form of 'payoff'
-            * assumed to be received when the agent assesses its choice
-            * e.g. when a honeybee visits a site.
-            */
-            foreach(i, ref agent; population)
-            {
-                version (negativeEvidence)
-                {
-                    agent.beliefs = combination(
-                        powerSet,
-                        agent.beliefs,
-                        DempsterShafer.negMassEvidence(
-                            powerSet,
-                            qualities,
-                            alpha,
-                            rand
-                        ),
-                        gamma,
-                        lambda
-                    );
-                }
-                else
-                {
-                    // If evidence should be provided for a random choice.
-                    version (randomEvidence)
-                    {
-                        agent.beliefs = combination(
-                            powerSet,
-                            agent.beliefs,
-                            DempsterShafer.randMassEvidence(
-                                qualities,
-                                rand,
-                            ),
-                            gamma,
-                            lambda
-                        );
-                    }
-                    // Else, evidence should favour the most prominent choice.
-                    else
-                    {
-                        agent.beliefs = combination(
-                            powerSet,
-                            agent.beliefs,
-                            DempsterShafer.probMassEvidence(
+                        // Calculate average distance of agents to identify
+                        // possible consensus of the population
+                        auto distanceHold = 0.0;
+                        foreach (ref cmpAgent; population[i + 1 .. $])
+                        {
+                            if (agent == cmpAgent) continue;
+                            distanceHold = DempsterShafer.distance(
                                 powerSet,
                                 l,
+                                beliefs,
+                                cmpAgent.beliefs
+                            );
+                            distance += distanceHold;
+                            inconsist += DempsterShafer.inconsistency(
+                                powerSet,
+                                l,
+                                beliefs,
+                                cmpAgent.beliefs
+                            );
+                        }
+
+                        foreach (index; 0 .. l)
+                            if (index in beliefs)
+                                choiceBeliefs[index] += beliefs[index];
+
+                        foreach (j, ref bel; beliefs)
+                        {
+                            cardinality += bel * powerSet[j].length;
+                        }
+                    }
+
+                    distance = (2 * distance) / (n * (n - 1));
+                    entropy /= n;
+                    inconsist = (2 * inconsist) / (n * (n - 1));
+                    foreach (index; 0 .. l)
+                        choiceBeliefs[index] /= n;
+                    cardinality /= n;
+
+                    // Format and tore the resulting simulation data into their
+                    // respective arrays.
+
+                    distanceResults[iterIndex][test]   = format("%.4f", distance);
+                    inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
+                    entropyResults[iterIndex][test]    = format("%.4f", entropy);
+                    uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
+                    choiceResults[iterIndex][test]     = "[";
+                    foreach (key; choiceBeliefs.keys.sort)
+                        choiceResults[iterIndex][test] ~= format(
+                            "%.4f", choiceBeliefs[key]
+                        ) ~ ",";
+                    choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
+                    cardMassResults[iterIndex][test]   = format("%.4f", cardinality);
+
+                    payoffResults[iterIndex][test] = format(
+                        "%.4f",
+                        (
+                            (
+                                DempsterShafer.totalPayoff(payoffMap, 0.0)
+                            ) / n
+                        ) * 100
+                    );
+                    maxPayoffResults[iterIndex][test] = format(
+                        "%.4f",
+                        (
+                            DempsterShafer.maxPayoff(payoffMap)
+                        ) * 100
+                    );
+                    iterIndex++;
+                }
+                /*
+                * Begin by combining each agent's mass function with the new
+                * evidence mass function, which serves as a form of 'payoff'
+                * assumed to be received when the agent assesses its choice
+                * e.g. when a honeybee visits a site.
+                */
+                foreach(i, ref agent; population)
+                {
+                    version (negativeEvidence)
+                    {
+                        agent.beliefs = combination(
+                            powerSet,
+                            agent.beliefs,
+                            DempsterShafer.negMassEvidence(
+                                powerSet,
                                 qualities,
-                                agent.beliefs,
+                                alpha,
                                 rand
                             ),
-                            gamma,
+                            threshold,
                             lambda
                         );
                     }
+                    else
+                    {
+                        // If evidence should be provided for a random choice.
+                        version (randomEvidence)
+                        {
+                            agent.beliefs = combination(
+                                powerSet,
+                                agent.beliefs,
+                                DempsterShafer.randMassEvidence(
+                                    qualities,
+                                    rand,
+                                ),
+                                threshold,
+                                lambda
+                            );
+                        }
+                        // Else, evidence should favour the most prominent choice.
+                        else
+                        {
+                            agent.beliefs = combination(
+                                powerSet,
+                                agent.beliefs,
+                                DempsterShafer.probMassEvidence(
+                                    powerSet,
+                                    l,
+                                    qualities,
+                                    agent.beliefs,
+                                    rand
+                                ),
+                                threshold,
+                                lambda
+                            );
+                        }
+                    }
                 }
-            }
-            /*
-             * Agents conduct some form of belief-merging/"consensus".
-             */
-            static if (!evidenceOnly)
-            {
-                Agent selected;
-                int selection;
-                auto snapshotPopulation = population.dup;
-
-                foreach (i, ref agent; population)
+                /*
+                * Agents conduct some form of belief-merging/"consensus".
+                */
+                static if (!evidenceOnly)
                 {
-                    do selection = uniform(0, n, rand);
-                    while (i == selection);
-                    selected = snapshotPopulation[selection];
+                    Agent selected;
+                    int selection;
+                    auto snapshotPopulation = population.dup;
 
-                    auto newBeliefs = combination(
-                        powerSet,
-                        agent.beliefs,
-                        selected.beliefs,
-                        gamma,
-                        lambda
-                    );
+                    foreach (i, ref agent; population)
+                    {
+                        do selection = uniform(0, n, rand);
+                        while (i == selection);
+                        selected = snapshotPopulation[selection];
 
-                    immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                        qualities,
-                        powerSet,
-                        newBeliefs
-                    );
+                        auto newBeliefs = combination(
+                            powerSet,
+                            agent.beliefs,
+                            selected.beliefs,
+                            threshold,
+                            lambda
+                        );
 
-                    agent.beliefs = newBeliefs;
-                    agent.payoff  = newPayoff;
-                    payoffMap[i]  = newPayoff;
-                    agent.incrementInteractions;
+                        immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                            qualities,
+                            powerSet,
+                            newBeliefs
+                        );
+
+                        agent.beliefs = newBeliefs;
+                        agent.payoff  = newPayoff;
+                        payoffMap[i]  = newPayoff;
+                        agent.incrementInteractions;
+                    }
                 }
             }
         }
-    }
 
-    // Write results to disk for current test.
-    string fileName;
-    immutable string fileExt = ".csv";
-    string randomFN = "";
-    if (randomSelect)
-        randomFN = "random";
-
-    /*
-    * Change the directory to store results in the appropriate directory structure.
-    */
-    string directory = format(
-        "../results/test_results/dempshaf/%s_distribution/%s_agents/",
-        distribution,
-        n
-    );
-    static if (lambda > 0.0)
-    {
-        directory ~= format("lambda_operator_%.1f/", lambda);
-    }
-    static if (fullyQualifiedName!combination.canFind("dempster"))
-    {
-        directory ~= "dempsters_operator/";
-    }
-    else
-    {
-        directory ~= "consensus_operator/";
-    }
-    version(negativeEvidence)
-    {
-        directory ~= "negative_evidence/";
-    }
-    static if (evidenceOnly)
-    {
-        directory ~= "evidence_only/";
-    }
-    static if (lambda > 0.0)
-    {
-        version(alterQ)
+        // Write results to disk for current test.
+        string fileName;
+        string fileExt = ".csv";
+        static if (gamma)
         {
-            directory ~= format("change_at_%s/", alterIter);
+            fileExt = "_%.4f".format(threshold) ~ fileExt;
+        }
+        string randomFN = "";
+        if (randomSelect)
+            randomFN = "random";
+
+        /*
+        * Change the directory to store results in the appropriate directory structure.
+        */
+        string directory = format(
+            "../results/test_results/dempshaf/%s_distribution/%s_agents/",
+            distribution,
+            n
+        );
+        static if (lambda > 0.0)
+        {
+            directory ~= format("lambda_operator_%.1f/", lambda);
+        }
+        static if (fullyQualifiedName!combination.canFind("dempster"))
+        {
+            directory ~= "dempsters_operator/";
         }
         else
         {
-            directory ~= "no_change/";
+            directory ~= "consensus_operator/";
         }
+        version(negativeEvidence)
+        {
+            directory ~= "negative_evidence/";
+        }
+        static if (evidenceOnly)
+        {
+            directory ~= "evidence_only/";
+        }
+        static if (lambda > 0.0)
+        {
+            version(alterQ)
+            {
+                directory ~= format("change_at_%s/", alterIter);
+            }
+            else
+            {
+                directory ~= "no_change/";
+            }
+        }
+        directory ~= format("%s/%s/", l, qualitiesString);
+
+        auto append = "w";
+
+        // Distance
+        fileName = "distance" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, distanceResults);
+
+        // Inconsistency
+        fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, inconsistResults);
+
+        // Entropy
+        fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, entropyResults);
+
+        // Unique Beliefs
+        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, uniqueResults);
+
+        // Payoff
+        fileName = "payoff" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, payoffResults);
+
+        // Maximum payoff
+        fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, maxPayoffResults);
+
+        // Best-choice belief
+        fileName = "average_beliefs" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, choiceResults);
+
+        // Cardinality
+        fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, cardMassResults);
     }
-    directory ~= format("%s/%s/", l, qualitiesString);
-
-    auto append = "w";
-
-    // Distance
-    fileName = "distance" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, distanceResults);
-
-    // Inconsistency
-    fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, inconsistResults);
-
-    // Entropy
-    fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, entropyResults);
-
-    // Unique Beliefs
-    fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, uniqueResults);
-
-    // Payoff
-    fileName = "payoff" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, payoffResults);
-
-    // Maximum payoff
-    fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, maxPayoffResults);
-
-    // Best-choice belief
-    fileName = "average_beliefs" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, choiceResults);
-
-    // Cardinality
-    fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
-    writeToFile(directory, fileName, append, cardMassResults);
 }
 
 private void writeToFile(T)(string directory, string fileName, string append, T[][] results)

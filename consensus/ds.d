@@ -547,6 +547,8 @@ public class DempsterShafer
 
     /**
      * Calculate the relative similarity between two sets of propositions.
+     * Returns true if the two sets are similar enough, according to some
+     * threshold value, and false if they are too dissimilar.
      */
     static auto ref setSimilarity(
         ref in int[] set1,
