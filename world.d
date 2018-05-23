@@ -170,17 +170,17 @@ void main(string[] args)
     /*
      * For each threshold in thresholdSet, run the experiment using that value of gamma.
      */
-    foreach (threshold; thresholdSet[thresholdSet.length - 1 .. $])
+    foreach (threshold; thresholdSet)
     {
         static if (gamma)
         {
-            writeln("threshold #", threshold);
+            writeln("threshold: %.4f".format(threshold));
         }
         /*
         * Main test loop;
         * The main experiment begins here.
         */
-        foreach (test; 0 .. 1)
+        foreach (test; 0 .. testSet)
         {
             write("\rtest #", test + 1);
             stdout.flush();
@@ -370,7 +370,7 @@ void main(string[] args)
                                 alpha,
                                 rand
                             ),
-                            threshold,
+                            0.0,
                             lambda
                         );
                     }
@@ -386,7 +386,7 @@ void main(string[] args)
                                     qualities,
                                     rand,
                                 ),
-                                threshold,
+                                0.0,
                                 lambda
                             );
                         }
@@ -403,7 +403,7 @@ void main(string[] args)
                                     agent.beliefs,
                                     rand
                                 ),
-                                threshold,
+                                0.0,
                                 lambda
                             );
                         }
