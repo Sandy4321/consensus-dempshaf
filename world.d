@@ -105,6 +105,7 @@ void main(string[] args)
     auto payoffResults      = new string[][](arraySize, testSet);
     auto maxPayoffResults   = new string[][](arraySize, testSet);
     auto choiceResults      = new string[][](arraySize, testSet);
+    auto powerSetResults    = new string[][](arraySize, testSet);
     auto cardMassResults    = new string[][](arraySize, testSet);
 
     // Initialize the population of agents according to population size l
@@ -229,6 +230,7 @@ void main(string[] args)
 
             int iterIndex;
             double[int] choiceBeliefs;
+            double[int] powerSetBeliefs;
             double[int][] uniqueBeliefs;
             // double distance, inconsist,
             double entropy, cardinality;
@@ -256,6 +258,8 @@ void main(string[] args)
                 {
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] = 0.0;
+                    foreach (index; 0 .. pow(2, l) - 1)
+                        powerSetBeliefs[index] = 0.0;
                     uniqueBeliefs.length = 0;
                     // distance = inconsist =
                     entropy = cardinality = 0.0;
@@ -309,6 +313,10 @@ void main(string[] args)
                             if (index in beliefs)
                                 choiceBeliefs[index] += beliefs[index];
 
+                        foreach (index; 0 .. pow(2, l))
+                            if (index in beliefs)
+                                powerSetBeliefs[index] += beliefs[index];
+
                         foreach (j, ref bel; beliefs)
                         {
                             cardinality += bel * powerSet[j].length;
@@ -320,6 +328,8 @@ void main(string[] args)
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] /= n;
+                    foreach (index; 0 .. l)
+                        powerSetBeliefs[index] /= n;
                     cardinality /= n;
 
                     // Format and tore the resulting simulation data into their
@@ -327,15 +337,21 @@ void main(string[] args)
 
                     // distanceResults[iterIndex][test]   = format("%.4f", distance);
                     // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
-                    entropyResults[iterIndex][test]    = format("%.4f", entropy);
-                    uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
-                    choiceResults[iterIndex][test]     = "[";
+                    entropyResults[iterIndex][test] = format("%.4f", entropy);
+                    uniqueResults[iterIndex][test] = format("%d", uniqueBeliefs.length);
+                    choiceResults[iterIndex][test] = "[";
                     foreach (key; choiceBeliefs.keys.sort)
                         choiceResults[iterIndex][test] ~= format(
                             "%.4f", choiceBeliefs[key]
                         ) ~ ",";
                     choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
-                    cardMassResults[iterIndex][test]   = format("%.4f", cardinality);
+                    powerSetResults[iterIndex][test] = "[";
+                    foreach (key; choiceBeliefs.keys.sort)
+                        powerSetResults[iterIndex][test] ~= format(
+                            "%.4f", choiceBeliefs[key]
+                        ) ~ ",";
+                    powerSetResults[iterIndex][test] = powerSetResults[iterIndex][test][0 .. $-1] ~ "]";
+                    cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
                     payoffResults[iterIndex][test] = format(
                         "%.4f",
@@ -530,6 +546,10 @@ void main(string[] args)
         // Best-choice belief
         fileName = "average_beliefs" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, choiceResults);
+
+        // Powerset belief
+        fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, powerSetResults);
 
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
