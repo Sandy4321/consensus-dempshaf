@@ -98,8 +98,8 @@ void main(string[] args)
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
-    auto distanceResults    = new string[][](arraySize, testSet);
-    auto inconsistResults   = new string[][](arraySize, testSet);
+    // auto distanceResults    = new string[][](arraySize, testSet);
+    // auto inconsistResults   = new string[][](arraySize, testSet);
     auto entropyResults     = new string[][](arraySize, testSet);
     auto uniqueResults      = new string[][](arraySize, testSet);
     auto payoffResults      = new string[][](arraySize, testSet);
@@ -230,7 +230,8 @@ void main(string[] args)
             int iterIndex;
             double[int] choiceBeliefs;
             double[int][] uniqueBeliefs;
-            double distance, entropy, inconsist, cardinality;
+            // double distance, inconsist,
+            double entropy, cardinality;
             bool append;
             foreach (iter; 0 .. iterations + 1)
             {
@@ -256,7 +257,8 @@ void main(string[] args)
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] = 0.0;
                     uniqueBeliefs.length = 0;
-                    distance = entropy = inconsist = cardinality = 0.0;
+                    // distance = inconsist =
+                    entropy = cardinality = 0.0;
 
                     foreach (i, ref agent; population)
                     {
@@ -284,8 +286,8 @@ void main(string[] args)
 
                         // Calculate average distance of agents to identify
                         // possible consensus of the population
-                        auto distanceHold = 0.0;
-                        foreach (ref cmpAgent; population[i + 1 .. $])
+                        // auto distanceHold = 0.0;
+                        /* foreach (ref cmpAgent; population[i + 1 .. $])
                         {
                             if (agent == cmpAgent) continue;
                             distanceHold = DempsterShafer.distance(
@@ -301,7 +303,7 @@ void main(string[] args)
                                 beliefs,
                                 cmpAgent.beliefs
                             );
-                        }
+                        } */
 
                         foreach (index; 0 .. l)
                             if (index in beliefs)
@@ -313,9 +315,9 @@ void main(string[] args)
                         }
                     }
 
-                    distance = (2 * distance) / (n * (n - 1));
+                    // distance = (2 * distance) / (n * (n - 1));
                     entropy /= n;
-                    inconsist = (2 * inconsist) / (n * (n - 1));
+                    // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] /= n;
                     cardinality /= n;
@@ -323,8 +325,8 @@ void main(string[] args)
                     // Format and tore the resulting simulation data into their
                     // respective arrays.
 
-                    distanceResults[iterIndex][test]   = format("%.4f", distance);
-                    inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
+                    // distanceResults[iterIndex][test]   = format("%.4f", distance);
+                    // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
                     entropyResults[iterIndex][test]    = format("%.4f", entropy);
                     uniqueResults[iterIndex][test]     = format("%d", uniqueBeliefs.length);
                     choiceResults[iterIndex][test]     = "[";
@@ -502,12 +504,12 @@ void main(string[] args)
         auto append = "w";
 
         // Distance
-        fileName = "distance" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, distanceResults);
+        /* fileName = "distance" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, distanceResults); */
 
         // Inconsistency
-        fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, inconsistResults);
+        /* fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, inconsistResults); */
 
         // Entropy
         fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
