@@ -6,6 +6,8 @@ We are interested in looking at a range of problems within this model, including
 
 - Consensus operator (Ph.D.) vs Dempster's rule of combination.
 - Recovery from changes in qualities of choices; dropping quality value of dominant choice to see how the population reacts to changes in the environment.
+- Benchmarking with evidential-updating only.
+- Negative information: where agents consider two "choices" to receive an incomplete partial ordering, with which they update their beliefs based on choice X being NOT the best choice, for X < Y.
 
 #### Part of project T-B PHASE | 2017 - 2022
 
