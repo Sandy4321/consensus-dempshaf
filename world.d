@@ -4,7 +4,10 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math, std.random, std.stdio, std.string, std.traits;
+import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
+import std.random, std.stdio, std.string, std.traits;
+
+import core.memory : GC;
 
 void main(string[] args)
 {
@@ -157,7 +160,7 @@ void main(string[] args)
     }
     else
     {
-        double[] thresholdSet = [0.0];
+        immutable double[] thresholdSet = [0.0];
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -173,6 +176,12 @@ void main(string[] args)
      */
     foreach (threshold; thresholdSet)
     {
+        /*
+         * At the start of the loop, complete a full collection of GC memory,
+         * and then disable it for the remainder of the tests. Reenable at the end.
+         */
+        GC.collect;
+        GC.disable;
         static if (gamma)
         {
             writeln("threshold: %.4f".format(threshold));
@@ -313,7 +322,7 @@ void main(string[] args)
                             if (index in beliefs)
                                 choiceBeliefs[index] += beliefs[index];
 
-                        foreach (index; 0 .. pow(2, l))
+                        foreach (index; 0 .. pow(2, l) - 1)
                             if (index in beliefs)
                                 powerSetBeliefs[index] += beliefs[index];
 
@@ -328,7 +337,7 @@ void main(string[] args)
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] /= n;
-                    foreach (index; 0 .. l)
+                    foreach (index; 0 .. pow(2, l) - 1)
                         powerSetBeliefs[index] /= n;
                     cardinality /= n;
 
@@ -346,9 +355,9 @@ void main(string[] args)
                         ) ~ ",";
                     choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
                     powerSetResults[iterIndex][test] = "[";
-                    foreach (key; choiceBeliefs.keys.sort)
+                    foreach (key; powerSetBeliefs.keys.sort)
                         powerSetResults[iterIndex][test] ~= format(
-                            "%.4f", choiceBeliefs[key]
+                            "%.4f", powerSetBeliefs[key]
                         ) ~ ",";
                     powerSetResults[iterIndex][test] = powerSetResults[iterIndex][test][0 .. $-1] ~ "]";
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
@@ -554,6 +563,8 @@ void main(string[] args)
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, cardMassResults);
+
+        GC.enable;
     }
 }
 
