@@ -13,7 +13,7 @@ We are interested in looking at a range of problems within this model, including
 
 #### Run command:
 
-rdmd -I../ world 5 100 --dist=0 --thrStart=1.0 --thrEnd=1.0
+rdmd -I../ world 5 100 --dist=0
 
 #### Useful notes
 
