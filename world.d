@@ -7,8 +7,6 @@ import dempshaf.consensus.ds;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
 import std.random, std.stdio, std.string, std.traits;
 
-import core.memory : GC;
-
 void main(string[] args)
 {
     /*
@@ -176,12 +174,6 @@ void main(string[] args)
      */
     foreach (threshold; thresholdSet)
     {
-        /*
-         * At the start of the loop, complete a full collection of GC memory,
-         * and then disable it for the remainder of the tests. Reenable at the end.
-         */
-        GC.collect;
-        GC.disable;
         static if (gamma)
         {
             writeln("threshold: %.4f".format(threshold));
@@ -563,8 +555,6 @@ void main(string[] args)
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, cardMassResults);
-
-        GC.enable;
     }
 }
 
