@@ -123,6 +123,10 @@ void main(string[] args)
     immutable auto qualityIndex = args[$-1].to!int;
     //*************************************
     immutable auto masterQStrings = [
+        "[0.2, 0.4, 1.0]",
+        "[0.3, 0.6, 1.0]",
+        "[0.8, 0.9, 1.0]",
+
         "[0.025, 0.025, 0.05, 0.1, 0.8]",
         "[0.96, 0.97, 0.98, 0.99, 1.0]",
         "[0.825, 0.85, 0.85, 0.88, 0.95]",
@@ -134,9 +138,15 @@ void main(string[] args)
     double[][] masterQualities;
     static foreach (qstring; masterQStrings)
         masterQualities ~= mixin(qstring);
-    auto qualities = masterQualities[qualityIndex];
-    auto qualitiesString = masterQStrings[qualityIndex];
-    writeln(qualities);
+    auto qualities = masterQualities
+                     .filter!(a => a.length == l)
+                     .array[qualityIndex];
+    auto qualitiesString = masterQStrings
+                           .filter!(
+                               a => a.split(",")
+                               .length == l
+                           ).array[qualityIndex];
+    writeln(qualities, " == ", qualitiesString);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
 
@@ -188,7 +198,9 @@ void main(string[] args)
             stdout.flush();
             if (test == testSet - 1) writeln();
 
-            qualities = masterQualities[qualityIndex].dup;
+            qualities = masterQualities
+                        .filter!(a => a.length == l)
+                        .array[qualityIndex];
             bestChoice = qualities.maxIndex.to!int;
 
             auto payoffMap = new double[n];
