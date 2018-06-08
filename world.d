@@ -18,7 +18,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
     immutable auto alpha = 0.0;                 // 0.0
-    immutable auto gamma = true;                // False disables thresholds
+    immutable auto gamma = false;                // False disables thresholds
     immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
