@@ -18,7 +18,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;   // iterations / 100
     immutable auto testSet = 100;               // 100
     immutable auto alpha = 0.0;                 // 0.0
-    immutable auto gamma = false;                // False disables thresholds
+    immutable auto gamma = false;               // Enable(true)/disable(false) thresholds
     immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
@@ -141,11 +141,11 @@ void main(string[] args)
     auto qualities = masterQualities
                      .filter!(a => a.length == l)
                      .array[qualityIndex];
-    auto qualitiesString = masterQStrings
-                           .filter!(
-                               a => a.split(",")
-                               .length == l
-                           ).array[qualityIndex];
+    auto qualitiesString =  masterQStrings
+                            .filter!(
+                                a => a.split(",")
+                                .length == l
+                            ).array[qualityIndex];
     writeln(qualities, " == ", qualitiesString);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
