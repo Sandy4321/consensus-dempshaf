@@ -31,8 +31,8 @@ void main(string[] args)
 
     bool randomSelect = true;
     int l, n;
-    double pRaw = 0.66;
-    int p = 66;
+    double pRaw = 0.0;
+    int p = 0;
     string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
@@ -93,6 +93,8 @@ void main(string[] args)
         writeln("probabilistic");
     if (evidenceOnly)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
+    version (sanityCheck)
+        writeln("!!! SANITY CHECK MODE !!!");
 
     auto seed = setSeed ? 128 : unpredictableSeed;
     auto rand = Random(seed);
@@ -277,9 +279,22 @@ void main(string[] args)
                     // distance = inconsist =
                     entropy = cardinality = 0.0;
 
+                    ulong[] removedAgentIndices;
+
                     foreach (i, ref agent; population)
                     {
                         auto beliefs = agent.beliefs;
+                        auto skipAgent = false;
+                        foreach (j; 0 .. l)
+                        {
+                            if (j in beliefs && approxEqual(beliefs[j], 1.0))
+                            {
+                                removedAgentIndices ~= i;
+                                skipAgent = true;
+                                continue;
+                            }
+                        }
+                        if (skipAgent) continue;
 
                         append = true;
                         foreach (unique; uniqueBeliefs)
@@ -334,6 +349,20 @@ void main(string[] args)
                         {
                             cardinality += bel * powerSet[j].length;
                         }
+                    }
+
+                    if (!removedAgentIndices.empty)
+                    {
+                        auto tempPopulation = population.dup;
+                        population.destroy;
+                        foreach (agentIndex; 0 .. n)
+                        {
+                            if (removedAgentIndices.canFind(agentIndex))
+                                continue;
+                            else
+                                population ~= tempPopulation[agentIndex];
+                        }
+                        n = population.length.to!int;
                     }
 
                     // distance = (2 * distance) / (n * (n - 1));
