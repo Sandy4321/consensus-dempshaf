@@ -196,8 +196,8 @@ void main(string[] args)
         */
         foreach (test; 0 .. testSet)
         {
-            write("\rtest #", test + 1);
-            stdout.flush();
+            writeln("\rtest #", test + 1);
+            // stdout.flush();
             if (test == testSet - 1) writeln();
 
             qualities = masterQualities
@@ -612,22 +612,3 @@ private void writeToFile(T)(string directory, string fileName, string append, T[
     }
     file.close();
 }
-
-// The following function is no longer required as belief results have been removed.
-private void writeBeliefsToFile(T)(string directory, string fileName, string append, T[][] results)
-{
-    auto file = File(directory ~ fileName, append);
-    foreach (i, ref index; results)
-    {
-        foreach (j, ref test; index)
-        {
-            foreach (k, ref belief; test)
-            {
-                file.write(results[i][j][k]);
-                file.write((k == cast(ulong) results[i][j].length - 1) ? "\n" : ",");
-            }
-        }
-    }
-    file.close();
-}
-
