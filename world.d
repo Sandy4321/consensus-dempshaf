@@ -30,7 +30,7 @@ void main(string[] args)
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
-    int l, n;
+    int l, n, initN;
     double pRaw = 0.0;
     int p = 0;
     string distribution = "";
@@ -57,6 +57,7 @@ void main(string[] args)
             break;
             case 2:
                 n = to!int(arg);
+                initN = n;
                 writeln("Population size: ", n);
             break;
 
@@ -196,8 +197,8 @@ void main(string[] args)
         */
         foreach (test; 0 .. testSet)
         {
-            writeln("\rtest #", test + 1);
-            // stdout.flush();
+            write("\rtest #", test + 1);
+            stdout.flush();
             if (test == testSet - 1) writeln();
 
             qualities = masterQualities
@@ -205,6 +206,9 @@ void main(string[] args)
                         .array[qualityIndex];
             bestChoice = qualities.maxIndex.to!int;
 
+            n = initN;
+            population = new Agent[n];
+            foreach (ref agent; population) agent = new Agent();
             auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
@@ -365,14 +369,17 @@ void main(string[] args)
                         n = population.length.to!int;
                     }
 
-                    // distance = (2 * distance) / (n * (n - 1));
-                    entropy /= n;
-                    // inconsist = (2 * inconsist) / (n * (n - 1));
-                    foreach (index; 0 .. l)
-                        choiceBeliefs[index] /= n;
-                    foreach (index; 0 .. pow(2, l) - 1)
-                        powerSetBeliefs[index] /= n;
-                    cardinality /= n;
+                    if (n > 0)
+                    {
+                        // distance = (2 * distance) / (n * (n - 1));
+                        entropy /= n;
+                        // inconsist = (2 * inconsist) / (n * (n - 1));
+                        foreach (index; 0 .. l)
+                            choiceBeliefs[index] /= n;
+                        foreach (index; 0 .. pow(2, l) - 1)
+                            powerSetBeliefs[index] /= n;
+                        cardinality /= n;
+                    }
 
                     // Format and tore the resulting simulation data into their
                     // respective arrays.
@@ -411,6 +418,7 @@ void main(string[] args)
                     );
                     iterIndex++;
                 }
+                if (n <= 1) continue;
                 /*
                 * Begin by combining each agent's mass function with the new
                 * evidence mass function, which serves as a form of 'payoff'
@@ -524,7 +532,7 @@ void main(string[] args)
         string directory = format(
             "../results/test_results/dempshaf/%s_distribution/%s_agents/",
             distribution,
-            n
+            initN
         );
         static if (lambda > 0.0)
         {
@@ -557,8 +565,14 @@ void main(string[] args)
                 directory ~= "no_change/";
             }
         }
-        directory ~= format("%s/%s/", l, qualitiesString);
-
+        version (sanityCheck)
+        {
+            directory ~= format("%s_sanity_check/%s/", l, qualitiesString);
+        }
+        else
+        {
+            directory ~= format("%s/%s/", l, qualitiesString);
+        }
         auto append = "w";
 
         // Distance
