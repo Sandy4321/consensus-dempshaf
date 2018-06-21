@@ -25,12 +25,12 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
-    int l, n, initN;
+    int l, n;
     double pRaw = 0.0;
     int p = 0;
     string distribution = "";
@@ -57,7 +57,6 @@ void main(string[] args)
             break;
             case 2:
                 n = to!int(arg);
-                initN = n;
                 writeln("Population size: ", n);
             break;
 
@@ -127,8 +126,8 @@ void main(string[] args)
     //*************************************
     immutable auto masterQStrings = [
         "[0.2, 0.4, 1.0]",
-        "[0.3, 0.6, 1.0]",
         "[0.8, 0.9, 1.0]",
+        "[1.0, 1.0, 1.0]",
 
         "[0.025, 0.025, 0.05, 0.1, 0.8]",
         "[0.96, 0.97, 0.98, 0.99, 1.0]",
@@ -206,9 +205,6 @@ void main(string[] args)
                         .array[qualityIndex];
             bestChoice = qualities.maxIndex.to!int;
 
-            n = initN;
-            population = new Agent[n];
-            foreach (ref agent; population) agent = new Agent();
             auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
@@ -283,22 +279,9 @@ void main(string[] args)
                     // distance = inconsist =
                     entropy = cardinality = 0.0;
 
-                    ulong[] removedAgentIndices;
-
                     foreach (i, ref agent; population)
                     {
                         auto beliefs = agent.beliefs;
-                        auto skipAgent = false;
-                        foreach (j; 0 .. l)
-                        {
-                            if (j in beliefs && approxEqual(beliefs[j], 1.0))
-                            {
-                                removedAgentIndices ~= i;
-                                skipAgent = true;
-                                continue;
-                            }
-                        }
-                        if (skipAgent) continue;
 
                         append = true;
                         foreach (unique; uniqueBeliefs)
@@ -354,32 +337,14 @@ void main(string[] args)
                             cardinality += bel * powerSet[j].length;
                         }
                     }
-
-                    if (!removedAgentIndices.empty)
-                    {
-                        auto tempPopulation = population.dup;
-                        population.destroy;
-                        foreach (agentIndex; 0 .. n)
-                        {
-                            if (removedAgentIndices.canFind(agentIndex))
-                                continue;
-                            else
-                                population ~= tempPopulation[agentIndex];
-                        }
-                        n = population.length.to!int;
-                    }
-
-                    if (n > 0)
-                    {
-                        // distance = (2 * distance) / (n * (n - 1));
-                        entropy /= n;
-                        // inconsist = (2 * inconsist) / (n * (n - 1));
-                        foreach (index; 0 .. l)
-                            choiceBeliefs[index] /= n;
-                        foreach (index; 0 .. pow(2, l) - 1)
-                            powerSetBeliefs[index] /= n;
-                        cardinality /= n;
-                    }
+                    // distance = (2 * distance) / (n * (n - 1));
+                    entropy /= n;
+                    // inconsist = (2 * inconsist) / (n * (n - 1));
+                    foreach (index; 0 .. l)
+                        choiceBeliefs[index] /= n;
+                    foreach (index; 0 .. pow(2, l) - 1)
+                        powerSetBeliefs[index] /= n;
+                    cardinality /= n;
 
                     // Format and tore the resulting simulation data into their
                     // respective arrays.
@@ -482,34 +447,62 @@ void main(string[] args)
                 */
                 static if (!evidenceOnly)
                 {
-                    Agent selected;
-                    int selection;
-                    auto snapshotPopulation = population.dup;
-
+                    ulong[] removedAgentIndices;
                     foreach (i, ref agent; population)
                     {
-                        do selection = uniform(0, n, rand);
-                        while (i == selection);
-                        selected = snapshotPopulation[selection];
+                        auto beliefs = agent.beliefs;
+                        auto skipAgent = false;
+                        foreach (j; 0 .. l)
+                        {
+                            if (j in beliefs && approxEqual(beliefs[j], 1.0))
+                            {
+                                removedAgentIndices ~= i;
+                                skipAgent = true;
+                                continue;
+                            }
+                        }
+                    }
+                    Agent[] snapshotPopulation;
+                    if (!removedAgentIndices.empty)
+                    {
+                        foreach (agentIndex; 0 .. n)
+                        {
+                            if (removedAgentIndices.canFind(agentIndex))
+                                continue;
+                            else
+                                snapshotPopulation ~= population[agentIndex];
+                        }
+                    }
+                    if (snapshotPopulation.length > 2)
+                    {
+                        Agent selected;
+                        int selection;
 
-                        auto newBeliefs = combination(
-                            powerSet,
-                            agent.beliefs,
-                            selected.beliefs,
-                            threshold,
-                            lambda
-                        );
+                        foreach (i, ref agent; population)
+                        {
+                            do selection = uniform(0, snapshotPopulation.length.to!int, rand);
+                            while (i == selection);
+                            selected = snapshotPopulation[selection];
 
-                        immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                            qualities,
-                            powerSet,
-                            newBeliefs
-                        );
+                            auto newBeliefs = combination(
+                                powerSet,
+                                agent.beliefs,
+                                selected.beliefs,
+                                threshold,
+                                lambda
+                            );
 
-                        agent.beliefs = newBeliefs;
-                        agent.payoff  = newPayoff;
-                        payoffMap[i]  = newPayoff;
-                        agent.incrementInteractions;
+                            immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                                qualities,
+                                powerSet,
+                                newBeliefs
+                            );
+
+                            agent.beliefs = newBeliefs;
+                            agent.payoff  = newPayoff;
+                            payoffMap[i]  = newPayoff;
+                            agent.incrementInteractions;
+                        }
                     }
                 }
             }
@@ -532,8 +525,12 @@ void main(string[] args)
         string directory = format(
             "../results/test_results/dempshaf/%s_distribution/%s_agents/",
             distribution,
-            initN
+            n
         );
+        version (sanityCheck)
+        {
+            directory ~= "sanity_checks/";
+        }
         static if (lambda > 0.0)
         {
             directory ~= format("lambda_operator_%.1f/", lambda);
@@ -565,14 +562,7 @@ void main(string[] args)
                 directory ~= "no_change/";
             }
         }
-        version (sanityCheck)
-        {
-            directory ~= format("%s_sanity_check/%s/", l, qualitiesString);
-        }
-        else
-        {
-            directory ~= format("%s/%s/", l, qualitiesString);
-        }
+        directory ~= format("%s/%s/", l, qualitiesString);
         auto append = "w";
 
         // Distance
