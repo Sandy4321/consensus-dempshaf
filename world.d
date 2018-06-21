@@ -25,8 +25,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -383,15 +383,34 @@ void main(string[] args)
                     );
                     iterIndex++;
                 }
-                if (n <= 1) continue;
                 /*
                 * Begin by combining each agent's mass function with the new
                 * evidence mass function, which serves as a form of 'payoff'
                 * assumed to be received when the agent assesses its choice
                 * e.g. when a honeybee visits a site.
                 */
-                foreach(i, ref agent; population)
+
+                ulong[] snapshotPopulation;
+                foreach (i, ref agent; population)
                 {
+                    auto beliefs = agent.beliefs;
+                    auto skip = false;
+                    foreach (j; 0 .. l)
+                    {
+                        if (j in beliefs && approxEqual(beliefs[j], 1.0))
+                        {
+                            skip = true;
+                            continue;
+                        }
+                    }
+                    if (!skip) snapshotPopulation ~= i;
+                }
+
+                // foreach(i, ref agent; population)
+                // {
+                foreach (i; snapshotPopulation)
+                {
+                    Agent agent = population[i];
                     version (negativeEvidence)
                     {
                         agent.beliefs = combination(
@@ -445,44 +464,20 @@ void main(string[] args)
                 /*
                 * Agents conduct some form of belief-merging/"consensus".
                 */
+
                 static if (!evidenceOnly)
                 {
-                    ulong[] removedAgentIndices;
-                    foreach (i, ref agent; population)
-                    {
-                        auto beliefs = agent.beliefs;
-                        auto skipAgent = false;
-                        foreach (j; 0 .. l)
-                        {
-                            if (j in beliefs && approxEqual(beliefs[j], 1.0))
-                            {
-                                removedAgentIndices ~= i;
-                                skipAgent = true;
-                                continue;
-                            }
-                        }
-                    }
-                    Agent[] snapshotPopulation;
-                    if (!removedAgentIndices.empty)
-                    {
-                        foreach (agentIndex; 0 .. n)
-                        {
-                            if (removedAgentIndices.canFind(agentIndex))
-                                continue;
-                            else
-                                snapshotPopulation ~= population[agentIndex];
-                        }
-                    }
                     if (snapshotPopulation.length > 2)
                     {
                         Agent selected;
                         int selection;
 
-                        foreach (i, ref agent; population)
+                        foreach (i; snapshotPopulation)
                         {
-                            do selection = uniform(0, snapshotPopulation.length.to!int, rand);
+                            Agent agent = population[i];
+                            do selection = snapshotPopulation.choice(rand).to!int;
                             while (i == selection);
-                            selected = snapshotPopulation[selection];
+                            selected = population[selection];
 
                             auto newBeliefs = combination(
                                 powerSet,
@@ -505,6 +500,8 @@ void main(string[] args)
                         }
                     }
                 }
+
+
             }
         }
 
