@@ -177,9 +177,9 @@ void main(string[] args)
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
-    auto powerSet = DempsterShafer.generatePowerSet(l);
+    auto powerSet = DempsterShafer.generatePowerset(l);
     immutable auto belLength = to!int(powerSet.length);
-    // writeln(powerSet);
+    writeln(powerSet);
 
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;

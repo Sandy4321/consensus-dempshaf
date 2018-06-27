@@ -202,7 +202,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static auto ref generatePowerSet(ref in int l) pure
+    static auto ref generatePowerset(ref in int l) pure
     {
         import std.algorithm.sorting : sort;
 
