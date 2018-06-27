@@ -20,6 +20,7 @@ void main(string[] args)
     immutable auto alpha = 0.0;                 // 0.0
     immutable auto gamma = false;               // Enable(true)/disable(false) thresholds
     immutable auto lambda = 0.0;                // 0 would be regular combination
+    immutable auto iota = true;                // Enable/disable inconsistency threshold
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
@@ -171,6 +172,14 @@ void main(string[] args)
             thresholdSet ~= (thresholdTempSet[index] + thresholdTempSet[index + 1]) / 2.0;
         writeln(thresholdSet);
     }
+    else static if (iota)
+    {
+        double[] thresholdSet;
+        foreach (threshold; 0 .. 21)
+            thresholdSet ~= (threshold/20.0).to!double;
+        writeln(thresholdSet);
+
+    }
     else
     {
         immutable double[] thresholdSet = [0.0];
@@ -179,7 +188,7 @@ void main(string[] args)
     // Generate the frame of discernment (power set of the propositional variables)
     auto powerSet = DempsterShafer.generatePowerset(l);
     immutable auto belLength = to!int(powerSet.length);
-    writeln(powerSet);
+    // writeln(powerSet);
 
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;
@@ -189,7 +198,7 @@ void main(string[] args)
      */
     foreach (threshold; thresholdSet)
     {
-        static if (gamma)
+        static if (gamma || iota)
         {
             writeln("threshold: %.4f".format(threshold));
         }
@@ -490,10 +499,15 @@ void main(string[] args)
         {
             fileExt = "_%.4f".format(threshold) ~ fileExt;
         }
+        else static if (iota)
+        {
+            fileExt = "_%.2f".format(threshold) ~ fileExt;
+        }
         string randomFN = "";
         if (randomSelect)
+        {
             randomFN = "random";
-
+        }
         /*
         * Change the directory to store results in the appropriate directory structure.
         */
