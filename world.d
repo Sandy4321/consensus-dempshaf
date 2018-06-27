@@ -25,8 +25,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -150,20 +150,25 @@ void main(string[] args)
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
 
+    // If using the threshold-based operators, then generate the threshold ranges
+    // and select the midpoint of each range to run as the gamma value.
     static if (gamma)
     {
         // Generate the set of threshold values relevant to the language size.
-        double[] thresholdSet;
-        thresholdSet ~= 0.0;
+        double[] thresholdSet, thresholdTempSet;
+        thresholdTempSet ~= 0.0;
         foreach (double i; 1 .. l + 1)
         {
             foreach (double j; 1 .. i)
             {
-                thresholdSet ~= j/i;
+                thresholdTempSet ~= j/i;
             }
         }
-        thresholdSet ~= 1.0;
-        thresholdSet = thresholdSet.sort.uniq.array;
+        thresholdTempSet ~= 1.0;
+        thresholdTempSet = thresholdTempSet.sort.uniq.array;
+        write(thresholdTempSet, " --> ");
+        foreach (index; 0 .. thresholdTempSet.length.to!long - 1)
+            thresholdSet ~= (thresholdTempSet[index] + thresholdTempSet[index + 1]) / 2.0;
         writeln(thresholdSet);
     }
     else
