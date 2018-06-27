@@ -32,7 +32,7 @@ public class DempsterShafer
      */
     static auto ref calculatePayoff(
         ref in double[] payoffs,
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         ref in double[int] beliefs) pure
     {
         import std.algorithm.searching : maxElement;
@@ -42,7 +42,7 @@ public class DempsterShafer
         auto maximalPayoff = payoffs.maxElement;
         immutable int l = payoffs.length.to!int;
         auto pignistic = pignisticDist(
-            powerSet,
+            powerset,
             l,
             beliefs
         );
@@ -132,15 +132,15 @@ public class DempsterShafer
      * applied to the pignistic distributions of each agent's beliefs.
      */
     static auto ref distance(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         ref in int l,
         ref in double[int] beliefs1,
         ref in double[int] beliefs2) pure
     {
         import std.math : sqrt;
 
-        auto pignisticBel1 = pignisticDist(powerSet, l, beliefs1);
-        auto pignisticBel2 = pignisticDist(powerSet, l, beliefs2);
+        auto pignisticBel1 = pignisticDist(powerset, l, beliefs1);
+        auto pignisticBel2 = pignisticDist(powerset, l, beliefs2);
 
         double distance = 0.0;
         double sum = 0.0;
@@ -156,7 +156,7 @@ public class DempsterShafer
      * Calculates the Deng entropy of an agent's mass function: a measure of uncertainty.
      */
     static auto ref entropy(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         ref in int l,
         ref in double[int] beliefs) pure
     {
@@ -169,7 +169,7 @@ public class DempsterShafer
             if (approxEqual(belief, 0.0))
                 continue;
             entropy -= belief * log2(
-                belief/(pow(2, powerSet[index].length)-1)
+                belief/(pow(2, powerset[index].length)-1)
             );
         }
 
@@ -180,22 +180,37 @@ public class DempsterShafer
      * Inconsistency measure between two beliefs.
      */
     static auto ref inconsistency(
-        ref in int[][] powerSet,
-        ref in int l,
+        ref in int[][] powerset,
         ref in double[int] beliefs1,
         ref in double[int] beliefs2) pure
     {
-        auto pignisticBel1 = pignisticDist(powerSet, l, beliefs1);
-        auto pignisticBel2 = pignisticDist(powerSet, l, beliefs2);
+        import std.algorithm : find, setIntersection, sort, sum, uniq;
+        import std.math : approxEqual;
 
         double inconsistency = 0.0;
 
-        foreach (i; 0 .. l)
+        foreach (i, ref bel1; beliefs1)
         {
-            inconsistency += (pignisticBel1[i] * (1.0 - pignisticBel2[i]));
+            // If the mass is 0, skip this set.
+            if (approxEqual(bel1, 0.0))
+                continue;
+            foreach (j, ref bel2; beliefs2)
+            {
+                // If the mass is 0, skip this set.
+                if (approxEqual(bel2, 0.0))
+                    continue;
+
+                auto intersection = setIntersection(powerset[i], powerset[j]);
+                if (intersection.empty)
+                {
+                    // If the intersection is the empty set, add the product of the
+                    // beliefs to the inconsistency sum.
+                    inconsistency += bel1 * bel2;
+                }
+            }
         }
 
-        return (inconsistency / l);
+        return inconsistency;
     }
 
     /**
@@ -270,14 +285,14 @@ public class DempsterShafer
      * punished.
      */
     static auto ref probMassEvidence(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         ref in int l,
         ref in double[] qualities,
         ref in double[int] beliefs,
         ref from!"std.random".Random rand) pure
     {
         import std.random : uniform01;
-        auto pignisticBel = pignisticDist(powerSet, l, beliefs);
+        auto pignisticBel = pignisticDist(powerset, l, beliefs);
         immutable auto prob = uniform01(rand);
         auto sum = 0.0;
         int choice;
@@ -311,13 +326,13 @@ public class DempsterShafer
         auto rand = Random(unpredictableSeed);
 
         auto l = 2;
-        auto powerSet = generatePowerSet(l);
-        assert(powerSet == [[0], [1], [0, 1]]);
+        auto powerset = generatePowerset(l);
+        assert(powerset == [[0], [1], [0, 1]]);
 
         auto qualities = [0.8, 0.2];
         double[int] beliefs;
         beliefs[0] = 1.0; beliefs[1] = 0.0; beliefs[2] =  0.0;
-        auto massFunction = probMassEvidence(powerSet, l, qualities, beliefs, rand);
+        auto massFunction = probMassEvidence(powerset, l, qualities, beliefs, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
@@ -325,12 +340,12 @@ public class DempsterShafer
         assert(approxEqual(massFunction[2], 0.2));
 
         beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
-        massFunction = probMassEvidence(powerSet, l, qualities, beliefs, rand);
+        massFunction = probMassEvidence(powerset, l, qualities, beliefs, rand);
         assert(approxEqual(massFunction[1], 0.2));
         assert(approxEqual(massFunction[2], 0.8));
 
         beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
-        massFunction = probMassEvidence(powerSet, l, qualities, beliefs, rand);
+        massFunction = probMassEvidence(powerset, l, qualities, beliefs, rand);
         if (0 in massFunction)
             assert(
                 approxEqual(massFunction[0], 0.8) &&
@@ -380,8 +395,8 @@ public class DempsterShafer
         auto rand = Random(unpredictableSeed);
 
         auto l = 2;
-        auto powerSet = generatePowerSet(l);
-        assert(powerSet == [[0], [1], [0, 1]]);
+        auto powerset = generatePowerset(l);
+        assert(powerset == [[0], [1], [0, 1]]);
 
         auto qualities = [0.8, 0.2];
         auto massFunction = randMassEvidence(qualities, rand);
@@ -407,7 +422,7 @@ public class DempsterShafer
      * at random.
      */
     static auto ref negMassEvidence(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         ref in double[] qualities,
         ref in double alpha,
         ref from!"std.random".Random rand) pure
@@ -434,7 +449,7 @@ public class DempsterShafer
                             .filter!(a => a != choice)
                             .array;
         int index;
-        foreach (int key, value; powerSet)
+        foreach (int key, value; powerset)
         {
             if (value == evidenceSet)
                 index = key;
@@ -471,23 +486,23 @@ public class DempsterShafer
         auto rand = Random(unpredictableSeed);
 
         auto l = 3;
-        auto powerSet = generatePowerSet(l);
-        assert(powerSet == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
+        auto powerset = generatePowerset(l);
+        assert(powerset == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
 
         auto qualities = [0.8, 0.2, 0.1];
         double alpha = 0.0; // Alpha = 0 means "precise" negative info.
-        auto massFunction = negMassEvidence(powerSet, qualities, alpha, rand);
+        auto massFunction = negMassEvidence(powerset, qualities, alpha, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
         assert(approxEqual(massFunction[massFunction.keys[0]], 1.0));
 
         alpha = 1.0;
-        massFunction = negMassEvidence(powerSet, qualities, alpha, rand);
+        massFunction = negMassEvidence(powerset, qualities, alpha, rand);
         assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 1.0));
 
         alpha = 0.5;
-        massFunction = negMassEvidence(powerSet, qualities, alpha, rand);
+        massFunction = negMassEvidence(powerset, qualities, alpha, rand);
         assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 0.5));
         massFunction.remove((2^^qualities.length.to!int)-2);
         assert(approxEqual(massFunction[massFunction.keys[0]], 0.5));
@@ -500,7 +515,7 @@ public class DempsterShafer
      * agent's mass function.
      */
     static auto ref pignisticDist(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         ref in int l,
         ref in double[int] beliefs) pure
     {
@@ -509,9 +524,9 @@ public class DempsterShafer
 
         foreach (ref key, ref value; beliefs)
         {
-            foreach (ref choice; powerSet[key])
+            foreach (ref choice; powerset[key])
             {
-                pignistic[choice] += value/powerSet[key].length;
+                pignistic[choice] += value/powerset[key].length;
             }
         }
 
@@ -527,19 +542,19 @@ public class DempsterShafer
         writeln("Unit tests:\tpignisticDist");
 
         auto l = 2;
-        auto powerSet = generatePowerSet(l);
+        auto powerset = generatePowerset(l);
 
         double[int] probDist;
         probDist[0] = 0.2;
         probDist[1] = 0.2;
         probDist[2] = 0.6;
-        auto uniformDist = pignisticDist(powerSet, l, probDist);
+        auto uniformDist = pignisticDist(powerset, l, probDist);
         assert(equal!approxEqual(uniformDist, [0.5,0.5]));
 
         probDist[0] = 0.2;
         probDist[1] = 0.1;
         probDist[2] = 0.7;
-        uniformDist = pignisticDist(powerSet, l, probDist);
+        uniformDist = pignisticDist(powerset, l, probDist);
         assert(equal!approxEqual(uniformDist, [0.55,0.45]));
 
         writeln("\t\tPASSED.");

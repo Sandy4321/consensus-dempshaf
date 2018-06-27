@@ -100,14 +100,13 @@ void main(string[] args)
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
-    // auto distanceResults    = new string[][](arraySize, testSet);
     // auto inconsistResults   = new string[][](arraySize, testSet);
     auto entropyResults     = new string[][](arraySize, testSet);
     auto uniqueResults      = new string[][](arraySize, testSet);
     auto payoffResults      = new string[][](arraySize, testSet);
     auto maxPayoffResults   = new string[][](arraySize, testSet);
     auto choiceResults      = new string[][](arraySize, testSet);
-    auto powerSetResults    = new string[][](arraySize, testSet);
+    auto powersetResults    = new string[][](arraySize, testSet);
     auto cardMassResults    = new string[][](arraySize, testSet);
 
     // Initialize the population of agents according to population size l
@@ -175,8 +174,8 @@ void main(string[] args)
     else static if (iota)
     {
         double[] thresholdSet;
-        foreach (threshold; 0 .. 21)
-            thresholdSet ~= (threshold/20.0).to!double;
+        foreach (threshold; 0 .. 11)
+            thresholdSet ~= (threshold/10.0).to!double;
         writeln(thresholdSet);
 
     }
@@ -186,9 +185,9 @@ void main(string[] args)
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
-    auto powerSet = DempsterShafer.generatePowerset(l);
-    immutable auto belLength = to!int(powerSet.length);
-    // writeln(powerSet);
+    auto powerset = DempsterShafer.generatePowerset(l);
+    immutable auto belLength = to!int(powerset.length);
+    // writeln(powerset);
 
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;
@@ -198,9 +197,13 @@ void main(string[] args)
      */
     foreach (threshold; thresholdSet)
     {
-        static if (gamma || iota)
+        static if (gamma)
         {
             writeln("threshold: %.4f".format(threshold));
+        }
+        else static if (iota)
+        {
+            writeln("threshold: %.2f".format(threshold));
         }
         /*
         * Main test loop;
@@ -240,7 +243,7 @@ void main(string[] args)
 
                 payoff = DempsterShafer.calculatePayoff(
                     qualities,
-                    powerSet,
+                    powerset,
                     beliefs
                 );
                 agent.beliefs = beliefs;
@@ -257,9 +260,9 @@ void main(string[] args)
 
             int iterIndex;
             double[int] choiceBeliefs;
-            double[int] powerSetBeliefs;
+            double[int] powersetBeliefs;
             double[int][] uniqueBeliefs;
-            // double distance, inconsist,
+            // double inconsist,
             double entropy, cardinality;
             bool append;
             foreach (iter; 0 .. iterations + 1)
@@ -286,9 +289,9 @@ void main(string[] args)
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] = 0.0;
                     foreach (index; 0 .. pow(2, l) - 1)
-                        powerSetBeliefs[index] = 0.0;
+                        powersetBeliefs[index] = 0.0;
                     uniqueBeliefs.length = 0;
-                    // distance = inconsist =
+                    // inconsist =
                     entropy = cardinality = 0.0;
 
                     foreach (i, ref agent; population)
@@ -313,28 +316,7 @@ void main(string[] args)
                         if (append) uniqueBeliefs ~= beliefs;
 
                         // Calculate average entropy of agents' beliefs
-                        entropy += DempsterShafer.entropy(powerSet, l, beliefs);
-
-                        // Calculate average distance of agents to identify
-                        // possible consensus of the population
-                        // auto distanceHold = 0.0;
-                        /* foreach (ref cmpAgent; population[i + 1 .. $])
-                        {
-                            if (agent == cmpAgent) continue;
-                            distanceHold = DempsterShafer.distance(
-                                powerSet,
-                                l,
-                                beliefs,
-                                cmpAgent.beliefs
-                            );
-                            distance += distanceHold;
-                            inconsist += DempsterShafer.inconsistency(
-                                powerSet,
-                                l,
-                                beliefs,
-                                cmpAgent.beliefs
-                            );
-                        } */
+                        entropy += DempsterShafer.entropy(powerset, l, beliefs);
 
                         foreach (index; 0 .. l)
                             if (index in beliefs)
@@ -342,27 +324,25 @@ void main(string[] args)
 
                         foreach (index; 0 .. pow(2, l) - 1)
                             if (index in beliefs)
-                                powerSetBeliefs[index] += beliefs[index];
+                                powersetBeliefs[index] += beliefs[index];
 
                         foreach (j, ref bel; beliefs)
                         {
-                            cardinality += bel * powerSet[j].length;
+                            cardinality += bel * powerset[j].length;
                         }
                     }
 
-                    // distance = (2 * distance) / (n * (n - 1));
                     entropy /= n;
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; 0 .. l)
                         choiceBeliefs[index] /= n;
                     foreach (index; 0 .. pow(2, l) - 1)
-                        powerSetBeliefs[index] /= n;
+                        powersetBeliefs[index] /= n;
                     cardinality /= n;
 
                     // Format and tore the resulting simulation data into their
                     // respective arrays.
 
-                    // distanceResults[iterIndex][test]   = format("%.4f", distance);
                     // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
                     entropyResults[iterIndex][test] = format("%.4f", entropy);
                     uniqueResults[iterIndex][test] = format("%d", uniqueBeliefs.length);
@@ -372,12 +352,12 @@ void main(string[] args)
                             "%.4f", choiceBeliefs[key]
                         ) ~ ",";
                     choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
-                    powerSetResults[iterIndex][test] = "[";
-                    foreach (key; powerSetBeliefs.keys.sort)
-                        powerSetResults[iterIndex][test] ~= format(
-                            "%.4f", powerSetBeliefs[key]
+                    powersetResults[iterIndex][test] = "[";
+                    foreach (key; powersetBeliefs.keys.sort)
+                        powersetResults[iterIndex][test] ~= format(
+                            "%.4f", powersetBeliefs[key]
                         ) ~ ",";
-                    powerSetResults[iterIndex][test] = powerSetResults[iterIndex][test][0 .. $-1] ~ "]";
+                    powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0 .. $-1] ~ "]";
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
                     payoffResults[iterIndex][test] = format(
@@ -407,10 +387,10 @@ void main(string[] args)
                     version (negativeEvidence)
                     {
                         agent.beliefs = combination(
-                            powerSet,
+                            powerset,
                             agent.beliefs,
                             DempsterShafer.negMassEvidence(
-                                powerSet,
+                                powerset,
                                 qualities,
                                 alpha,
                                 rand
@@ -425,7 +405,7 @@ void main(string[] args)
                         version (randomEvidence)
                         {
                             agent.beliefs = combination(
-                                powerSet,
+                                powerset,
                                 agent.beliefs,
                                 DempsterShafer.randMassEvidence(
                                     qualities,
@@ -439,10 +419,10 @@ void main(string[] args)
                         else
                         {
                             agent.beliefs = combination(
-                                powerSet,
+                                powerset,
                                 agent.beliefs,
                                 DempsterShafer.probMassEvidence(
-                                    powerSet,
+                                    powerset,
                                     l,
                                     qualities,
                                     agent.beliefs,
@@ -469,8 +449,21 @@ void main(string[] args)
                         while (i == selection);
                         selected = snapshotPopulation[selection];
 
+                        static if (iota)
+                        {
+                            immutable double inconsistency = DempsterShafer.inconsistency(
+                                powerset,
+                                agent.beliefs,
+                                selected.beliefs
+                            );
+                            if (inconsistency > threshold)
+                            {
+                                continue;
+                            }
+                        }
+
                         auto newBeliefs = combination(
-                            powerSet,
+                            powerset,
                             agent.beliefs,
                             selected.beliefs,
                             threshold,
@@ -479,7 +472,7 @@ void main(string[] args)
 
                         immutable auto newPayoff = DempsterShafer.calculatePayoff(
                             qualities,
-                            powerSet,
+                            powerset,
                             newBeliefs
                         );
 
@@ -551,10 +544,6 @@ void main(string[] args)
 
         auto append = "w";
 
-        // Distance
-        /* fileName = "distance" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, distanceResults); */
-
         // Inconsistency
         /* fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, inconsistResults); */
@@ -581,7 +570,7 @@ void main(string[] args)
 
         // Powerset belief
         fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, powerSetResults);
+        writeToFile(directory, fileName, append, powersetResults);
 
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;

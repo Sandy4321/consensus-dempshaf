@@ -9,7 +9,7 @@ public final class Operators
      * Consensus operator for Dempster-Shafer mass functions.
      */
     static auto ref consensus(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
@@ -34,18 +34,18 @@ public final class Operators
                 if (approxEqual(bel2, 0.0))
                     continue;
                 int[] currentSet;
-                auto intersection = setIntersection(powerSet[i], powerSet[j]);
+                auto intersection = setIntersection(powerset[i], powerset[j]);
 
                 if (intersection.empty ||
                     !DempsterShafer.setSimilarity(
-                        powerSet[i],
-                        powerSet[j],
+                        powerset[i],
+                        powerset[j],
                         threshold
                     )
                 )
                 {
                     // If the intersection is the empty set, form the union instead.
-                    currentSet = (powerSet[i] ~ powerSet[j]).dup.sort.uniq.array;
+                    currentSet = (powerset[i] ~ powerset[j]).dup.sort.uniq.array;
                 }
                 else
                 {
@@ -53,7 +53,7 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (int k, ref set; powerSet)
+                foreach (int k, ref set; powerset)
                 {
                     if (currentSet == set)
                     {
@@ -69,7 +69,7 @@ public final class Operators
         {
             beliefs[index] *= 1 - lambda;
         }
-        beliefs[cast(int) powerSet.length - 1] += lambda;
+        beliefs[cast(int) powerset.length - 1] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
@@ -89,7 +89,7 @@ public final class Operators
      * Dempster-Shafer's rule of combination operator.
      */
     static auto ref dempsterRoC(
-        ref in int[][] powerSet,
+        ref in int[][] powerset,
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
@@ -112,7 +112,7 @@ public final class Operators
                 if (approxEqual(bel2, 0.0))
                     continue;
                 int[] currentSet;
-                auto intersection = setIntersection(powerSet[i], powerSet[j]);
+                auto intersection = setIntersection(powerset[i], powerset[j]);
                 if (intersection.empty)
                 {
                     // If the intersection is the empty set, add to empty set
@@ -126,7 +126,7 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (int k, ref set; powerSet)
+                foreach (int k, ref set; powerset)
                 {
                     if (currentSet == set)
                     {
@@ -162,7 +162,7 @@ public final class Operators
         {
             beliefs[index] *= 1 - lambda;
         }
-        beliefs[cast(int) powerSet.length - 1] += lambda;
+        beliefs[cast(int) powerset.length - 1] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
