@@ -206,10 +206,10 @@ public class DempsterShafer
     {
         import std.algorithm.sorting : sort;
 
-        auto powerSet = new int[][]((2^^l));
+        auto powerset = new int[][]((2^^l));
         auto props = new int[l];
 
-        foreach (ref set; powerSet)
+        foreach (ref set; powerset)
         {
             foreach (int i, ref prop; props)
             {
@@ -230,35 +230,35 @@ public class DempsterShafer
             }
         }
 
-        auto tempSet = powerSet.sort();
-        powerSet = null;
+        auto tempSet = powerset.sort();
+        powerset = null;
         foreach (ref level; 0 .. l + 1)
             foreach (ref prop; 0 .. l)
                 foreach (ref set; tempSet)
                     if (set.length > 0)
                         if (set.length == level && set[0] == prop)
-                            powerSet ~= set;
+                            powerset ~= set;
 
-        return powerSet;
+        return powerset;
     }
 
     unittest
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tgeneratePowerSet");
+        writeln("Unit tests:\tgeneratepowerset");
 
         auto l = 1;
-        auto powerSet = generatePowerSet(l);
-        assert(powerSet == [[0]]);
+        auto powerset = generatepowerset(l);
+        assert(powerset == [[0]]);
 
         l = 2;
-        powerSet = generatePowerSet(l);
-        assert(powerSet == [[0], [1], [0, 1]]);
+        powerset = generatepowerset(l);
+        assert(powerset == [[0], [1], [0, 1]]);
 
         l = 3;
-        powerSet = generatePowerSet(l);
-        assert(powerSet == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
+        powerset = generatepowerset(l);
+        assert(powerset == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
 
         writeln("\t\tPASSED.");
     }
