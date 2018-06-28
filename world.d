@@ -20,14 +20,14 @@ void main(string[] args)
     immutable auto alpha = 0.0;                 // 0.0
     immutable auto gamma = false;               // Enable(true)/disable(false) thresholds
     immutable auto lambda = 0.0;                // 0 would be regular combination
-    immutable auto iota = true;                // Enable/disable inconsistency threshold
+    immutable auto iota = true;                 // Enable/disable inconsistency threshold
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -174,8 +174,10 @@ void main(string[] args)
     else static if (iota)
     {
         double[] thresholdSet;
-        foreach (threshold; 0 .. 11)
-            thresholdSet ~= (threshold/10.0).to!double;
+        // foreach (threshold; 0 .. 11)
+        foreach (threshold; 90 .. 100)
+            thresholdSet ~= (threshold/100.0).to!double;
+            // thresholdSet ~= (threshold/10.0).to!double;
         writeln(thresholdSet);
 
     }
