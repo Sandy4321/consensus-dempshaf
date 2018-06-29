@@ -14,21 +14,21 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 100;            //50_000
-    immutable auto iterStep = iterations / 1;   // iterations / 100
-    immutable auto testSet = 100;               // 100
-    immutable auto alpha = 0.0;                 // 0.0
-    immutable auto gamma = false;               // Enable(true)/disable(false) thresholds
-    immutable auto lambda = 0.0;                // 0 would be regular combination
-    immutable auto iota = false;                 // Enable/disable inconsistency threshold
+    immutable auto iterations = 100;
+    immutable auto iterStep = iterations / 1;
+    immutable auto testSet = 100;
+    immutable auto alpha = 0.0;
+    immutable auto gamma = true;
+    immutable auto lambda = 0.0;
+    immutable auto iota = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
     immutable auto precision = 1e-5;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;

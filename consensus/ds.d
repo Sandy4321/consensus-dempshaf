@@ -451,8 +451,8 @@ public class DempsterShafer
 
         double[int] massFunction;
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
-                            .filter!(a => a != choice)
-                            .array;
+                                    .filter!(a => a != choice)
+                                    .array;
         int index;
         foreach (int key, value; powerset)
         {
