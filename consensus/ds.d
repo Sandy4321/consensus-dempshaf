@@ -9,6 +9,11 @@ import dempshaf.misc.importidiom;
 public class DempsterShafer
 {
     /**
+     * Set the precision of the approxEqual checks.
+     */
+    static immutable auto precision = 1e-5;
+
+    /**
      * Generate the payoff model.
      */
     static auto ref generatePayoff(
@@ -336,25 +341,25 @@ public class DempsterShafer
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(approxEqual(massFunction[0], 0.8));
-        assert(approxEqual(massFunction[2], 0.2));
+        assert(approxEqual(massFunction[0], 0.8, precision));
+        assert(approxEqual(massFunction[2], 0.2, precision));
 
         beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
         massFunction = probMassEvidence(powerset, l, qualities, beliefs, rand);
-        assert(approxEqual(massFunction[1], 0.2));
-        assert(approxEqual(massFunction[2], 0.8));
+        assert(approxEqual(massFunction[1], 0.2, precision));
+        assert(approxEqual(massFunction[2], 0.8, precision));
 
         beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
         massFunction = probMassEvidence(powerset, l, qualities, beliefs, rand);
         if (0 in massFunction)
             assert(
-                approxEqual(massFunction[0], 0.8) &&
-                approxEqual(massFunction[2], 0.2)
+                approxEqual(massFunction[0], 0.8, precision) &&
+                approxEqual(massFunction[2], 0.2, precision)
             );
         else
             assert(
-                approxEqual(massFunction[1], 0.2) &&
-                approxEqual(massFunction[2], 0.8)
+                approxEqual(massFunction[1], 0.2, precision) &&
+                approxEqual(massFunction[2], 0.8, precision)
             );
 
 
@@ -405,13 +410,13 @@ public class DempsterShafer
         // printing the same out, but not actually being comparatively equivalent.
         if (0 in massFunction)
             assert(
-                approxEqual(massFunction[0], 0.8) &&
-                approxEqual(massFunction[2], 0.2)
+                approxEqual(massFunction[0], 0.8, precision) &&
+                approxEqual(massFunction[2], 0.2, precision)
             );
         else
             assert(
-                approxEqual(massFunction[1], 0.2) &&
-                approxEqual(massFunction[2], 0.8)
+                approxEqual(massFunction[1], 0.2, precision) &&
+                approxEqual(massFunction[2], 0.8, precision)
             );
 
         writeln("\t\tPASSED.");
@@ -457,9 +462,9 @@ public class DempsterShafer
 
         assert(index != int.init);
 
-        if (approxEqual(alpha, 1.0))
+        if (approxEqual(alpha, 1.0, precision))
             massFunction[(2^^qualities.length.to!int)-2] = 1.0;
-        else if (approxEqual(alpha, 0.0))
+        else if (approxEqual(alpha, 0.0, precision))
         {
             massFunction[index] = 1.0;
         }
@@ -495,17 +500,17 @@ public class DempsterShafer
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
-        assert(approxEqual(massFunction[massFunction.keys[0]], 1.0));
+        assert(approxEqual(massFunction[massFunction.keys[0]], 1.0, precision));
 
         alpha = 1.0;
         massFunction = negMassEvidence(powerset, qualities, alpha, rand);
-        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 1.0));
+        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 1.0, precision));
 
         alpha = 0.5;
         massFunction = negMassEvidence(powerset, qualities, alpha, rand);
-        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 0.5));
+        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 0.5, precision));
         massFunction.remove((2^^qualities.length.to!int)-2);
-        assert(approxEqual(massFunction[massFunction.keys[0]], 0.5));
+        assert(approxEqual(massFunction[massFunction.keys[0]], 0.5, precision));
 
         writeln("\t\tPASSED.");
     }
@@ -549,13 +554,13 @@ public class DempsterShafer
         probDist[1] = 0.2;
         probDist[2] = 0.6;
         auto uniformDist = pignisticDist(powerset, l, probDist);
-        assert(equal!approxEqual(uniformDist, [0.5,0.5]));
+        assert(equal!approxEqual(uniformDist, [0.5,0.5], precision));
 
         probDist[0] = 0.2;
         probDist[1] = 0.1;
         probDist[2] = 0.7;
         uniformDist = pignisticDist(powerset, l, probDist);
-        assert(equal!approxEqual(uniformDist, [0.55,0.45]));
+        assert(equal!approxEqual(uniformDist, [0.55,0.45], precision));
 
         writeln("\t\tPASSED.");
     }

@@ -20,20 +20,21 @@ void main(string[] args)
     immutable auto alpha = 0.0;                 // 0.0
     immutable auto gamma = false;               // Enable(true)/disable(false) thresholds
     immutable auto lambda = 0.0;                // 0 would be regular combination
-    immutable auto iota = true;                 // Enable/disable inconsistency threshold
+    immutable auto iota = false;                 // Enable/disable inconsistency threshold
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
+    immutable auto precision = 1e-5;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
     int l, n;
-    double pRaw = 0.66;
-    int p = 66;
+    double pRaw = 0.0;
+    int p;
     string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
@@ -94,6 +95,8 @@ void main(string[] args)
         writeln("probabilistic");
     if (evidenceOnly)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
+    version (sanityCheck)
+        writeln("!!! SANITY CHECK MODE !!!");
 
     auto seed = setSeed ? 128 : unpredictableSeed;
     auto rand = Random(seed);
@@ -333,7 +336,6 @@ void main(string[] args)
                             cardinality += bel * powerset[j].length;
                         }
                     }
-
                     entropy /= n;
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; 0 .. l)
@@ -384,8 +386,33 @@ void main(string[] args)
                 * assumed to be received when the agent assesses its choice
                 * e.g. when a honeybee visits a site.
                 */
-                foreach(i, ref agent; population)
+
+                ulong[] snapshotPopulation;
+                // foreach (i, ref agent; population)
+                // {
+                //     auto beliefs = agent.beliefs;
+                //     auto skip = false;
+                //     foreach (j; 0 .. l)
+                //     {
+                //         if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
+                //         {
+                //             skip = true;
+                //             continue;
+                //         }
+                //     }
+                //     if (!skip) snapshotPopulation ~= i;
+                // }
+
+                snapshotPopulation = new ulong[n];
+                foreach (index; 0 .. n) snapshotPopulation[index] = index;
+
+                // foreach(i, ref agent; population)
+                // {
+
+                foreach (i; snapshotPopulation)
                 {
+                    Agent agent = population[i];
+
                     version (negativeEvidence)
                     {
                         agent.beliefs = combination(
@@ -441,47 +468,50 @@ void main(string[] args)
                 */
                 static if (!evidenceOnly)
                 {
-                    Agent selected;
-                    int selection;
-                    auto snapshotPopulation = population.dup;
-
-                    foreach (i, ref agent; population)
+                    if (snapshotPopulation.length > 2)
                     {
-                        do selection = uniform(0, n, rand);
-                        while (i == selection);
-                        selected = snapshotPopulation[selection];
+                        Agent selected;
+                        int selection;
 
-                        static if (iota)
+                        foreach (i; snapshotPopulation)
                         {
-                            immutable double inconsistency = DempsterShafer.inconsistency(
+                            Agent agent = population[i];
+                            do selection = snapshotPopulation.choice(rand).to!int;
+                            while (i == selection);
+                            selected = population[selection];
+
+                            static if (iota)
+                            {
+                                immutable double inconsistency = DempsterShafer.inconsistency(
+                                    powerset,
+                                    agent.beliefs,
+                                    selected.beliefs
+                                );
+                                if (inconsistency > threshold)
+                                {
+                                    continue;
+                                }
+                            }
+
+                            auto newBeliefs = combination(
                                 powerset,
                                 agent.beliefs,
-                                selected.beliefs
+                                selected.beliefs,
+                                threshold,
+                                lambda
                             );
-                            if (inconsistency > threshold)
-                            {
-                                continue;
-                            }
+
+                            immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                                qualities,
+                                powerset,
+                                newBeliefs
+                            );
+
+                            agent.beliefs = newBeliefs;
+                            agent.payoff  = newPayoff;
+                            payoffMap[i]  = newPayoff;
+                            agent.incrementInteractions;
                         }
-
-                        auto newBeliefs = combination(
-                            powerset,
-                            agent.beliefs,
-                            selected.beliefs,
-                            threshold,
-                            lambda
-                        );
-
-                        immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                            qualities,
-                            powerset,
-                            newBeliefs
-                        );
-
-                        agent.beliefs = newBeliefs;
-                        agent.payoff  = newPayoff;
-                        payoffMap[i]  = newPayoff;
-                        agent.incrementInteractions;
                     }
                 }
             }
@@ -511,6 +541,10 @@ void main(string[] args)
             distribution,
             n
         );
+        version (sanityCheck)
+        {
+            directory ~= "sanity_checks/";
+        }
         static if (lambda > 0.0)
         {
             directory ~= format("lambda_operator_%.1f/", lambda);
@@ -543,7 +577,6 @@ void main(string[] args)
             }
         }
         directory ~= format("%s/%s/", l, qualitiesString);
-
         auto append = "w";
 
         // Inconsistency
@@ -593,22 +626,3 @@ private void writeToFile(T)(string directory, string fileName, string append, T[
     }
     file.close();
 }
-
-// The following function is no longer required as belief results have been removed.
-private void writeBeliefsToFile(T)(string directory, string fileName, string append, T[][] results)
-{
-    auto file = File(directory ~ fileName, append);
-    foreach (i, ref index; results)
-    {
-        foreach (j, ref test; index)
-        {
-            foreach (k, ref belief; test)
-            {
-                file.write(results[i][j][k]);
-                file.write((k == cast(ulong) results[i][j].length - 1) ? "\n" : ",");
-            }
-        }
-    }
-    file.close();
-}
-
