@@ -27,8 +27,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -388,26 +388,28 @@ void main(string[] args)
                 */
 
                 ulong[] snapshotPopulation;
-                // foreach (i, ref agent; population)
-                // {
-                //     auto beliefs = agent.beliefs;
-                //     auto skip = false;
-                //     foreach (j; 0 .. l)
-                //     {
-                //         if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
-                //         {
-                //             skip = true;
-                //             continue;
-                //         }
-                //     }
-                //     if (!skip) snapshotPopulation ~= i;
-                // }
-
-                snapshotPopulation = new ulong[n];
-                foreach (index; 0 .. n) snapshotPopulation[index] = index;
-
-                // foreach(i, ref agent; population)
-                // {
+                version (sanityCheck)
+                {
+                    foreach (i, ref agent; population)
+                    {
+                        auto beliefs = agent.beliefs;
+                        auto skip = false;
+                        foreach (j; 0 .. l)
+                        {
+                            if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
+                            {
+                                skip = true;
+                                continue;
+                            }
+                        }
+                        if (!skip) snapshotPopulation ~= i;
+                    }
+                }
+                else
+                {
+                    snapshotPopulation = new ulong[n];
+                    foreach (index; 0 .. n) snapshotPopulation[index] = index;
+                }
 
                 foreach (i; snapshotPopulation)
                 {
