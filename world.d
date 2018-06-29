@@ -22,11 +22,12 @@ void main(string[] args)
     immutable auto lambda = 0.0;                // 0 would be regular combination
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
+    immutable auto precision = 1e-5;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -397,7 +398,7 @@ void main(string[] args)
                     auto skip = false;
                     foreach (j; 0 .. l)
                     {
-                        if (j in beliefs && approxEqual(beliefs[j], 1.0))
+                        if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
                         {
                             skip = true;
                             continue;
@@ -408,9 +409,22 @@ void main(string[] args)
 
                 // foreach(i, ref agent; population)
                 // {
+
                 foreach (i; snapshotPopulation)
                 {
                     Agent agent = population[i];
+
+                    // auto beliefs = agent.beliefs;
+                    // auto reprint = false;
+                    // foreach (j; 0 .. l)
+                    // {
+                    //     if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
+                    //     {
+                    //         write(agent.beliefs, " --> ");
+                    //         reprint = true;
+                    //     }
+                    // }
+
                     version (negativeEvidence)
                     {
                         agent.beliefs = combination(
@@ -460,10 +474,12 @@ void main(string[] args)
                             );
                         }
                     }
+                    // if (reprint) writeln(agent.beliefs);
                 }
                 /*
                 * Agents conduct some form of belief-merging/"consensus".
                 */
+
 
                 static if (!evidenceOnly)
                 {

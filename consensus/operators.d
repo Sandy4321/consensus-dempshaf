@@ -6,6 +6,10 @@ module dempshaf.consensus.operators;
 public final class Operators
 {
     /**
+     * Set the precision of the approxEqual checks.
+     */
+    static immutable auto precision = 1e-5;
+    /**
      * Consensus operator for Dempster-Shafer mass functions.
      */
     static auto ref consensus(
@@ -26,12 +30,12 @@ public final class Operators
         foreach (i, ref bel1; beliefs1)
         {
             // If the mass is 0, skip this set.
-            if (approxEqual(bel1, 0.0))
+            if (approxEqual(bel1, 0.0, precision))
                 continue;
             foreach (j, ref bel2; beliefs2)
             {
                 // If the mass is 0, skip this set.
-                if (approxEqual(bel2, 0.0))
+                if (approxEqual(bel2, 0.0, precision))
                     continue;
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
@@ -104,12 +108,12 @@ public final class Operators
         foreach (i, ref bel1; beliefs1)
         {
             // If the mass is 0, skip this set.
-            if (approxEqual(bel1, 0.0))
+            if (approxEqual(bel1, 0.0, this.precision))
                 continue;
             foreach (j, ref bel2; beliefs2)
             {
                 // If the mass is 0, skip this set.
-                if (approxEqual(bel2, 0.0))
+                if (approxEqual(bel2, 0.0, this.precision))
                     continue;
                 int[] currentSet;
                 auto intersection = setIntersection(powerSet[i], powerSet[j]);
