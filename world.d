@@ -18,7 +18,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = true;
+    immutable auto gamma = false;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -27,8 +27,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
     immutable auto evidenceOnly = false;         // true for benchmarking
 
     bool randomSelect = true;
@@ -177,10 +177,10 @@ void main(string[] args)
     else static if (iota)
     {
         double[] thresholdSet;
-        // foreach (threshold; 0 .. 11)
-        foreach (threshold; 90 .. 100)
+        foreach (threshold; 0 .. 11)
+            thresholdSet ~= (threshold/10.0).to!double;
+        foreach (threshold; 91 .. 100)
             thresholdSet ~= (threshold/100.0).to!double;
-            // thresholdSet ~= (threshold/10.0).to!double;
         writeln(thresholdSet);
 
     }
