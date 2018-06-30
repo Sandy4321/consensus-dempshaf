@@ -15,6 +15,10 @@ We are interested in looking at a range of problems within this model, including
 
 rdmd -I../ world 5 1000 --dist=0
 
+#### Run results:
+
+python3 plot_dempshaf.py [ignorant/uniform] [population_size] [lang_size] [additional_folders]
+
 #### Useful notes
 
 rdmd -I../ -unittest -main dir/filename
