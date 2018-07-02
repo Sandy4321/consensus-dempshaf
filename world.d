@@ -23,13 +23,20 @@ void main(string[] args)
     immutable auto iota = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
+    // Default precision for approxEqual is 1e-2.
     immutable auto precision = 1e-5;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
     alias combination = Operators.consensus;
     // alias combination = Operators.dempsterRoC;
-    immutable auto evidenceOnly = false;         // true for benchmarking
+
+
+    immutable auto evidenceOnly = false;
+    // Evidence is random, not probabilistic:
+    immutable auto randomEvidence = false;
+    // Agents receive negative information.
+    immutable auto negativeEvidence = false;
 
     bool randomSelect = true;
     int l, n;
@@ -87,9 +94,9 @@ void main(string[] args)
     }
     writeln("Random selection: ", randomSelect);
     write("Evidence mass: ");
-    version (negativeEvidence)
+    static if (negativeEvidence)
         writeln("negative");
-    else version (randomEvidence)
+    else static if (randomEvidence)
         writeln("random");
     else
         writeln("probabilistic");
@@ -130,9 +137,9 @@ void main(string[] args)
         "[0.8, 0.9, 1.0]",
         "[1.0, 1.0, 1.0]",
 
+        "[0.6, 0.7, 0.8, 0.9, 1.0]",
         "[0.025, 0.025, 0.05, 0.1, 0.8]",
         "[0.96, 0.97, 0.98, 0.99, 1.0]",
-        "[0.825, 0.85, 0.85, 0.88, 0.95]",
 
         "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 1.0]",
         "[0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0]",
@@ -415,7 +422,7 @@ void main(string[] args)
                 {
                     Agent agent = population[i];
 
-                    version (negativeEvidence)
+                    static if (negativeEvidence)
                     {
                         agent.beliefs = combination(
                             powerset,
@@ -433,7 +440,7 @@ void main(string[] args)
                     else
                     {
                         // If evidence should be provided for a random choice.
-                        version (randomEvidence)
+                        static if (randomEvidence)
                         {
                             agent.beliefs = combination(
                                 powerset,
@@ -559,11 +566,11 @@ void main(string[] args)
         {
             directory ~= "consensus_operator/";
         }
-        version(negativeEvidence)
+        static if (negativeEvidence)
         {
             directory ~= "negative_evidence/";
         }
-        static if (evidenceOnly)
+        else static if (evidenceOnly)
         {
             directory ~= "evidence_only/";
         }
@@ -581,26 +588,6 @@ void main(string[] args)
         directory ~= format("%s/%s/", l, qualitiesString);
         auto append = "w";
 
-        // Inconsistency
-        /* fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, inconsistResults); */
-
-        // Entropy
-        fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, entropyResults);
-
-        // Unique Beliefs
-        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, uniqueResults);
-
-        // Payoff
-        fileName = "payoff" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, payoffResults);
-
-        // Maximum payoff
-        fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, maxPayoffResults);
-
         // Best-choice belief
         fileName = "average_beliefs" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, choiceResults);
@@ -609,9 +596,29 @@ void main(string[] args)
         fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, powersetResults);
 
+        // Unique Beliefs
+        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, uniqueResults);
+
+        // Inconsistency
+        /* fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, inconsistResults); */
+
+        // Entropy
+        fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, entropyResults);
+
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, cardMassResults);
+
+        // Payoff
+        /* fileName = "payoff" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, payoffResults); */
+
+        // Maximum payoff
+        /* fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, maxPayoffResults); */
     }
 }
 
