@@ -19,7 +19,7 @@ void main(string[] args)
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
     immutable auto gamma = false;
-    immutable auto lambda = 0.0;
+    immutable auto lambda = 0.1;
     immutable auto iota = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
@@ -150,7 +150,7 @@ void main(string[] args)
         masterQualities ~= mixin(qstring);
     auto qualities = masterQualities
                      .filter!(a => a.length == l)
-                     .array[qualityIndex];
+                     .array[qualityIndex].dup;
     auto qualitiesString =  masterQStrings
                             .filter!(
                                 a => a.split(",")
@@ -229,7 +229,7 @@ void main(string[] args)
 
             qualities = masterQualities
                         .filter!(a => a.length == l)
-                        .array[qualityIndex];
+                        .array[qualityIndex].dup;
             bestChoice = qualities.maxIndex.to!int;
 
             auto payoffMap = new double[n];
