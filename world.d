@@ -19,7 +19,7 @@ void main(string[] args)
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
     immutable auto gamma = false;
-    immutable auto lambda = 0.1;
+    immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
@@ -28,9 +28,8 @@ void main(string[] args)
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
-
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     immutable auto evidenceOnly = false;
     // Evidence is random, not probabilistic:
