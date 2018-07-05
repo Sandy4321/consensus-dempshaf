@@ -13,7 +13,7 @@ We are interested in looking at a range of problems within this model, including
 
 #### Run command:
 
-rdmd -I../ world 5 1000 --dist=0
+rdmd -I../ (-version=sanityCheck) world 1000 5 --dist=0 {0|1|2}
 
 #### Run results:
 
