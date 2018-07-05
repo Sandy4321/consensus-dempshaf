@@ -30,8 +30,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
     immutable auto evidenceOnly = false;
     // Evidence is random, not probabilistic:
@@ -530,38 +530,41 @@ void main(string[] args)
                         }
                     }
                 }
-                /*
-                 * Grab the steady state results.
-                 */
-                if (iterIndex == iterations)
+                static if (!gamma && !iota)
                 {
-                    // auto interactions = 0.0;
-                    foreach (i, ref agent; population)
+                    /*
+                    * Grab the steady state results.
+                    */
+                    if (iterIndex == iterations)
                     {
-                        auto beliefs = agent.beliefs;
-
-                        steadyStateBeliefs[i][test] = "[";
-                        foreach (index; 0 .. l)
+                        // auto interactions = 0.0;
+                        foreach (i, ref agent; population)
                         {
-                            if (index in beliefs)
+                            auto beliefs = agent.beliefs;
+
+                            steadyStateBeliefs[i][test] = "[";
+                            foreach (index; 0 .. l)
                             {
-                                steadyStateBeliefs[i][test] ~= format(
-                                    "%.4f",
-                                    beliefs[index]
-                                ) ~ ",";
+                                if (index in beliefs)
+                                {
+                                    steadyStateBeliefs[i][test] ~= format(
+                                        "%.4f",
+                                        beliefs[index]
+                                    ) ~ ",";
+                                }
+                                else
+                                {
+                                    steadyStateBeliefs[i][test] ~= format(
+                                        "%.4f",
+                                        0.0
+                                    ) ~ ",";
+                                }
                             }
-                            else
-                            {
-                                steadyStateBeliefs[i][test] ~= format(
-                                    "%.4f",
-                                    0.0
-                                ) ~ ",";
-                            }
+                            steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $-1] ~ "]";
+                            // interactions += agent.getInteractions;
                         }
-                        steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $-1] ~ "]";
-                        // interactions += agent.getInteractions;
+                        // writeln(interactions /= n);
                     }
-                    // writeln(interactions /= n);
                 }
             }
         }
@@ -660,9 +663,12 @@ void main(string[] args)
         /* fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, maxPayoffResults); */
 
-        // Steady state belief results
-        fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, steadyStateBeliefs);
+        static if (!gamma && !iota)
+        {
+            // Steady state belief results
+            fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ fileExt;
+            writeToFile(directory, fileName, append, steadyStateBeliefs);
+        }
     }
 }
 
