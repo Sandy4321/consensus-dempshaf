@@ -17,6 +17,7 @@ public final class Operators
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
+        in bool affectOperator,
         ref in double lambda) pure
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
@@ -40,13 +41,22 @@ public final class Operators
                 int[] currentSet;
                 auto intersection = setIntersection(powerset[i], powerset[j]);
 
-                if (intersection.empty/*  ||
+                // Only threshold the operator if affectOperator == true
+                if (affectOperator &&
                     !DempsterShafer.setSimilarity(
                         powerset[i],
                         powerset[j],
                         threshold
-                    ) */
+                    )
                 )
+                {
+                    // If the agents are not sufficiently similar, according to
+                    // the threshold gamma, then take the union.
+                    currentSet = (powerset[i] ~ powerset[j]).dup.sort.uniq.array;
+                }
+                // If not affecting the operator, or above condition fails anyway,
+                // simply check that the intersection is the empty set.
+                else if (intersection.empty)
                 {
                     // If the intersection is the empty set, form the union instead.
                     currentSet = (powerset[i] ~ powerset[j]).dup.sort.uniq.array;
@@ -97,6 +107,7 @@ public final class Operators
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
+        in bool affectOperator,
         ref in double lambda) pure
     {
         import std.algorithm : setIntersection, sort, sum;

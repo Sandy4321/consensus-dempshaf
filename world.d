@@ -4,6 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
+import std.c.stdlib;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
 import std.random, std.stdio, std.string, std.traits;
 
@@ -18,7 +19,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;
+    immutable auto gamma = true;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -30,8 +31,13 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
+
+    if (gamma && fullyQualifiedName!combination.canFind("dempster"))
+    {
+        writeln("Cannot run gamma-thresholding for Dempster's rule.");
+    }
 
     immutable auto evidenceOnly = false;
     // Evidence is random, not probabilistic:
@@ -162,10 +168,17 @@ void main(string[] args)
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
 
-    // If using the threshold-based operators, then generate the threshold ranges
-    // and select the midpoint of each range to run as the gamma value.
+    /*
+     * If using the threshold-based operators, then generate the threshold ranges
+     * and select the midpoint of each range to run as the gamma value.
+     */
+    // If gamma is not set, then threshold the agents based on
+    // inconsistency, rather than thresholding the operator.
+    auto affectOperator = false;
     static if (gamma)
     {
+        // If gamma is set, then threshold the operator.
+        affectOperator = true;
         // Generate the set of threshold values relevant to the language size.
         double[] thresholdSet, thresholdTempSet;
         thresholdTempSet ~= 0.0;
@@ -437,6 +450,7 @@ void main(string[] args)
                                 rand
                             ),
                             0.0,
+                            false,
                             lambda
                         );
                     }
@@ -453,6 +467,7 @@ void main(string[] args)
                                     rand,
                                 ),
                                 0.0,
+                                false,
                                 lambda
                             );
                         }
@@ -470,6 +485,7 @@ void main(string[] args)
                                     rand
                                 ),
                                 0.0,
+                                false,
                                 lambda
                             );
                         }
@@ -514,6 +530,7 @@ void main(string[] args)
                                 agent.beliefs,
                                 selected.beliefs,
                                 threshold,
+                                affectOperator,
                                 lambda
                             );
 
