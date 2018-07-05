@@ -447,7 +447,7 @@ public class DempsterShafer
         while (choices[0] == choices[1]);
 
         immutable int choice = (qualities[choices[0]] < qualities[choices[1]])
-                     ? choices[0]: choices[1];
+                             ? choices[0]: choices[1];
 
         double[int] massFunction;
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)

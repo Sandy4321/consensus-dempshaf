@@ -81,4 +81,15 @@ public final class Agent
     {
         this.interactions = 0;
     }
+
+    /**
+     * Copy function for agents.
+     */
+    Agent dup() {
+        Agent duplicate = new Agent();
+        duplicate.beliefs = this.mBeliefs;
+        duplicate.payoff = this.mPayoff;
+        duplicate.interactions = this.interactions;
+        return duplicate;
+    }
 }

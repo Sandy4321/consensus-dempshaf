@@ -23,11 +23,13 @@ void main(string[] args)
     immutable auto iota = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
+
     // Default precision for approxEqual is 1e-2.
     immutable auto precision = 1e-5;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
+
     // alias combination = Operators.consensus;
     alias combination = Operators.dempsterRoC;
 
@@ -38,9 +40,8 @@ void main(string[] args)
     immutable auto negativeEvidence = false;
 
     bool randomSelect = true;
-    int l, n;
+    int l, n, p;
     double pRaw = 0.0;
-    int p;
     string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
@@ -60,12 +61,12 @@ void main(string[] args)
         switch(i)
         {
             case 1:
-                l = to!int(arg);
-                writeln("Language size: ", l);
-            break;
-            case 2:
                 n = to!int(arg);
                 writeln("Population size: ", n);
+            break;
+            case 2:
+                l = to!int(arg);
+                writeln("Language size: ", l);
             break;
 
             default:
@@ -117,6 +118,8 @@ void main(string[] args)
     auto choiceResults      = new string[][](arraySize, testSet);
     auto powersetResults    = new string[][](arraySize, testSet);
     auto cardMassResults    = new string[][](arraySize, testSet);
+
+    auto steadyStateBeliefs = new string[][](n, testSet);
 
     // Initialize the population of agents according to population size l
     auto population = new Agent[n];
@@ -187,6 +190,7 @@ void main(string[] args)
             thresholdSet ~= (threshold/10.0).to!double;
         foreach (threshold; 91 .. 100)
             thresholdSet ~= (threshold/100.0).to!double;
+        thresholdSet.sort;
         writeln(thresholdSet);
 
     }
@@ -279,9 +283,9 @@ void main(string[] args)
             foreach (iter; 0 .. iterations + 1)
             {
                 /*
-                * If VERSION == alterQ then we alter the quality value of the
-                * best choice to see how the population can react.
-                */
+                 * If VERSION == alterQ then we alter the quality value of the
+                 * best choice to see how the population can react.
+                 */
                 version (alterQ)
                 {
                     if (iter == alterIter)
@@ -292,9 +296,9 @@ void main(string[] args)
                 }
 
                 /*
-                * Extract the data for each agent in the population, to be used
-                * throughout the simulation as well as for plotting results later.
-                */
+                 * Extract the data for each agent in the population, to be used
+                 * throughout the simulation as well as for plotting results later.
+                 */
                 if (iter % (iterations / iterStep) == 0)
                 {
                     foreach (index; 0 .. l)
@@ -386,14 +390,14 @@ void main(string[] args)
                     );
                     iterIndex++;
                 }
+
                 /*
                 * Begin by combining each agent's mass function with the new
                 * evidence mass function, which serves as a form of 'payoff'
                 * assumed to be received when the agent assesses its choice
                 * e.g. when a honeybee visits a site.
                 */
-
-                ulong[] snapshotPopulation;
+                ulong[] restrictedPopulation;
                 version (sanityCheck)
                 {
                     foreach (i, ref agent; population)
@@ -405,19 +409,19 @@ void main(string[] args)
                             if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
                             {
                                 skip = true;
-                                continue;
+                                break;
                             }
                         }
-                        if (!skip) snapshotPopulation ~= i;
+                        if (!skip) restrictedPopulation ~= i;
                     }
                 }
                 else
                 {
-                    snapshotPopulation = new ulong[n];
-                    foreach (index; 0 .. n) snapshotPopulation[index] = index;
+                    restrictedPopulation = new ulong[n];
+                    foreach (index; 0 .. n) restrictedPopulation[index] = index;
                 }
 
-                foreach (i; snapshotPopulation)
+                foreach (i; restrictedPopulation)
                 {
                     Agent agent = population[i];
 
@@ -474,19 +478,23 @@ void main(string[] args)
                 /*
                 * Agents conduct some form of belief-merging/"consensus".
                 */
+                Agent[] snapshotPopulation;
+                foreach (index; 0 .. population.length)
+                    snapshotPopulation ~= population[index].dup;
+
                 static if (!evidenceOnly)
                 {
-                    if (snapshotPopulation.length > 2)
+                    if (restrictedPopulation.length > 2)
                     {
                         Agent selected;
                         int selection;
 
-                        foreach (i; snapshotPopulation)
+                        foreach (i; restrictedPopulation)
                         {
                             Agent agent = population[i];
-                            do selection = snapshotPopulation.choice(rand).to!int;
+                            do selection = restrictedPopulation.choice(rand).to!int;
                             while (i == selection);
-                            selected = population[selection];
+                            selected = snapshotPopulation[selection];
 
                             static if (iota)
                             {
@@ -521,6 +529,39 @@ void main(string[] args)
                             agent.incrementInteractions;
                         }
                     }
+                }
+                /*
+                 * Grab the steady state results.
+                 */
+                if (iterIndex == iterations)
+                {
+                    // auto interactions = 0.0;
+                    foreach (i, ref agent; population)
+                    {
+                        auto beliefs = agent.beliefs;
+
+                        steadyStateBeliefs[i][test] = "[";
+                        foreach (index; 0 .. l)
+                        {
+                            if (index in beliefs)
+                            {
+                                steadyStateBeliefs[i][test] ~= format(
+                                    "%.4f",
+                                    beliefs[index]
+                                ) ~ ",";
+                            }
+                            else
+                            {
+                                steadyStateBeliefs[i][test] ~= format(
+                                    "%.4f",
+                                    0.0
+                                ) ~ ",";
+                            }
+                        }
+                        steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $-1] ~ "]";
+                        // interactions += agent.getInteractions;
+                    }
+                    // writeln(interactions /= n);
                 }
             }
         }
@@ -618,6 +659,10 @@ void main(string[] args)
         // Maximum payoff
         /* fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, maxPayoffResults); */
+
+        // Steady state belief results
+        fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, steadyStateBeliefs);
     }
 }
 
