@@ -47,8 +47,7 @@ public final class Operators
                         powerset[i],
                         powerset[j],
                         threshold
-                    )
-                )
+                    ))
                 {
                     // If the agents are not sufficiently similar, according to
                     // the threshold gamma, then take the union.

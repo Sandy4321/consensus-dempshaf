@@ -10,20 +10,23 @@ public final class Agent
     {
         double[int] mBeliefs;
         double mPayoff;
-        int interactions;
+        int mInteractions;
+        int mTimeSinceChange;
     }
 
     /**
      * Set the beliefs of an agent, which is a mass function.
      */
-    void beliefs(ref double[int] beliefs)
+    void beliefs(double[int] beliefs)
     {
-        import std.string : format;
+        import std.algorithm : equal, map, sort;
         import std.conv : to;
+        import std.math : approxEqual;
+        import std.string : format;
 
-        this.mBeliefs = beliefs;
+        auto tempBeliefs = beliefs;
         string tempProp;
-        foreach (ref prop; this.mBeliefs)
+        foreach (ref prop; tempBeliefs)
         {
             if (prop >= 1.0) prop = 1.0;
             else
@@ -32,6 +35,21 @@ public final class Agent
                 prop = to!double(tempProp);
             }
         }
+
+        if (tempBeliefs.keys.sort.equal(this.mBeliefs.keys.sort) &&
+            tempBeliefs.keys.sort.map!(x => tempBeliefs[x])
+                .equal!approxEqual(
+                    this.mBeliefs.keys.sort.map!(
+                        x => this.mBeliefs[x]
+                    )
+            ))
+        {
+            timeSinceChange++;
+        }
+        else timeSinceChange = 0;
+        this.mBeliefs = tempBeliefs;
+        // import std.stdio : writeln;
+        // writeln(timeSinceChange);
     }
 
     /**
@@ -45,7 +63,7 @@ public final class Agent
     /**
      * Set the payoff of an agent.
      */
-    void payoff(ref in double payoff) pure
+    void payoff(in double payoff) pure
     {
         this.mPayoff = payoff;
     }
@@ -63,15 +81,23 @@ public final class Agent
      */
     void incrementInteractions() pure
     {
-        this.interactions++;
+        this.mInteractions++;
     }
 
     /**
-     * return the interaction count of the agent.
+     * Set the interaction count of the agent.
      */
-    auto ref getInteractions() pure
+    void interactions(in int interactions) pure
     {
-        return this.interactions;
+        this.mInteractions = interactions;
+    }
+
+    /**
+     * Return the interaction count of the agent.
+     */
+    auto ref interactions() pure
+    {
+        return this.mInteractions;
     }
 
     /**
@@ -79,17 +105,36 @@ public final class Agent
      */
     void resetInteractions() pure
     {
-        this.interactions = 0;
+        this.mInteractions = 0;
+    }
+
+    /**
+     * Return the number of iterations since the agent's beliefs changed.
+     */
+    void timeSinceChange(in int timeSinceChange) pure
+    {
+        this.mTimeSinceChange = timeSinceChange;
+    }
+
+    /**
+     * Return the number of iterations since the agent's beliefs changed.
+     */
+    auto ref timeSinceChange() pure
+    {
+        return this.mTimeSinceChange;
     }
 
     /**
      * Copy function for agents.
      */
-    Agent dup() {
+    Agent dup()
+    {
+        import std.stdio : writeln;
         Agent duplicate = new Agent();
+
         duplicate.beliefs = this.mBeliefs;
         duplicate.payoff = this.mPayoff;
-        duplicate.interactions = this.interactions;
+        duplicate.interactions = this.mInteractions;
         return duplicate;
     }
 }
