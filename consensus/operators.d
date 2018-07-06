@@ -13,12 +13,12 @@ public final class Operators
      * Consensus operator for Dempster-Shafer mass functions.
      */
     static auto consensus(
-        ref in int[][] powerset,
+        in int[][] powerset,
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
         in bool affectOperator,
-        ref in double lambda) //pure
+        in double lambda) //pure
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.array : array;
@@ -104,12 +104,12 @@ public final class Operators
      * Dempster-Shafer's rule of combination operator.
      */
     static auto dempsterRoC(
-        ref in int[][] powerset,
+        in int[][] powerset,
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
         in bool affectOperator,
-        ref in double lambda) pure
+        in double lambda) pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual, isInfinity, isNaN;

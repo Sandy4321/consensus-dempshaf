@@ -17,8 +17,8 @@ public class DempsterShafer
      * Generate the payoff model.
      */
     static auto generatePayoff(
-        ref in int[] choices,
-        ref in int l) pure
+        in int[] choices,
+        in int l) pure
     {
         import std.algorithm.iteration : sum;
         import std.conv : to;
@@ -36,9 +36,9 @@ public class DempsterShafer
      * Calculate the payoff associated with a given belief.
      */
     static auto calculatePayoff(
-        ref in double[] payoffs,
-        ref in int[][] powerset,
-        ref in double[int] beliefs) pure
+        in double[] payoffs,
+        in int[][] powerset,
+        in double[int] beliefs) pure
     {
         import std.algorithm.searching : maxElement;
         import std.conv : to;
@@ -63,7 +63,7 @@ public class DempsterShafer
     /**
      * Calculate the minimum payoff value present in the population.
      */
-    static auto minPayoff(ref in double[] payoffMap) pure
+    static auto minPayoff(in double[] payoffMap) pure
     {
         import std.algorithm.searching : minElement;
 
@@ -73,7 +73,7 @@ public class DempsterShafer
     /**
      * Calculate the maximum payoff value present in the population.
      */
-    static auto maxPayoff(ref in double[] payoffMap) pure
+    static auto maxPayoff(in double[] payoffMap) pure
     {
         import std.algorithm.searching : maxElement;
 
@@ -84,7 +84,7 @@ public class DempsterShafer
      * Calculate the total payoff of the population.
      */
     static auto totalPayoff(
-        ref in double[] payoffMap,
+        in double[] payoffMap,
         in double minPayoff) pure
     {
         import std.algorithm.iteration : map, sum;
@@ -97,9 +97,9 @@ public class DempsterShafer
      * roulette-wheel selection method seen in genetic algorithms.
      */
     static auto rouletteSelection(
-        ref double[] payoffMap,
-        ref int l,
-        ref int amt,
+        double[] payoffMap,
+        int l,
+        int amt,
         ref from!"std.random".Random rand)
     {
         import std.random : uniform;
@@ -137,10 +137,10 @@ public class DempsterShafer
      * applied to the pignistic distributions of each agent's beliefs.
      */
     static auto distance(
-        ref in int[][] powerset,
-        ref in int l,
-        ref in double[int] beliefs1,
-        ref in double[int] beliefs2) pure
+        in int[][] powerset,
+        in int l,
+        in double[int] beliefs1,
+        in double[int] beliefs2) pure
     {
         import std.math : sqrt;
 
@@ -161,9 +161,9 @@ public class DempsterShafer
      * Calculates the Deng entropy of an agent's mass function: a measure of uncertainty.
      */
     static auto entropy(
-        ref in int[][] powerset,
-        ref in int l,
-        ref in double[int] beliefs) pure
+        in int[][] powerset,
+        in int l,
+        in double[int] beliefs) pure
     {
         import std.math : approxEqual, log2, pow;
 
@@ -185,9 +185,9 @@ public class DempsterShafer
      * Inconsistency measure between two beliefs.
      */
     static auto inconsistency(
-        ref in int[][] powerset,
-        ref in double[int] beliefs1,
-        ref in double[int] beliefs2) pure
+        in int[][] powerset,
+        in double[int] beliefs1,
+        in double[int] beliefs2) pure
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.math : approxEqual;
@@ -290,10 +290,10 @@ public class DempsterShafer
      * punished.
      */
     static auto probMassEvidence(
-        ref in int[][] powerset,
-        ref in int l,
-        ref in double[] qualities,
-        ref in double[int] beliefs,
+        in int[][] powerset,
+        in int l,
+        in double[] qualities,
+        in double[int] beliefs,
         ref from!"std.random".Random rand) pure
     {
         import std.random : uniform01;
@@ -371,7 +371,7 @@ public class DempsterShafer
      * at random.
      */
     static auto randMassEvidence(
-        ref in double[] qualities,
+        in double[] qualities,
         ref from!"std.random".Random rand) pure
     {
         import std.conv : to;
@@ -427,9 +427,9 @@ public class DempsterShafer
      * at random.
      */
     static auto negMassEvidence(
-        ref in int[][] powerset,
-        ref in double[] qualities,
-        ref in double alpha,
+        in int[][] powerset,
+        in double[] qualities,
+        in double alpha,
         ref from!"std.random".Random rand) pure
     {
         import std.algorithm.iteration : map, filter;
@@ -520,9 +520,9 @@ public class DempsterShafer
      * agent's mass function.
      */
     static auto pignisticDist(
-        ref in int[][] powerset,
-        ref in int l,
-        ref in double[int] beliefs) pure
+        in int[][] powerset,
+        in int l,
+        in double[int] beliefs) pure
     {
         auto pignistic = new double[](l);
         pignistic[] = 0;
@@ -571,9 +571,9 @@ public class DempsterShafer
      * threshold value, and false if they are too dissimilar.
      */
     static auto setSimilarity(
-        ref in int[] set1,
-        ref in int[] set2,
-        ref in double threshold) //pure
+        in int[] set1,
+        in int[] set2,
+        in double threshold) //pure
     {
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;

@@ -44,9 +44,9 @@ public final class Agent
                     )
             ))
         {
-            timeSinceChange++;
+            this.mTimeSinceChange++;
         }
-        else timeSinceChange = 0;
+        else this.mTimeSinceChange = 0;
         this.mBeliefs = tempBeliefs;
     }
 

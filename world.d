@@ -31,8 +31,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
@@ -111,9 +111,6 @@ void main(string[] args)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
     version (sanityCheck)
         writeln("!!! SANITY CHECK MODE !!!");
-
-    auto seed = setSeed ? 128 : unpredictableSeed;
-    auto rand = Random(seed);
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
@@ -195,7 +192,6 @@ void main(string[] args)
         write(thresholdTempSet, " --> ");
         foreach (index; 0 .. thresholdTempSet.length.to!long - 1)
             thresholdSet ~= (thresholdTempSet[index] + thresholdTempSet[index + 1]) / 2.0;
-        thresholdSet.reverse;
         writeln(thresholdSet);
     }
     else static if (iota)
@@ -235,6 +231,10 @@ void main(string[] args)
         {
             writeln("threshold: %.2f".format(threshold));
         }
+
+        auto seed = setSeed ? 128 : unpredictableSeed;
+        auto rand = Random(seed);
+
         /*
         * Main test loop;
         * The main experiment begins here.
