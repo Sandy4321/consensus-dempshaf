@@ -4,7 +4,7 @@ import dempshaf.ai.agent;
 import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
-import std.c.stdlib;
+import core.stdc.stdlib;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
 import std.random, std.stdio, std.string, std.traits;
 
@@ -19,7 +19,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = true;
+    immutable auto gamma = false;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -37,6 +37,7 @@ void main(string[] args)
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
         writeln("Cannot run gamma-thresholding for Dempster's rule.");
+        exit(-1);
     }
 
     immutable auto evidenceOnly = false;
