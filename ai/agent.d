@@ -48,8 +48,6 @@ public final class Agent
         }
         else timeSinceChange = 0;
         this.mBeliefs = tempBeliefs;
-        // import std.stdio : writeln;
-        // writeln(timeSinceChange);
     }
 
     /**
@@ -109,7 +107,7 @@ public final class Agent
     }
 
     /**
-     * Return the number of iterations since the agent's beliefs changed.
+     * Set the number of iterations since the agent's beliefs changed.
      */
     void timeSinceChange(in int timeSinceChange) pure
     {
