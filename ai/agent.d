@@ -53,7 +53,7 @@ public final class Agent
     /**
      * Return the beliefs of an agent
      */
-    auto ref beliefs() pure
+    auto beliefs() pure
     {
         return this.mBeliefs;
     }
@@ -69,7 +69,7 @@ public final class Agent
     /**
      * Return the payoff of an agent.
      */
-    auto ref payoff() pure
+    auto payoff() pure
     {
         return this.mPayoff;
     }
@@ -93,7 +93,7 @@ public final class Agent
     /**
      * Return the interaction count of the agent.
      */
-    auto ref interactions() pure
+    auto interactions() pure
     {
         return this.mInteractions;
     }
@@ -117,7 +117,7 @@ public final class Agent
     /**
      * Return the number of iterations since the agent's beliefs changed.
      */
-    auto ref timeSinceChange() pure
+    auto timeSinceChange() pure
     {
         return this.mTimeSinceChange;
     }
@@ -125,7 +125,7 @@ public final class Agent
     /**
      * Copy function for agents.
      */
-    Agent dup()
+    auto dup()
     {
         import std.stdio : writeln;
         Agent duplicate = new Agent();
