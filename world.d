@@ -15,7 +15,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 100;
+    immutable auto iterations = 200;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -26,13 +26,13 @@ void main(string[] args)
     immutable bool setSeed = true;
 
     // Default precision for approxEqual is 1e-2.
-    immutable auto precision = 1e-5;
+    immutable auto precision = 1e-4;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
@@ -195,6 +195,7 @@ void main(string[] args)
         write(thresholdTempSet, " --> ");
         foreach (index; 0 .. thresholdTempSet.length.to!long - 1)
             thresholdSet ~= (thresholdTempSet[index] + thresholdTempSet[index + 1]) / 2.0;
+        thresholdSet.reverse;
         writeln(thresholdSet);
     }
     else static if (iota)
@@ -520,7 +521,10 @@ void main(string[] args)
                                     agent.beliefs,
                                     selected.beliefs
                                 );
-                                if (inconsistency > threshold)
+                                // If the pairwise inconsistency is greater than the
+                                // threshold, and not within some margin of floating-point
+                                // error, then do not combine beliefs.
+                                if (inconsistency > threshold && !inconsistency.approxEqual(threshold, precision))
                                 {
                                     continue;
                                 }

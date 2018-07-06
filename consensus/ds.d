@@ -11,7 +11,7 @@ public class DempsterShafer
     /**
      * Set the precision of the approxEqual checks.
      */
-    static immutable auto precision = 1e-5;
+    static immutable auto precision = 1e-4;
 
     /**
      * Generate the payoff model.
@@ -573,7 +573,7 @@ public class DempsterShafer
     static auto ref setSimilarity(
         ref in int[] set1,
         ref in int[] set2,
-        ref in double threshold) pure
+        ref in double threshold) //pure
     {
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;

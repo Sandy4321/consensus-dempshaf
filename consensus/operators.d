@@ -8,7 +8,7 @@ public final class Operators
     /**
      * Set the precision of the approxEqual checks.
      */
-    static immutable auto precision = 1e-5;
+    static immutable auto precision = 1e-4;
     /**
      * Consensus operator for Dempster-Shafer mass functions.
      */
@@ -164,10 +164,7 @@ public final class Operators
         }
         else
         {
-            // I think this could also be:
-            // beliefs1.to!(double[int])  -- brackets required for the [int] part.
-            // Can also make it beliefs1.castFrom!(double[int]).to!(double[int])
-            // to check the requirement that you're casting to the same type as before.
+            // If beliefs are completely inconsistent, just return the original belief.
             return cast(double[int]) beliefs1;
         }
 
