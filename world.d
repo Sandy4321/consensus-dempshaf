@@ -15,7 +15,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 200;
+    immutable auto iterations = 100;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -31,8 +31,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
@@ -120,8 +120,8 @@ void main(string[] args)
     // auto inconsistResults   = new string[][](arraySize, testSet);
     auto entropyResults     = new string[][](arraySize, testSet);
     auto uniqueResults      = new string[][](arraySize, testSet);
-    auto payoffResults      = new string[][](arraySize, testSet);
-    auto maxPayoffResults   = new string[][](arraySize, testSet);
+    // auto payoffResults      = new string[][](arraySize, testSet);
+    // auto maxPayoffResults   = new string[][](arraySize, testSet);
     auto choiceResults      = new string[][](arraySize, testSet);
     auto powersetResults    = new string[][](arraySize, testSet);
     auto cardMassResults    = new string[][](arraySize, testSet);
@@ -250,12 +250,12 @@ void main(string[] args)
                         .array[qualityIndex].dup;
             bestChoice = qualities.maxIndex.to!int;
 
-            auto payoffMap = new double[n];
+            // auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
             {
                 double[int] beliefs;
-                double payoff;
+                // double payoff;
 
                 // assign uniform masses to the power set P^W.
                 if (pRaw == 1)
@@ -271,14 +271,14 @@ void main(string[] args)
                     beliefs[belLength - 1] = 1.0;
                 }
 
-                payoff = DempsterShafer.calculatePayoff(
+                /* payoff = DempsterShafer.calculatePayoff(
                     qualities,
                     powerset,
                     beliefs
-                );
+                ); */
                 agent.beliefs = beliefs;
-                agent.payoff = payoff;
-                payoffMap[agentIndex] = payoff;
+                // agent.payoff = payoff;
+                // payoffMap[agentIndex] = payoff;
                 agent.resetInteractions;
             }
 
@@ -335,9 +335,9 @@ void main(string[] args)
                             // the same subset has already been found. Then, check
                             // whether the masses for those subsets are the same.
                             if (
-                                equal(unique.keys, beliefs.keys) &&
-                                equal!approxEqual(unique.values, beliefs.values)
-                            )
+                                unique.keys.sort.equal(beliefs.keys.sort) &&
+                                unique.keys.sort.map!(x => unique[x])
+                                .equal!approxEqual(beliefs.keys.sort.map!(x => beliefs[x])))
                             {
                                 append = false;
                                 break;
@@ -389,7 +389,7 @@ void main(string[] args)
                     powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0 .. $-1] ~ "]";
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
-                    payoffResults[iterIndex][test] = format(
+                    /* payoffResults[iterIndex][test] = format(
                         "%.4f",
                         (
                             (
@@ -402,10 +402,13 @@ void main(string[] args)
                         (
                             DempsterShafer.maxPayoff(payoffMap)
                         ) * 100
-                    );
+                    ); */
                     iterIndex++;
                 }
 
+                /* writeln();
+                writeln("Before evidence");
+                writeln(); */
                 /*
                 * Begin by combining each agent's mass function with the new
                 * evidence mass function, which serves as a form of 'payoff'
@@ -493,6 +496,9 @@ void main(string[] args)
                         }
                     }
                 }
+                /* writeln();
+                writeln("Duplicating agents for snapshot");
+                writeln(); */
                 /*
                 * Agents conduct some form of belief-merging/"consensus".
                 */
@@ -500,6 +506,9 @@ void main(string[] args)
                 foreach (index; 0 .. population.length)
                     snapshotPopulation ~= population[index].dup;
 
+                /* writeln();
+                writeln("Duplicating agents for snapshot");
+                writeln(); */
                 static if (!evidenceOnly)
                 {
                     if (restrictedPopulation.length > 2)
@@ -539,15 +548,15 @@ void main(string[] args)
                                 lambda
                             );
 
-                            immutable auto newPayoff = DempsterShafer.calculatePayoff(
+                            /* immutable auto newPayoff = DempsterShafer.calculatePayoff(
                                 qualities,
                                 powerset,
                                 newBeliefs
-                            );
+                            ); */
 
                             agent.beliefs = newBeliefs;
-                            agent.payoff  = newPayoff;
-                            payoffMap[i]  = newPayoff;
+                            // agent.payoff  = newPayoff;
+                            // payoffMap[i]  = newPayoff;
                             agent.incrementInteractions;
                         }
                     }
