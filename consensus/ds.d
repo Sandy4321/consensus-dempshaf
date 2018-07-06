@@ -16,7 +16,7 @@ public class DempsterShafer
     /**
      * Generate the payoff model.
      */
-    static auto ref generatePayoff(
+    static auto generatePayoff(
         ref in int[] choices,
         ref in int l) pure
     {
@@ -35,7 +35,7 @@ public class DempsterShafer
     /**
      * Calculate the payoff associated with a given belief.
      */
-    static auto ref calculatePayoff(
+    static auto calculatePayoff(
         ref in double[] payoffs,
         ref in int[][] powerset,
         ref in double[int] beliefs) pure
@@ -63,7 +63,7 @@ public class DempsterShafer
     /**
      * Calculate the minimum payoff value present in the population.
      */
-    static auto ref minPayoff(ref in double[] payoffMap) pure
+    static auto minPayoff(ref in double[] payoffMap) pure
     {
         import std.algorithm.searching : minElement;
 
@@ -73,7 +73,7 @@ public class DempsterShafer
     /**
      * Calculate the maximum payoff value present in the population.
      */
-    static auto ref maxPayoff(ref in double[] payoffMap) pure
+    static auto maxPayoff(ref in double[] payoffMap) pure
     {
         import std.algorithm.searching : maxElement;
 
@@ -83,7 +83,7 @@ public class DempsterShafer
     /**
      * Calculate the total payoff of the population.
      */
-    static auto ref totalPayoff(
+    static auto totalPayoff(
         ref in double[] payoffMap,
         in double minPayoff) pure
     {
@@ -96,7 +96,7 @@ public class DempsterShafer
      * The selection algorithm for selecting two pairs of agents based on the
      * roulette-wheel selection method seen in genetic algorithms.
      */
-    static auto ref rouletteSelection(
+    static auto rouletteSelection(
         ref double[] payoffMap,
         ref int l,
         ref int amt,
@@ -136,7 +136,7 @@ public class DempsterShafer
      * The Hellinger distance for two discrete probability distributions,
      * applied to the pignistic distributions of each agent's beliefs.
      */
-    static auto ref distance(
+    static auto distance(
         ref in int[][] powerset,
         ref in int l,
         ref in double[int] beliefs1,
@@ -160,7 +160,7 @@ public class DempsterShafer
     /**
      * Calculates the Deng entropy of an agent's mass function: a measure of uncertainty.
      */
-    static auto ref entropy(
+    static auto entropy(
         ref in int[][] powerset,
         ref in int l,
         ref in double[int] beliefs) pure
@@ -184,7 +184,7 @@ public class DempsterShafer
     /**
      * Inconsistency measure between two beliefs.
      */
-    static auto ref inconsistency(
+    static auto inconsistency(
         ref in int[][] powerset,
         ref in double[int] beliefs1,
         ref in double[int] beliefs2) pure
@@ -222,7 +222,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static auto ref generatePowerset(ref in int l) pure
+    static auto generatePowerset(ref in int l) pure
     {
         import std.algorithm.sorting : sort;
 
@@ -266,18 +266,18 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tgeneratepowerset");
+        writeln("Unit tests:\tgeneratePowerset");
 
         auto l = 1;
-        auto powerset = generatepowerset(l);
+        auto powerset = generatePowerset(l);
         assert(powerset == [[0]]);
 
         l = 2;
-        powerset = generatepowerset(l);
+        powerset = generatePowerset(l);
         assert(powerset == [[0], [1], [0, 1]]);
 
         l = 3;
-        powerset = generatepowerset(l);
+        powerset = generatePowerset(l);
         assert(powerset == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
 
         writeln("\t\tPASSED.");
@@ -289,7 +289,7 @@ public class DempsterShafer
      * so that more accurate beliefs are reinforced, and inaccurate beliefs are
      * punished.
      */
-    static auto ref probMassEvidence(
+    static auto probMassEvidence(
         ref in int[][] powerset,
         ref in int l,
         ref in double[] qualities,
@@ -370,7 +370,7 @@ public class DempsterShafer
      * Calculates the evidential mass assignment, selecting a quality value
      * at random.
      */
-    static auto ref randMassEvidence(
+    static auto randMassEvidence(
         ref in double[] qualities,
         ref from!"std.random".Random rand) pure
     {
@@ -426,7 +426,7 @@ public class DempsterShafer
      * Calculates the evidential mass assignment, selecting a quality value
      * at random.
      */
-    static auto ref negMassEvidence(
+    static auto negMassEvidence(
         ref in int[][] powerset,
         ref in double[] qualities,
         ref in double alpha,
@@ -519,7 +519,7 @@ public class DempsterShafer
      * Generates the pignistic (uniform) probability distribution from an
      * agent's mass function.
      */
-    static auto ref pignisticDist(
+    static auto pignisticDist(
         ref in int[][] powerset,
         ref in int l,
         ref in double[int] beliefs) pure
@@ -570,7 +570,7 @@ public class DempsterShafer
      * Returns true if the two sets are similar enough, according to some
      * threshold value, and false if they are too dissimilar.
      */
-    static auto ref setSimilarity(
+    static auto setSimilarity(
         ref in int[] set1,
         ref in int[] set2,
         ref in double threshold) //pure
