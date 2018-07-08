@@ -53,14 +53,16 @@ void main(string[] args)
 
     writeln("Running program: ", args[0].split("/")[$-1]);
 
+    writeln("Simulation length: ", iterations, " iterations");
+
     getopt(
         args,
-        "dist",
+        /* "dist",
         (string _, string s)
         {
             pRaw = to!double(s);
             p = to!int(pRaw * 100);
-        },
+        }, */
         "random", &randomSelect
     );
     foreach (i, arg; args)
@@ -80,19 +82,31 @@ void main(string[] args)
             break;
         }
     }
+
+    if (gamma && l > 3)
+    {
+        writeln("Cannot run gamma-thresholding for a language size > 3.");
+        exit(-1);
+    }
+    else if (iota && l < 5)
+    {
+        writeln("Cannot run iota-thresholding for a language size < 5");
+        exit(-1);
+    }
+
     write("Logic: ");
     version (boolean)
         writeln("Boolean");
     else
         writeln("Three-valued");
-    writeln("P value: ", pRaw, " :: ", p);
+    /* writeln("P value: ", pRaw, " :: ", p);
     if (approxEqual(pRaw, 0.0))
         distribution = "ignorant";
     if (p == 100)
     {
         writeln("==> ! Uniform distribution !");
         distribution = "uniform";
-    }
+    } */
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$-1]);
     writeln("Lambda value: ", lambda);
     version (alterQ)
@@ -162,7 +176,7 @@ void main(string[] args)
                                 a => a.split(",")
                                 .length == l
                             ).array[qualityIndex];
-    writeln(qualities, " == ", qualitiesString);
+    writeln(qualities);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == l);
 
@@ -405,10 +419,6 @@ void main(string[] args)
                     ); */
                     iterIndex++;
                 }
-
-                /* writeln();
-                writeln("Before evidence");
-                writeln(); */
                 /*
                 * Begin by combining each agent's mass function with the new
                 * evidence mass function, which serves as a form of 'payoff'
@@ -496,9 +506,6 @@ void main(string[] args)
                         }
                     }
                 }
-                /* writeln();
-                writeln("Duplicating agents for snapshot");
-                writeln(); */
                 /*
                 * Agents conduct some form of belief-merging/"consensus".
                 */
@@ -506,9 +513,6 @@ void main(string[] args)
                 foreach (index; 0 .. population.length)
                     snapshotPopulation ~= population[index].dup;
 
-                /* writeln();
-                writeln("Duplicating agents for snapshot");
-                writeln(); */
                 static if (!evidenceOnly)
                 {
                     if (restrictedPopulation.length > 2)
@@ -620,8 +624,7 @@ void main(string[] args)
         * Change the directory to store results in the appropriate directory structure.
         */
         string directory = format(
-            "../results/test_results/dempshaf/%s_distribution/%s_agents/",
-            distribution,
+            "../results/test_results/dempshaf/%s_agents/",
             n
         );
         version (sanityCheck)
