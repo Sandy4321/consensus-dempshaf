@@ -540,7 +540,6 @@ public class DempsterShafer
 
     unittest
     {
-        import std.algorithm.comparison : equal;
         import std.math : approxEqual;
         import std.stdio : writeln;
 
@@ -554,13 +553,15 @@ public class DempsterShafer
         probDist[1] = 0.2;
         probDist[2] = 0.6;
         auto uniformDist = pignisticDist(powerset, l, probDist);
-        assert(equal!approxEqual(uniformDist, [0.5,0.5], precision));
+        assert(approxEqual(uniformDist[0], 0.5, precision));
+        assert(approxEqual(uniformDist[1], 0.5, precision));
 
         probDist[0] = 0.2;
         probDist[1] = 0.1;
         probDist[2] = 0.7;
         uniformDist = pignisticDist(powerset, l, probDist);
-        assert(equal!approxEqual(uniformDist, [0.55,0.45], precision));
+        assert(approxEqual(uniformDist, [0.55,0.45], precision));
+        assert(approxEqual(uniformDist, [0.55,0.45], precision));
 
         writeln("\t\tPASSED.");
     }
@@ -589,7 +590,7 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tsetSsimilarity");
+        writeln("Unit tests:\tsetSimilarity");
 
         auto set1 = [0, 1, 3, 5];
         auto set2 = [1, 2, 4, 5];
