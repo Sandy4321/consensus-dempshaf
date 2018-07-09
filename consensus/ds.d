@@ -574,7 +574,7 @@ public class DempsterShafer
     static auto setSimilarity(
         in int[] set1,
         in int[] set2,
-        in double threshold) //pure
+        in double threshold)
     {
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;
