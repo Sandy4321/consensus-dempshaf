@@ -49,7 +49,7 @@ void main(string[] args)
     bool randomSelect = true;
     int l, n, p;
     double pRaw = 0.0;
-    string distribution = "";
+    // string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
 
