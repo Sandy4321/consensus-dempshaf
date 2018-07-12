@@ -47,8 +47,8 @@ void main(string[] args)
     }
 
     bool randomSelect = true;
-    int l, n, p;
-    double pRaw = 0.0;
+    int langSize, numOfAgents, initDist;
+    double initDistRaw = 0.0;
     // string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$-1]);
@@ -60,8 +60,8 @@ void main(string[] args)
         /* "dist",
         (string _, string s)
         {
-            pRaw = to!double(s);
-            p = to!int(pRaw * 100);
+            initDistRaw = to!double(s);
+            initDist = to!int(initDistRaw * 100);
         }, */
         "random", &randomSelect
     );
@@ -70,12 +70,12 @@ void main(string[] args)
         switch(i)
         {
             case 1:
-                n = to!int(arg);
-                writeln("Population size: ", n);
+                numOfAgents = to!int(arg);
+                writeln("Population size: ", numOfAgents);
             break;
             case 2:
-                l = to!int(arg);
-                writeln("Language size: ", l);
+                langSize = to!int(arg);
+                writeln("Language size: ", langSize);
             break;
 
             default:
@@ -83,12 +83,12 @@ void main(string[] args)
         }
     }
 
-    if (gamma && l > 3)
+    if (gamma && langSize > 3)
     {
         writeln("Cannot run gamma-thresholding for a language size > 3.");
         exit(-1);
     }
-    else if (iota && l < 5)
+    else if (iota && langSize < 5)
     {
         writeln("Cannot run iota-thresholding for a language size < 5");
         exit(-1);
@@ -99,8 +99,8 @@ void main(string[] args)
         writeln("Boolean");
     else
         writeln("Three-valued");
-    /* writeln("P value: ", pRaw, " :: ", p);
-    if (approxEqual(pRaw, 0.0))
+    /* writeln("P value: ", initDistRaw, " :: ", initDist);
+    if (approxEqual(initDistRaw, 0.0))
         distribution = "ignorant";
     if (p == 100)
     {
@@ -131,22 +131,20 @@ void main(string[] args)
     // auto inconsistResults   = new string[][](arraySize, testSet);
     auto entropyResults     = new string[][](arraySize, testSet);
     auto uniqueResults      = new string[][](arraySize, testSet);
-    // auto payoffResults      = new string[][](arraySize, testSet);
-    // auto maxPayoffResults   = new string[][](arraySize, testSet);
     auto choiceResults      = new string[][](arraySize, testSet);
     auto powersetResults    = new string[][](arraySize, testSet);
     auto cardMassResults    = new string[][](arraySize, testSet);
 
-    auto steadyStateBeliefs = new string[][](n, testSet);
+    auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
 
     // Initialize the population of agents according to population size l
-    auto population = new Agent[n];
+    auto population = new Agent[numOfAgents];
     foreach (ref agent; population) agent = new Agent();
 
     // Identify the choices that agents have and their respective,
     // normalised quality values.
     int[] choices;
-    foreach (i; 0 .. l) choices ~= i + 1;
+    foreach (i; 0 .. langSize) choices ~= i + 1;
     writeln(choices);
 
     //*************************************
@@ -171,16 +169,16 @@ void main(string[] args)
     static foreach (qstring; masterQStrings)
         masterQualities ~= mixin(qstring);
     auto qualities = masterQualities
-                     .filter!(a => a.length == l)
+                     .filter!(a => a.length == langSize)
                      .array[qualityIndex].dup;
     auto qualitiesString =  masterQStrings
                             .filter!(
                                 a => a.split(",")
-                                .length == l
+                                .length == langSize
                             ).array[qualityIndex];
     writeln(qualities);
     // Ensure that the number of quality values matches the number of choices given.
-    assert(qualities.length == l);
+    assert(qualities.length == langSize);
 
     /*
      * If using the threshold-based operators, then generate the threshold ranges
@@ -196,7 +194,7 @@ void main(string[] args)
         // Generate the set of threshold values relevant to the language size.
         double[] thresholdSet, thresholdTempSet;
         thresholdTempSet ~= 0.0;
-        foreach (double i; 1 .. l + 1)
+        foreach (double i; 1 .. langSize + 1)
         {
             foreach (double j; 1 .. i)
             {
@@ -227,8 +225,8 @@ void main(string[] args)
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
-    auto powerset = DempsterShafer.generatePowerset(l);
-    immutable auto belLength = to!int(powerset.length);
+    // auto powerset = DempsterShafer.generatePowerset(l);
+    immutable auto belLength = (pow(2, langSize) - 1).to!int;
     // writeln(powerset);
 
     // Find the choice with the highest payoff, and store its index in the power set.
@@ -262,19 +260,16 @@ void main(string[] args)
             if (test == testSet - 1) writeln();
 
             qualities = masterQualities
-                        .filter!(a => a.length == l)
+                        .filter!(a => a.length == langSize)
                         .array[qualityIndex].dup;
             bestChoice = qualities.maxIndex.to!int;
-
-            // auto payoffMap = new double[n];
 
             foreach (agentIndex, ref agent; population)
             {
                 double[int] beliefs;
-                // double payoff;
 
                 // assign uniform masses to the power set P^W.
-                if (pRaw == 1)
+                if (initDistRaw == 1)
                 {
                     foreach (int i; 0 .. belLength)
                     {
@@ -282,19 +277,12 @@ void main(string[] args)
                     }
                 }
                 // assign full mass to the set W; complete ignorance.
-                else if (pRaw == 0)
+                else if (initDistRaw == 0)
                 {
                     beliefs[belLength - 1] = 1.0;
                 }
 
-                /* payoff = DempsterShafer.calculatePayoff(
-                    qualities,
-                    powerset,
-                    beliefs
-                ); */
                 agent.beliefs = beliefs;
-                // agent.payoff = payoff;
-                // payoffMap[agentIndex] = payoff;
                 agent.resetInteractions;
             }
 
@@ -332,9 +320,9 @@ void main(string[] args)
                  */
                 if (iter % (iterations / iterStep) == 0)
                 {
-                    foreach (index; 0 .. l)
+                    foreach (index; 0 .. langSize)
                         choiceBeliefs[index] = 0.0;
-                    foreach (index; 0 .. pow(2, l) - 1)
+                    foreach (index; 0 .. belLength)
                         powersetBeliefs[index] = 0.0;
                     uniqueBeliefs.length = 0;
                     // inconsist =
@@ -362,13 +350,13 @@ void main(string[] args)
                         if (append) uniqueBeliefs ~= beliefs;
 
                         // Calculate average entropy of agents' beliefs
-                        entropy += DempsterShafer.entropy(powerset, l, beliefs);
+                        entropy += DempsterShafer.entropy(belLength, beliefs);
 
-                        foreach (index; 0 .. l)
+                        foreach (index; 0 .. langSize)
                             if (index in beliefs)
                                 choiceBeliefs[index] += beliefs[index];
 
-                        foreach (index; 0 .. pow(2, l) - 1)
+                        foreach (index; 0 .. belLength)
                             if (index in beliefs)
                                 powersetBeliefs[index] += beliefs[index];
 
@@ -377,13 +365,13 @@ void main(string[] args)
                             cardinality += bel * powerset[j].length;
                         }
                     }
-                    entropy /= n;
+                    entropy /= numOfAgents;
                     // inconsist = (2 * inconsist) / (n * (n - 1));
-                    foreach (index; 0 .. l)
-                        choiceBeliefs[index] /= n;
-                    foreach (index; 0 .. pow(2, l) - 1)
-                        powersetBeliefs[index] /= n;
-                    cardinality /= n;
+                    foreach (index; 0 .. langSize)
+                        choiceBeliefs[index] /= numOfAgents;
+                    foreach (index; 0 .. belLength)
+                        powersetBeliefs[index] /= numOfAgents;
+                    cardinality /= numOfAgents;
 
                     // Format and tore the resulting simulation data into their
                     // respective arrays.
@@ -405,20 +393,6 @@ void main(string[] args)
                     powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0 .. $-1] ~ "]";
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
-                    /* payoffResults[iterIndex][test] = format(
-                        "%.4f",
-                        (
-                            (
-                                DempsterShafer.totalPayoff(payoffMap, 0.0)
-                            ) / n
-                        ) * 100
-                    );
-                    maxPayoffResults[iterIndex][test] = format(
-                        "%.4f",
-                        (
-                            DempsterShafer.maxPayoff(payoffMap)
-                        ) * 100
-                    ); */
                     iterIndex++;
                 }
                 /*
@@ -447,8 +421,8 @@ void main(string[] args)
                 }
                 else
                 {
-                    restrictedPopulation = new ulong[n];
-                    foreach (index; 0 .. n) restrictedPopulation[index] = index;
+                    restrictedPopulation = new ulong[numOfAgents];
+                    foreach (index; 0 .. numOfAgents) restrictedPopulation[index] = index;
                 }
 
                 foreach (i; restrictedPopulation)
@@ -496,7 +470,7 @@ void main(string[] args)
                                 agent.beliefs,
                                 DempsterShafer.probMassEvidence(
                                     powerset,
-                                    l,
+                                    langSize,
                                     qualities,
                                     agent.beliefs,
                                     rand
@@ -580,7 +554,7 @@ void main(string[] args)
                             auto beliefs = agent.beliefs;
 
                             steadyStateBeliefs[i][test] = "[";
-                            foreach (index; 0 .. l)
+                            foreach (index; 0 .. langSize)
                             {
                                 if (index in beliefs)
                                 {
@@ -627,7 +601,7 @@ void main(string[] args)
         */
         string directory = format(
             "../results/test_results/dempshaf/%s_agents/",
-            n
+            numOfAgents
         );
         version (sanityCheck)
         {
@@ -664,7 +638,7 @@ void main(string[] args)
                 directory ~= "no_change/";
             }
         }
-        directory ~= format("%s/%s/", l, qualitiesString);
+        directory ~= format("%s/%s/", langSize, qualitiesString);
         auto append = "w";
 
         // Best-choice belief

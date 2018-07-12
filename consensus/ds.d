@@ -14,122 +14,137 @@ public class DempsterShafer
     static immutable auto precision = 1e-4;
 
     /**
-     * Generate the payoff model.
+     * Generate the binary vector based on its index in the powerset,
+     * and then return the vector.
      */
-    static auto generatePayoff(
-        in int[] choices,
-        in int l) pure
+    static auto createVector(
+        in int langSize,
+        in int index) pure
     {
-        import std.algorithm.iteration : sum;
-        import std.conv : to;
+        int[] binaryVector = new int[langSize];
+        int correctedIndex = index + 1;
 
-        auto payoff = new double[l];
-        auto choiceSum = choices[0 .. l].sum;
-
-        foreach (ref i; 0 .. l)
-            payoff[i] = choices[i] / to!double(choiceSum);
-
-        return payoff;
-    }
-
-    /**
-     * Calculate the payoff associated with a given belief.
-     */
-    static auto calculatePayoff(
-        in double[] payoffs,
-        in int[][] powerset,
-        in double[int] beliefs) pure
-    {
-        import std.algorithm.searching : maxElement;
-        import std.conv : to;
-
-        double payoff = 0.0;
-        auto maximalPayoff = payoffs.maxElement;
-        immutable int l = payoffs.length.to!int;
-        auto pignistic = pignisticDist(
-            powerset,
-            l,
-            beliefs
-        );
-
-        foreach (i, ref prob; pignistic)
+        foreach (ref element; binaryVector)
         {
-           payoff += prob * payoffs[i];
+            element = (correctedIndex % 2 == 0) ? 0 : 1;
+            correctedIndex /= 2;
         }
 
-        return payoff/maximalPayoff;
+        return binaryVector;
+    }
+
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tcreateVector");
+
+        int langSize = 3;
+        int index = 0;
+        assert(createVector(langSize, index) == [1, 0, 0]);
+        index = 5;
+        assert(createVector(langSize, index) == [0, 1, 1]);
+        index = 6;
+        assert(createVector(langSize, index) == [1, 1, 1]);
+
+        langSize = 5;
+        index = 0;
+        assert(createVector(langSize, index) == [1, 0, 0, 0, 0]);
+        index = 30;
+        assert(createVector(langSize, index) == [1, 1, 1, 1, 1]);
+        index = 20;
+        assert(createVector(langSize, index) == [1, 0, 1, 0, 1]);
+
+        writeln("\t\tPASSED.");
     }
 
     /**
-     * Calculate the minimum payoff value present in the population.
+     * Generate the set based on its binary vector, and then return
+     * the set.
      */
-    static auto minPayoff(in double[] payoffMap) pure
+    static auto createSet(
+        in int[] vector) pure
     {
-        import std.algorithm.searching : minElement;
+        import std.algorithm.iteration : filter;
+        import std.conv : to;
 
-        return payoffMap.minElement;
-    }
-
-    /**
-     * Calculate the maximum payoff value present in the population.
-     */
-    static auto maxPayoff(in double[] payoffMap) pure
-    {
-        import std.algorithm.searching : maxElement;
-
-        return payoffMap.maxElement;
-    }
-
-    /**
-     * Calculate the total payoff of the population.
-     */
-    static auto totalPayoff(
-        in double[] payoffMap,
-        in double minPayoff) pure
-    {
-        import std.algorithm.iteration : map, sum;
-
-        return payoffMap.map!(x => x - minPayoff).sum;
-    }
-
-    /**
-     * The selection algorithm for selecting two pairs of agents based on the
-     * roulette-wheel selection method seen in genetic algorithms.
-     */
-    static auto rouletteSelection(
-        double[] payoffMap,
-        int l,
-        int amt,
-        ref from!"std.random".Random rand)
-    {
-        import std.random : uniform;
-
-        auto selection = new int[amt];
-        int select;
-        immutable auto n = payoffMap.length;
-        double payoff, choice;
-
-        auto totalPayoff = DempsterShafer.totalPayoff(payoffMap, 0);
-
-        while(select < amt)
+        int[] set;
+        foreach (i, ref value; vector)
         {
-            choice = uniform(0.0, 1.0, rand);
-            payoff = 0.0;
-            foreach (int agent, ref value; payoffMap)
+            if (value == 1)
             {
-                payoff += (value + (l + 1)) / (totalPayoff + (n * (l + 1)));
-                if (payoff < choice)
-                {
-                    continue;
-                }
-
-                selection[select++] = agent;
-                if (select > 0 && selection[0] == selection[1])
-                    select--;
-                break;
+                set ~= i.to!int;
             }
         }
-        return selection;
+
+        return set;
+    }
+
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tcreateSet");
+
+        int langSize = 3;
+        int index = 0;
+        int[] vector = createVector(langSize, index);
+        int[] set = createSet(vector);
+        assert(set == [0]);
+
+        index = 3;
+        vector = createVector(langSize, index);
+        set = createSet(vector);
+        assert(set == [2]);
+
+        index = 5;
+        vector = createVector(langSize, index);
+        set = createSet(vector);
+        assert(set == [1, 2]);
+
+        writeln("\t\tPASSED.");
+    }
+
+    /**
+     * Generate the set based on its index in the powerset, and then return a
+     * copy of the set.
+     */
+    static auto powersetIndex(in int[] vector) pure
+    {
+        import std.math : pow;
+
+        int index;
+        foreach (i, ref value; vector)
+        {
+            index += value * pow(2, i);
+        }
+
+        return index - 1;
+    }
+
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tpowersetIndex");
+
+        int[] vector = [1, 1, 1];
+        writeln(powersetIndex(vector));
+        assert(powersetIndex(vector) == 6);
+
+        vector = [1, 0, 1];
+        writeln(powersetIndex(vector));
+        assert(powersetIndex(vector) == 4);
+
+        vector = [1, 0, 0];
+        writeln(powersetIndex(vector));
+        assert(powersetIndex(vector) == 0);
+
+        vector = [0, 0, 1];
+        writeln(powersetIndex(vector));
+        assert(powersetIndex(vector) == 3);
+
+        writeln("\t\tPASSED.");
     }
 
     /**
@@ -321,7 +336,6 @@ public class DempsterShafer
 
     unittest
     {
-        import std.algorithm.comparison : equal;
         import std.math : approxEqual;
         import std.random : Random, unpredictableSeed;
         import std.stdio : writeln;
