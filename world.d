@@ -34,17 +34,17 @@ void main(string[] args)
     alias combination = Operators.consensus;
     // alias combination = Operators.dempsterRoC;
 
-    if (gamma && fullyQualifiedName!combination.canFind("dempster"))
-    {
-        writeln("Cannot run gamma-thresholding for Dempster's rule.");
-        exit(-1);
-    }
-
     immutable auto evidenceOnly = false;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
     immutable auto negativeEvidence = false;
+
+    if (gamma && fullyQualifiedName!combination.canFind("dempster"))
+    {
+        writeln("Cannot run gamma-thresholding for Dempster's rule.");
+        exit(-1);
+    }
 
     bool randomSelect = true;
     int l, n, p;
@@ -163,7 +163,9 @@ void main(string[] args)
 
         "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 1.0]",
         "[0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0]",
-        "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]"
+        "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]",
+
+        "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 1.0]"
     ];
     double[][] masterQualities;
     static foreach (qstring; masterQStrings)

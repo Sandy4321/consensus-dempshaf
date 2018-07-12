@@ -437,6 +437,7 @@ public class DempsterShafer
         import std.math : approxEqual;
         import std.random : randomChoice = choice, uniform01;
         import std.range : array, iota;
+
         int[] selection = iota(0, qualities.length.to!int).array;
         int[] choices = [-1, -1];
         choices[0] = selection.randomChoice(rand);
@@ -513,6 +514,118 @@ public class DempsterShafer
         assert(approxEqual(massFunction[massFunction.keys[0]], 0.5, precision));
 
         writeln("\t\tPASSED.");
+    }
+
+    /**
+     * Calculates the evidential mass assignment, selecting a quality value
+     * based on the pignistic belief of the agent.
+     */
+    static auto probNegMassEvidence(
+        in int[][] powerset,
+        in double[] qualities,
+        in double[int] beliefs,
+        in double alpha,
+        ref from!"std.random".Random rand) //pure
+    {
+        import std.algorithm.iteration : map, filter;
+        import std.algorithm.searching : find;
+        import std.conv : to;
+        import std.math : approxEqual;
+        import std.random : randomChoice = choice, uniform01;
+        import std.range : array, iota;
+        import std.stdio : writeln;
+
+        auto pignisticBel = pignisticDist(powerset, qualities.length.to!int, beliefs);
+
+        // If the agent's mass function assigns mass to more than one choice
+        int choice;
+        if (pignisticBel.filter!(
+                a => a > 0
+            ).array.length > 1
+        )
+        {
+            auto prob = uniform01(rand);
+            int[] choices = [-1, -1];
+            auto sum = 0.0;
+            foreach (int i, ref bel; pignisticBel)
+            {
+                sum += bel;
+                if (sum >= prob)
+                {
+                    choices[0] = i;
+                    break;
+                }
+            }
+            do
+            {
+                prob = uniform01(rand);
+                sum = 0.0;
+                foreach (int i, ref bel; pignisticBel)
+                {
+                    sum += bel;
+                    if (sum >= prob)
+                    {
+                        choices[1] = i;
+                        break;
+                    }
+                }
+            }
+            while (choices[0] == choices[1]);
+
+            if (qualities[choices[0]].approxEqual(qualities[choices[1]], precision))
+            {
+                choice = choices.randomChoice;
+            }
+            else
+            {
+                choice = (qualities[choices[0]] < qualities[choices[1]])
+                            ? choices[0]: choices[1];
+            }
+        }
+        else
+        {
+            int[] selection = iota(0, qualities.length.to!int).array;
+            int[] choices = [-1, -1];
+            foreach (i, belief; pignisticBel)
+            {
+                if (belief.approxEqual(1.0, precision))
+                {
+                    choices[0] = i.to!int;
+                    break;
+                }
+            }
+            do
+            {
+                choices[1] = selection.randomChoice(rand);
+            }
+            while (choices[0] == choices[1]);
+        }
+        double[int] massFunction;
+        immutable int[] evidenceSet = iota(0, qualities.length.to!int)
+                                    .filter!(a => a != choice)
+                                    .array;
+        int index;
+        foreach (int key, value; powerset)
+        {
+            if (value == evidenceSet)
+                index = key;
+        }
+
+        assert(index != int.init);
+
+        if (approxEqual(alpha, 1.0, precision))
+            massFunction[(2^^qualities.length.to!int)-2] = 1.0;
+        else if (approxEqual(alpha, 0.0, precision))
+        {
+            massFunction[index] = 1.0;
+        }
+        else
+        {
+            massFunction[index] = 1 - alpha;
+            massFunction[(2^^qualities.length.to!int)-2] = alpha;
+        }
+
+        return massFunction;
     }
 
     /**
