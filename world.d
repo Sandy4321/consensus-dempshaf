@@ -226,7 +226,8 @@ void main(string[] args)
 
     // Generate the frame of discernment (power set of the propositional variables)
     immutable auto belLength = (pow(2, langSize) - 1).to!int;
-    if (langSize <= 5)
+    auto powersetLimit = 5;
+    if (langSize <= powersetLimit)
     {
         auto powerset = DempsterShafer.generatePowerset(langSize);
         writeln(powerset);
@@ -334,8 +335,9 @@ void main(string[] args)
                 {
                     foreach (index; belIndices)
                         choiceBeliefs[index] = 0.0;
-                    foreach (index; 0 .. belLength)
-                        powersetBeliefs[index] = 0.0;
+                    if (langSize < powersetLimit)
+                        foreach (index; 0 .. belLength)
+                            powersetBeliefs[index] = 0.0;
                     uniqueBeliefs.length = 0;
                     // inconsist =
                     entropy = cardinality = 0.0;
@@ -368,9 +370,10 @@ void main(string[] args)
                             if (index in beliefs)
                                 choiceBeliefs[index] += beliefs[index];
 
-                        foreach (index; 0 .. belLength)
-                            if (index in beliefs)
-                                powersetBeliefs[index] += beliefs[index];
+                        if (langSize < powersetLimit)
+                            foreach (index; 0 .. belLength)
+                                if (index in beliefs)
+                                    powersetBeliefs[index] += beliefs[index];
 
                         foreach (j, ref bel; beliefs)
                         {
@@ -383,8 +386,9 @@ void main(string[] args)
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; belIndices)
                         choiceBeliefs[index] /= numOfAgents;
-                    foreach (index; 0 .. belLength)
-                        powersetBeliefs[index] /= numOfAgents;
+                    if (langSize < powersetLimit)
+                        foreach (index; 0 .. belLength)
+                            powersetBeliefs[index] /= numOfAgents;
                     cardinality /= numOfAgents;
 
                     // Format and tore the resulting simulation data into their
@@ -400,11 +404,14 @@ void main(string[] args)
                         ) ~ ",";
                     choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $-1] ~ "]";
                     powersetResults[iterIndex][test] = "[";
-                    foreach (key; powersetBeliefs.keys.sort)
-                        powersetResults[iterIndex][test] ~= format(
-                            "%.4f", powersetBeliefs[key]
-                        ) ~ ",";
-                    powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0 .. $-1] ~ "]";
+                    if (langSize < powersetLimit)
+                    {
+                        foreach (key; powersetBeliefs.keys.sort)
+                            powersetResults[iterIndex][test] ~= format(
+                                "%.4f", powersetBeliefs[key]
+                            ) ~ ",";
+                        powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0 .. $-1] ~ "]";
+                    }
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
                     iterIndex++;
@@ -692,8 +699,11 @@ void main(string[] args)
         writeToFile(directory, fileName, append, choiceResults);
 
         // Powerset belief
-        fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, powersetResults);
+        if (langSize < powersetLimit)
+        {
+            fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
+            writeToFile(directory, fileName, append, powersetResults);
+        }
 
         // Unique Beliefs
         fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
