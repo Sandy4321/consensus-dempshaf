@@ -17,7 +17,7 @@ public class DempsterShafer
      * Generate the binary vector based on the set provided,
      * and the language size.
      */
-    static auto createVector(
+    static auto setToVec(
         in int langSize,
         in int[] set) pure
     {
@@ -31,11 +31,36 @@ public class DempsterShafer
         return binaryVector;
     }
 
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tsetToVec : from set");
+
+        int langSize = 3;
+        auto set = [0, 2];
+        assert(setToVec(langSize, set) == [1, 0, 1]);
+        set = [1, 2];
+        assert(setToVec(langSize, set) == [0, 1, 1]);
+        set = [0, 1, 2];
+        assert(setToVec(langSize, set) == [1, 1, 1]);
+
+        langSize = 5;
+        set = [0];
+        assert(setToVec(langSize, set) == [1, 0, 0, 0, 0]);
+        set = [0, 1, 2, 3, 4];
+        assert(setToVec(langSize, set) == [1, 1, 1, 1, 1]);
+        set = [0, 2, 4];
+        assert(setToVec(langSize, set) == [1, 0, 1, 0, 1]);
+
+        writeln("\t\tPASSED.");
+    }
+
     /**
      * Generate the binary vector based on its index in the powerset,
      * and then return the vector.
      */
-    static auto createVector(
+    static auto indexToVec(
         in int langSize,
         in int index) pure
     {
@@ -55,30 +80,30 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tcreateVector");
+        writeln("Unit tests:\tindexToVec : from index");
 
         int langSize = 3;
         int index = 0;
-        assert(createVector(langSize, index) == [1, 0, 0]);
+        assert(indexToVec(langSize, index) == [1, 0, 0]);
         index = 5;
-        assert(createVector(langSize, index) == [0, 1, 1]);
+        assert(indexToVec(langSize, index) == [0, 1, 1]);
         index = 6;
-        assert(createVector(langSize, index) == [1, 1, 1]);
+        assert(indexToVec(langSize, index) == [1, 1, 1]);
 
         langSize = 5;
         index = 0;
-        assert(createVector(langSize, index) == [1, 0, 0, 0, 0]);
+        assert(indexToVec(langSize, index) == [1, 0, 0, 0, 0]);
         index = 30;
-        assert(createVector(langSize, index) == [1, 1, 1, 1, 1]);
+        assert(indexToVec(langSize, index) == [1, 1, 1, 1, 1]);
         index = 20;
-        assert(createVector(langSize, index) == [1, 0, 1, 0, 1]);
+        assert(indexToVec(langSize, index) == [1, 0, 1, 0, 1]);
 
         writeln("\t\tPASSED.");
     }
 
     /**
-     * Generate the set based on its binary vector, first calling createVector
-     * and then return the set.
+     * Generate the set based on its index, first calling indexToVec
+     * and then returning the set.
      */
     static auto createSet(
         in int langSize,
@@ -86,7 +111,7 @@ public class DempsterShafer
     {
         import std.conv : to;
 
-        auto vector = createVector(langSize, index);
+        auto vector = indexToVec(langSize, index);
 
         int[] set;
         foreach (i, ref value; vector)
@@ -98,6 +123,25 @@ public class DempsterShafer
         }
 
         return set;
+    }
+
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tcreateSet : from index");
+
+        int langSize = 3;
+        int index = 0;
+        assert(createSet(langSize, index) == [0]);
+
+        index = 3;
+        assert(createSet(langSize, index) == [2]);
+
+        index = 5;
+        assert(createSet(langSize, index) == [1, 2]);
+
+        writeln("\t\tPASSED.");
     }
 
     /**
@@ -124,21 +168,17 @@ public class DempsterShafer
     {
         import std.stdio : writeln;
 
-        writeln("Unit tests:\tcreateSet");
+        writeln("Unit tests:\tcreateSet : from vector");
 
-        int langSize = 3;
-        int index = 0;
-        int[] vector = createVector(langSize, index);
-        int[] set = createSet(vector);
+        auto vector = [1, 0, 0];
+        auto set = createSet(vector);
         assert(set == [0]);
 
-        index = 3;
-        vector = createVector(langSize, index);
+        vector = [0, 0, 1];
         set = createSet(vector);
         assert(set == [2]);
 
-        index = 5;
-        vector = createVector(langSize, index);
+        vector = [0, 1, 1];
         set = createSet(vector);
         assert(set == [1, 2]);
 
@@ -152,14 +192,13 @@ public class DempsterShafer
         in int langSize,
         in int[] set) pure
     {
-        import std.math : pow;
 
-        auto vector = createVector(langSize, set);
+        auto vector = setToVec(langSize, set);
 
         int index;
         foreach (i, ref value; vector)
         {
-            index += value * pow(2, i);
+            index += value * 2^^i;
         }
 
         return index - 1;
@@ -170,12 +209,11 @@ public class DempsterShafer
      */
     static auto vecToIndex(in int[] vector) pure
     {
-        import std.math : pow;
 
         int index;
         foreach (i, ref value; vector)
         {
-            index += value * pow(2, i);
+            index += value * 2^^i;
         }
 
         return index - 1;
@@ -207,19 +245,18 @@ public class DempsterShafer
      * applied to the pignistic distributions of each agent's beliefs.
      */
     static auto distance(
-        in int[][] powerset,
-        in int l,
+        in int langSize,
         in double[int] beliefs1,
         in double[int] beliefs2) pure
     {
         import std.math : sqrt;
 
-        auto pignisticBel1 = pignisticDist(powerset, l, beliefs1);
-        auto pignisticBel2 = pignisticDist(powerset, l, beliefs2);
+        auto pignisticBel1 = pignisticDist(langSize, beliefs1);
+        auto pignisticBel2 = pignisticDist(langSize, beliefs2);
 
         double distance = 0.0;
         double sum = 0.0;
-        foreach (i; 0 .. l)
+        foreach (i; 0 .. langSize)
             sum += (sqrt(pignisticBel1[i]) - sqrt(pignisticBel2[i])) ^^2;
 
         distance += (1.0 / sqrt(2.0)) * sqrt(sum);
@@ -234,7 +271,7 @@ public class DempsterShafer
         in int langSize,
         in double[int] beliefs) pure
     {
-        import std.math : approxEqual, log2, pow;
+        import std.math : approxEqual, log2;
 
         double entropy = 0.0;
 
@@ -243,7 +280,7 @@ public class DempsterShafer
             if (approxEqual(belief, 0.0))
                 continue;
             entropy -= belief * log2(
-                belief/(pow(2, createSet(langSize, index).length)-1)
+                belief/((2^^createSet(langSize, index).length)-1)
             );
         }
 
@@ -254,7 +291,7 @@ public class DempsterShafer
      * Inconsistency measure between two beliefs.
      */
     static auto inconsistency(
-        in int[][] powerset,
+        in int langSize,
         in double[int] beliefs1,
         in double[int] beliefs2) pure
     {
@@ -274,7 +311,9 @@ public class DempsterShafer
                 if (approxEqual(bel2, 0.0))
                     continue;
 
-                auto intersection = setIntersection(powerset[i], powerset[j]);
+                auto set1 = createSet(langSize, i);
+                auto set2 = createSet(langSize, j);
+                auto intersection = setIntersection(set1, set2);
                 if (intersection.empty)
                 {
                     // If the intersection is the empty set, add the product of the
@@ -291,38 +330,31 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static auto generatePowerset(ref in int l) pure
+    static auto generatePowerset(ref in int langSize) pure
     {
         import std.algorithm.sorting : sort;
 
-        auto powerset = new int[][]((2^^l));
-        auto props = new int[l];
+        auto powerset = new int[][]((2^^langSize));
+        auto props = new int[langSize];
 
         foreach (ref set; powerset)
         {
             foreach (int i, ref prop; props)
-            {
-                if (prop == 1)
-                {
-                    set ~= i;
-                }
-            }
+                if (prop == 1) set ~= i;
 
             props[0]++;
             foreach (i, ref prop; props[0 .. $-1])
-            {
                 if (prop > 1)
                 {
                     prop = 0;
                     props[i+1]++;
                 }
-            }
         }
 
         auto tempSet = powerset.sort();
         powerset = null;
-        foreach (ref level; 0 .. l + 1)
-            foreach (ref prop; 0 .. l)
+        foreach (ref level; 0 .. langSize + 1)
+            foreach (ref prop; 0 .. langSize)
                 foreach (ref set; tempSet)
                     if (set.length > 0)
                         if (set.length == level && set[0] == prop)
@@ -337,16 +369,16 @@ public class DempsterShafer
 
         writeln("Unit tests:\tgeneratePowerset");
 
-        auto l = 1;
-        auto powerset = generatePowerset(l);
+        auto langSize = 1;
+        auto powerset = generatePowerset(langSize);
         assert(powerset == [[0]]);
 
-        l = 2;
-        powerset = generatePowerset(l);
+        langSize = 2;
+        powerset = generatePowerset(langSize);
         assert(powerset == [[0], [1], [0, 1]]);
 
-        l = 3;
-        powerset = generatePowerset(l);
+        langSize = 3;
+        powerset = generatePowerset(langSize);
         assert(powerset == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
 
         writeln("\t\tPASSED.");
@@ -359,12 +391,14 @@ public class DempsterShafer
      * punished.
      */
     static auto probMassEvidence(
-        in int langSize,
         in double[] qualities,
         in double[int] beliefs,
         ref from!"std.random".Random rand) pure
     {
+        import std.conv : to;
         import std.random : uniform01;
+
+        auto langSize = qualities.length.to!int;
         auto pignisticBel = pignisticDist(langSize, beliefs);
         immutable auto prob = uniform01(rand);
         auto sum = 0.0;
@@ -379,10 +413,14 @@ public class DempsterShafer
             }
         }
 
-        double[int] massFunction;
+        auto vector = new int[langSize];
+        vector[choice] = 1;
+        auto index = vecToIndex(vector);
 
-        massFunction[choice] = qualities[choice];
-        massFunction[(2^^langSize)-2] = 1.0 - qualities[choice];
+        double[int] massFunction;
+        massFunction[index] = qualities[choice];
+        if (qualities[choice] != 1.0)
+            massFunction[(2^^langSize)-2] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -396,15 +434,11 @@ public class DempsterShafer
         writeln("Unit tests:\tprobMassEvidence");
 
         auto rand = Random(unpredictableSeed);
-
         auto langSize = 2;
-        auto powerset = generatePowerset(l);
-        assert(powerset == [[0], [1], [0, 1]]);
-
         auto qualities = [0.8, 0.2];
         double[int] beliefs;
         beliefs[0] = 1.0; beliefs[1] = 0.0; beliefs[2] =  0.0;
-        auto massFunction = probMassEvidence(powerset, langSize, qualities, beliefs, rand);
+        auto massFunction = probMassEvidence(qualities, beliefs, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
@@ -412,12 +446,12 @@ public class DempsterShafer
         assert(approxEqual(massFunction[2], 0.2, precision));
 
         beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
-        massFunction = probMassEvidence(powerset, langSize, qualities, beliefs, rand);
+        massFunction = probMassEvidence(qualities, beliefs, rand);
         assert(approxEqual(massFunction[1], 0.2, precision));
         assert(approxEqual(massFunction[2], 0.8, precision));
 
         beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
-        massFunction = probMassEvidence(powerset, langSize, qualities, beliefs, rand);
+        massFunction = probMassEvidence(qualities, beliefs, rand);
         if (0 in massFunction)
             assert(
                 approxEqual(massFunction[0], 0.8, precision) &&
@@ -444,13 +478,17 @@ public class DempsterShafer
         import std.conv : to;
         import std.random : uniform;
 
-        immutable int l = qualities.length.to!int;
+        immutable int langSize = qualities.length.to!int;
 
-        auto choice = uniform(0, l, rand);
+        auto choice = uniform(0, langSize, rand);
+        auto vector = new int[langSize];
+        vector[choice] = 1;
+        auto index = vecToIndex(vector);
+
         double[int] massFunction;
-
-        massFunction[choice] = qualities[choice];
-        massFunction[(2^^l)-2] = 1.0 - qualities[choice];
+        massFunction[index] = qualities[choice];
+        if (qualities[choice] != 1.0)
+            massFunction[(2^^langSize)-2] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -465,11 +503,7 @@ public class DempsterShafer
         writeln("Unit tests:\trandMassEvidence");
 
         auto rand = Random(unpredictableSeed);
-
-        auto l = 2;
-        auto powerset = generatePowerset(l);
-        assert(powerset == [[0], [1], [0, 1]]);
-
+        auto langSize = 2;
         auto qualities = [0.8, 0.2];
         auto massFunction = randMassEvidence(qualities, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
@@ -494,7 +528,6 @@ public class DempsterShafer
      * at random.
      */
     static auto negMassEvidence(
-        in int[][] powerset,
         in double[] qualities,
         in double alpha,
         ref from!"std.random".Random rand) pure
@@ -521,12 +554,7 @@ public class DempsterShafer
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
                                     .filter!(a => a != choice)
                                     .array;
-        int index;
-        foreach (int key, value; powerset)
-        {
-            if (value == evidenceSet)
-                index = key;
-        }
+        int index = setToIndex(qualities.length.to!int, evidenceSet);
 
         assert(index != int.init);
 
@@ -557,25 +585,21 @@ public class DempsterShafer
         writeln("Unit tests:\tnegMassEvidence");
 
         auto rand = Random(unpredictableSeed);
-
-        auto l = 3;
-        auto powerset = generatePowerset(l);
-        assert(powerset == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
-
+        auto langSize = 3;
         auto qualities = [0.8, 0.2, 0.1];
         double alpha = 0.0; // Alpha = 0 means "precise" negative info.
-        auto massFunction = negMassEvidence(powerset, qualities, alpha, rand);
+        auto massFunction = negMassEvidence(qualities, alpha, rand);
         // It is necessary to use approxEqual here in the element-wise comparison
         // of arrays because you're comparing doubles which can result in them
         // printing the same out, but not actually being comparatively equivalent.
         assert(approxEqual(massFunction[massFunction.keys[0]], 1.0, precision));
 
         alpha = 1.0;
-        massFunction = negMassEvidence(powerset, qualities, alpha, rand);
+        massFunction = negMassEvidence(qualities, alpha, rand);
         assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 1.0, precision));
 
         alpha = 0.5;
-        massFunction = negMassEvidence(powerset, qualities, alpha, rand);
+        massFunction = negMassEvidence(qualities, alpha, rand);
         assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 0.5, precision));
         massFunction.remove((2^^qualities.length.to!int)-2);
         assert(approxEqual(massFunction[massFunction.keys[0]], 0.5, precision));
@@ -588,7 +612,6 @@ public class DempsterShafer
      * based on the pignistic belief of the agent.
      */
     static auto probNegMassEvidence(
-        in int[][] powerset,
         in double[] qualities,
         in double[int] beliefs,
         in double alpha,
@@ -602,7 +625,7 @@ public class DempsterShafer
         import std.range : array, iota;
         import std.stdio : writeln;
 
-        auto pignisticBel = pignisticDist(powerset, qualities.length.to!int, beliefs);
+        auto pignisticBel = pignisticDist(qualities.length.to!int, beliefs);
 
         // If the agent's mass function assigns mass to more than one choice
         int choice;
@@ -671,12 +694,7 @@ public class DempsterShafer
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
                                     .filter!(a => a != choice)
                                     .array;
-        int index;
-        foreach (int key, value; powerset)
-        {
-            if (value == evidenceSet)
-                index = key;
-        }
+        int index = setToIndex(qualities.length.to!int, evidenceSet);
 
         assert(index != int.init);
 
@@ -700,18 +718,18 @@ public class DempsterShafer
      * agent's mass function.
      */
     static auto pignisticDist(
-        in int[][] powerset,
-        in int l,
+        in int langSize,
         in double[int] beliefs) pure
     {
-        auto pignistic = new double[](l);
+        auto pignistic = new double[](langSize);
         pignistic[] = 0;
 
         foreach (ref key, ref value; beliefs)
         {
-            foreach (ref choice; powerset[key])
+            auto set = createSet(langSize, key);
+            foreach (ref choice; set)
             {
-                pignistic[choice] += value/powerset[key].length;
+                pignistic[choice] += value/set.length;
             }
         }
 
@@ -725,21 +743,20 @@ public class DempsterShafer
 
         writeln("Unit tests:\tpignisticDist");
 
-        auto l = 2;
-        auto powerset = generatePowerset(l);
+        auto langSize = 2;
 
         double[int] probDist;
         probDist[0] = 0.2;
         probDist[1] = 0.2;
         probDist[2] = 0.6;
-        auto uniformDist = pignisticDist(powerset, l, probDist);
+        auto uniformDist = pignisticDist(langSize, probDist);
         assert(approxEqual(uniformDist[0], 0.5, precision));
         assert(approxEqual(uniformDist[1], 0.5, precision));
 
         probDist[0] = 0.2;
         probDist[1] = 0.1;
         probDist[2] = 0.7;
-        uniformDist = pignisticDist(powerset, l, probDist);
+        uniformDist = pignisticDist(langSize, probDist);
         assert(approxEqual(uniformDist, [0.55,0.45], precision));
         assert(approxEqual(uniformDist, [0.55,0.45], precision));
 

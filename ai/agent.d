@@ -24,15 +24,22 @@ public final class Agent
         import std.math : approxEqual;
         import std.string : format;
 
-        auto tempBeliefs = beliefs;
+        double[int] tempBeliefs;
         string tempProp;
-        foreach (ref prop; tempBeliefs)
+        foreach (index, ref prop; beliefs)
         {
-            if (prop >= 1.0) prop = 1.0;
+            if (prop >= 1.0)
+            {
+                tempBeliefs[index] = 1.0;
+            }
+            else if (prop == 0.0)
+            {
+                continue;
+            }
             else
             {
                 tempProp = format("%.5f", prop);
-                prop = to!double(tempProp);
+                tempBeliefs[index] = to!double(tempProp);
             }
         }
 

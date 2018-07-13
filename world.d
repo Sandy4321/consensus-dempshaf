@@ -225,9 +225,21 @@ void main(string[] args)
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
-    // auto powerset = DempsterShafer.generatePowerset(l);
     immutable auto belLength = (pow(2, langSize) - 1).to!int;
-    // writeln(powerset);
+    if (langSize <= 5)
+    {
+        auto powerset = DempsterShafer.generatePowerset(langSize);
+        writeln(powerset);
+    }
+    // Generate the indices of the hypotheses' singletons
+    auto belIndices = new int[langSize];
+    foreach (i; 0 .. langSize)
+    {
+        auto vector = new int[langSize];
+        vector[i] = 1;
+        belIndices[i] = DempsterShafer.vecToIndex(vector);
+    }
+    writeln(belIndices);
 
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;
@@ -320,7 +332,7 @@ void main(string[] args)
                  */
                 if (iter % (iterations / iterStep) == 0)
                 {
-                    foreach (index; 0 .. langSize)
+                    foreach (index; belIndices)
                         choiceBeliefs[index] = 0.0;
                     foreach (index; 0 .. belLength)
                         powersetBeliefs[index] = 0.0;
@@ -352,7 +364,7 @@ void main(string[] args)
                         // Calculate average entropy of agents' beliefs
                         entropy += DempsterShafer.entropy(belLength, beliefs);
 
-                        foreach (index; 0 .. langSize)
+                        foreach (index; belIndices)
                             if (index in beliefs)
                                 choiceBeliefs[index] += beliefs[index];
 
@@ -369,7 +381,7 @@ void main(string[] args)
                     }
                     entropy /= numOfAgents;
                     // inconsist = (2 * inconsist) / (n * (n - 1));
-                    foreach (index; 0 .. langSize)
+                    foreach (index; belIndices)
                         choiceBeliefs[index] /= numOfAgents;
                     foreach (index; 0 .. belLength)
                         powersetBeliefs[index] /= numOfAgents;
@@ -470,7 +482,6 @@ void main(string[] args)
                                 langSize,
                                 agent.beliefs,
                                 DempsterShafer.probMassEvidence(
-                                    langSize,
                                     qualities,
                                     agent.beliefs,
                                     rand
@@ -479,6 +490,36 @@ void main(string[] args)
                                 false,
                                 lambda
                             );
+
+                            /* auto evidence = DempsterShafer.probMassEvidence(
+                                qualities,
+                                agent.beliefs,
+                                rand
+                            );
+
+                            writeln("Evidential updating...");
+                            writeln(
+                                agent.beliefs.keys.map!(
+                                    x => DempsterShafer.createSet(langSize, x)
+                                ),
+                                " (+) ",
+                                evidence.keys.map!(
+                                    x => DempsterShafer.createSet(langSize, x)
+                                )
+                            );
+                            writeln("Old: ", agent.beliefs);
+                            writeln("Evidence: ", evidence);
+
+                            agent.beliefs = combination(
+                                langSize,
+                                agent.beliefs,
+                                evidence,
+                                0.0,
+                                false,
+                                lambda
+                            );
+
+                            writeln("New: ", agent.beliefs); */
                         }
                     }
                 }
@@ -506,7 +547,7 @@ void main(string[] args)
                             static if (iota)
                             {
                                 immutable double inconsistency = DempsterShafer.inconsistency(
-                                    powerset,
+                                    langSize,
                                     agent.beliefs,
                                     selected.beliefs
                                 );
@@ -520,7 +561,7 @@ void main(string[] args)
                             }
 
                             auto newBeliefs = combination(
-                                powerset,
+                                langSize,
                                 agent.beliefs,
                                 selected.beliefs,
                                 threshold,
@@ -528,15 +569,20 @@ void main(string[] args)
                                 lambda
                             );
 
-                            /* immutable auto newPayoff = DempsterShafer.calculatePayoff(
-                                qualities,
-                                powerset,
-                                newBeliefs
-                            ); */
+                            /* writeln("Combining beliefs...");
+                            writeln(
+                                agent.beliefs.keys.map!(
+                                    x => DempsterShafer.createSet(langSize, x)
+                                ),
+                                " (+) ",
+                                selected.beliefs.keys.map!(
+                                    x => DempsterShafer.createSet(langSize, x)
+                                )
+                            );
+                            writeln(agent.beliefs, " (+) ", selected.beliefs);
+                            writeln(newBeliefs); */
 
                             agent.beliefs = newBeliefs;
-                            // agent.payoff  = newPayoff;
-                            // payoffMap[i]  = newPayoff;
                             agent.incrementInteractions;
                         }
                     }
@@ -554,7 +600,7 @@ void main(string[] args)
                             auto beliefs = agent.beliefs;
 
                             steadyStateBeliefs[i][test] = "[";
-                            foreach (index; 0 .. langSize)
+                            foreach (index; belIndices)
                             {
                                 if (index in beliefs)
                                 {

@@ -24,7 +24,7 @@ public final class Operators
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.array : array;
-        import std.math : approxEqual, isNaN, pow;
+        import std.math : approxEqual, isNaN;
 
         import dempshaf.consensus.ds;
 
@@ -91,7 +91,7 @@ public final class Operators
         {
             beliefs[index] *= 1 - lambda;
         }
-        beliefs[cast(int) pow(2, langSize) - 2] += lambda;
+        if (lambda > 0) beliefs[cast(int) (2^^langSize) - 2] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
@@ -152,13 +152,15 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (int k, ref set; powerset)
+                /* foreach (int k, ref set; powerset)
                 {
                     if (currentSet == set)
                     {
                         beliefs[k] += bel1 * bel2;
                     }
-                }
+                } */
+
+                beliefs[DempsterShafer.setToIndex(langSize, currentSet)] += bel1 * bel2;
             }
         }
 
@@ -185,7 +187,7 @@ public final class Operators
         {
             beliefs[index] *= 1 - lambda;
         }
-        beliefs[cast(int) powerset.length - 1] += lambda;
+        if (lambda > 0) beliefs[cast(int) (2^^langSize) - 2] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
