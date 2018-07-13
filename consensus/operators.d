@@ -1,5 +1,7 @@
 module dempshaf.consensus.operators;
 
+import dempshaf.consensus.ds;
+
 /**
  * The Operators class provides operators for dealing with agents' beliefs.
  */
@@ -13,16 +15,16 @@ public final class Operators
      * Consensus operator for Dempster-Shafer mass functions.
      */
     static auto consensus(
-        in int[][] powerset,
+        in int langSize,
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
         in bool affectOperator,
-        in double lambda) //pure
+        in double lambda) pure
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.array : array;
-        import std.math : approxEqual, isNaN;
+        import std.math : approxEqual, isNaN, pow;
 
         import dempshaf.consensus.ds;
 
@@ -40,27 +42,30 @@ public final class Operators
                 // If the mass is 0, skip this set.
                 if (approxEqual(bel2, 0.0, precision))
                     continue;
+
                 int[] currentSet;
-                auto intersection = setIntersection(powerset[i], powerset[j]);
+                auto set1 = DempsterShafer.createSet(langSize, i);
+                auto set2 = DempsterShafer.createSet(langSize, j);
+                auto intersection = setIntersection(set1, set2);
 
                 // Only threshold the operator if affectOperator == true
                 if (affectOperator &&
                     !DempsterShafer.setSimilarity(
-                        powerset[i],
-                        powerset[j],
+                        set1,
+                        set2,
                         threshold
                     ))
                 {
                     // If the agents are not sufficiently similar, according to
                     // the threshold gamma, then take the union.
-                    currentSet = (powerset[i] ~ powerset[j]).dup.sort.uniq.array;
+                    currentSet = (set1 ~ set2).dup.sort.uniq.array;
                 }
                 // If not affecting the operator, or above condition fails anyway,
                 // simply check that the intersection is the empty set.
                 else if (intersection.empty)
                 {
                     // If the intersection is the empty set, form the union instead.
-                    currentSet = (powerset[i] ~ powerset[j]).dup.sort.uniq.array;
+                    currentSet = (set1 ~ set2).dup.sort.uniq.array;
                 }
                 else
                 {
@@ -68,13 +73,15 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                foreach (int k, ref set; powerset)
+                /* foreach (int k, ref set; powerset)
                 {
                     if (currentSet == set)
                     {
                         beliefs[k] += bel1 * bel2;
                     }
-                }
+                } */
+
+                beliefs[DempsterShafer.setToIndex(langSize, currentSet)] += bel1 * bel2;
             }
         }
 
@@ -84,7 +91,7 @@ public final class Operators
         {
             beliefs[index] *= 1 - lambda;
         }
-        beliefs[cast(int) powerset.length - 1] += lambda;
+        beliefs[cast(int) pow(2, langSize) - 2] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
@@ -104,7 +111,7 @@ public final class Operators
      * Dempster-Shafer's rule of combination operator.
      */
     static auto dempsterRoC(
-        in int[][] powerset,
+        in int langSize,
         in double[int] beliefs1,
         in double[int] beliefs2,
         in double threshold,
@@ -127,8 +134,11 @@ public final class Operators
                 // If the mass is 0, skip this set.
                 if (approxEqual(bel2, 0.0, this.precision))
                     continue;
+
                 int[] currentSet;
-                auto intersection = setIntersection(powerset[i], powerset[j]);
+                auto set1 = DempsterShafer.createSet(langSize, i);
+                auto set2 = DempsterShafer.createSet(langSize, j);
+                auto intersection = setIntersection(set1, set2);
                 if (intersection.empty)
                 {
                     // If the intersection is the empty set, add to empty set

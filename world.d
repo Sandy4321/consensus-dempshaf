@@ -362,7 +362,9 @@ void main(string[] args)
 
                         foreach (j, ref bel; beliefs)
                         {
-                            cardinality += bel * powerset[j].length;
+                            cardinality += bel * DempsterShafer.createSet(
+                                langSize, j
+                            ).length;
                         }
                     }
                     entropy /= numOfAgents;
@@ -432,10 +434,9 @@ void main(string[] args)
                     static if (negativeEvidence)
                     {
                         agent.beliefs = combination(
-                            powerset,
+                            langSize,
                             agent.beliefs,
                             DempsterShafer.negMassEvidence(
-                                powerset,
                                 qualities,
                                 alpha,
                                 rand
@@ -451,7 +452,7 @@ void main(string[] args)
                         static if (randomEvidence)
                         {
                             agent.beliefs = combination(
-                                powerset,
+                                langSize,
                                 agent.beliefs,
                                 DempsterShafer.randMassEvidence(
                                     qualities,
@@ -466,10 +467,9 @@ void main(string[] args)
                         else
                         {
                             agent.beliefs = combination(
-                                powerset,
+                                langSize,
                                 agent.beliefs,
                                 DempsterShafer.probMassEvidence(
-                                    powerset,
                                     langSize,
                                     qualities,
                                     agent.beliefs,
