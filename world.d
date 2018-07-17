@@ -225,8 +225,8 @@ void main(string[] args)
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
-    immutable auto belLength = (pow(2, langSize) - 1).to!int;
-    auto powersetLimit = 5;
+    immutable auto belLength = ((2^^langSize) - 1).to!int;
+    immutable auto powersetLimit = 5;
     if (langSize <= powersetLimit)
     {
         auto powerset = DempsterShafer.generatePowerset(langSize);
