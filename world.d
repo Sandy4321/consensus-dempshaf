@@ -8,6 +8,10 @@ import core.stdc.stdlib;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
 import std.random, std.stdio, std.string, std.traits;
 
+
+// Set the version to symmetric or asymmetric
+version = symmetric;
+
 void main(string[] args)
 {
     /*
@@ -15,7 +19,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 100;
+    immutable auto iterations = 1000;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -95,10 +99,12 @@ void main(string[] args)
     }
 
     write("Logic: ");
-    version (boolean)
-        writeln("Boolean");
-    else
-        writeln("Three-valued");
+    version (boolean) writeln("Boolean");
+    else writeln("Three-valued");
+
+    write("Updating method: ");
+    version (symmetric) writeln("! SYMMETRIC !");
+    else writeln("! ASYMMETRIC !");
     /* writeln("P value: ", initDistRaw, " :: ", initDist);
     if (approxEqual(initDistRaw, 0.0))
         distribution = "ignorant";
@@ -544,11 +550,12 @@ void main(string[] args)
                         Agent selected;
                         int selection;
 
-                        foreach (i; restrictedPopulation)
+                        version (symmetric)
                         {
-                            Agent agent = population[i];
+                            int i = restrictedPopulation.choice(rand).to!int;
                             do selection = restrictedPopulation.choice(rand).to!int;
                             while (i == selection);
+                            Agent agent = population[i];
                             selected = snapshotPopulation[selection];
 
                             static if (iota)
@@ -576,21 +583,48 @@ void main(string[] args)
                                 lambda
                             );
 
-                            /* writeln("Combining beliefs...");
-                            writeln(
-                                agent.beliefs.keys.map!(
-                                    x => DempsterShafer.createSet(langSize, x)
-                                ),
-                                " (+) ",
-                                selected.beliefs.keys.map!(
-                                    x => DempsterShafer.createSet(langSize, x)
-                                )
-                            );
-                            writeln(agent.beliefs, " (+) ", selected.beliefs);
-                            writeln(newBeliefs); */
-
                             agent.beliefs = newBeliefs;
                             agent.incrementInteractions;
+                        }
+                        else
+                        {
+                            foreach (i; restrictedPopulation)
+                            {
+                                do selection = restrictedPopulation.choice(rand).to!int;
+                                while (i == selection);
+                                Agent agent = population[i];
+                                selected = snapshotPopulation[selection];
+
+                                static if (iota)
+                                {
+                                    immutable double inconsistency = DempsterShafer.inconsistency(
+                                        langSize,
+                                        agent.beliefs,
+                                        selected.beliefs
+                                    );
+                                    /*
+                                     * If the pairwise inconsistency is greater than the
+                                     * threshold, and not within some margin of
+                                     * floating-point error, then do not combine beliefs.
+                                     */
+                                    if (inconsistency > threshold && !inconsistency.approxEqual(threshold, precision))
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                auto newBeliefs = combination(
+                                    langSize,
+                                    agent.beliefs,
+                                    selected.beliefs,
+                                    threshold,
+                                    affectOperator,
+                                    lambda
+                                );
+
+                                agent.beliefs = newBeliefs;
+                                agent.incrementInteractions;
+                            }
                         }
                     }
                 }
@@ -656,6 +690,10 @@ void main(string[] args)
             "../results/test_results/dempshaf/%s_agents/",
             numOfAgents
         );
+        version (symmetric)
+        {
+            directory ~= "symmetric/";
+        }
         version (sanityCheck)
         {
             directory ~= "sanity_checks/";
