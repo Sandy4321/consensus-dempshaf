@@ -130,11 +130,10 @@ public final class Agent
     }
 
     /**
-     * Copy function for agents.
+     * Duplication function for agents.
      */
     auto dup()
     {
-        import std.stdio : writeln;
         Agent duplicate = new Agent();
 
         duplicate.beliefs = this.mBeliefs;
