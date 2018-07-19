@@ -22,6 +22,7 @@ void main(string[] args)
      * via command-line arguments.
      */
     immutable auto iterations = 10_000;
+    immutable auto changeThreshold = 50;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -323,7 +324,7 @@ void main(string[] args)
             double[int][] uniqueBeliefs;
             // double inconsist,
             double entropy, cardinality;
-            bool append;
+            bool append, reachedSteadyState;
             foreach (iter; 0 .. iterations + 1)
             {
                 /*
@@ -353,6 +354,7 @@ void main(string[] args)
                     uniqueBeliefs.length = 0;
                     // inconsist =
                     entropy = cardinality = 0.0;
+                    reachedSteadyState = true;
 
                     foreach (i, ref agent; population)
                     {
@@ -393,6 +395,10 @@ void main(string[] args)
                                 langSize, j
                             ).length;
                         }
+
+                        // Check if agent has reached a steady state
+                        if (agent.timeSinceChange < changeThreshold)
+                            reachedSteadyState = false;
                     }
                     entropy /= numOfAgents;
                     // inconsist = (2 * inconsist) / (n * (n - 1));
@@ -428,6 +434,16 @@ void main(string[] args)
 
                     iterIndex++;
                 }
+
+                /*
+                 * If simulation has reached steady state and is at convenient
+                 * cut-off point, then end this test.
+                 */
+                if (reachedSteadyState && iter % 100 == 0)
+                {
+                    continue;
+                }
+
                 /*
                 * Begin by combining each agent's mass function with the new
                 * evidence mass function, which serves as a form of 'payoff'
@@ -590,7 +606,6 @@ void main(string[] args)
                             );
 
                             agent.beliefs = newBeliefs;
-                            agent.incrementInteractions;
                         }
                         else
                         {
@@ -629,9 +644,7 @@ void main(string[] args)
                                 );
 
                                 agent.beliefs = newBeliefs;
-                                agent.incrementInteractions;
                                 selected.beliefs = newBeliefs;
-                                selected.incrementInteractions;
                             }
                         }
                     }
@@ -667,12 +680,19 @@ void main(string[] args)
                                 }
                             }
                             steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $-1] ~ "]";
-                            // interactions += agent.getInteractions;
+                            // interactions += agent.interactions;
                         }
-                        // writeln(interactions /= n);
+                        // writeln(interactions /= numOfAgents);
                     }
                 }
             }
+        }
+
+        // Fill in results to equalise the lengths of all the results sets
+        {
+
+            // function calls or something here
+
         }
 
         // Write results to disk for current test.
