@@ -9,7 +9,6 @@ public final class Agent
     private
     {
         double[int] mBeliefs;
-        double mPayoff;
         int mInteractions;
         int mTimeSinceChange;
     }
@@ -55,6 +54,7 @@ public final class Agent
         }
         else this.mTimeSinceChange = 0;
         this.mBeliefs = tempBeliefs;
+        this.incrementInteractions;
     }
 
     /**
@@ -63,22 +63,6 @@ public final class Agent
     auto beliefs() pure
     {
         return this.mBeliefs;
-    }
-
-    /**
-     * Set the payoff of an agent.
-     */
-    void payoff(in double payoff) pure
-    {
-        this.mPayoff = payoff;
-    }
-
-    /**
-     * Return the payoff of an agent.
-     */
-    auto payoff() pure
-    {
-        return this.mPayoff;
     }
 
     /**
@@ -137,8 +121,8 @@ public final class Agent
         Agent duplicate = new Agent();
 
         duplicate.beliefs = this.mBeliefs;
-        duplicate.payoff = this.mPayoff;
         duplicate.interactions = this.mInteractions;
+        duplicate.timeSinceChange = this.mTimeSinceChange;
         return duplicate;
     }
 }
