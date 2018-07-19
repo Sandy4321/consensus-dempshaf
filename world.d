@@ -8,6 +8,8 @@ import core.stdc.stdlib;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
 import std.random, std.stdio, std.string, std.traits;
 
+import std.parallelism;
+
 
 // Set the version to symmetric or asymmetric
 version = symmetric;
@@ -19,7 +21,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1000;
+    immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -47,7 +49,7 @@ void main(string[] args)
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
         writeln("Cannot run gamma-thresholding for Dempster's rule.");
-        exit(-1);
+        exit(1);
     }
 
     bool randomSelect = true;
@@ -90,12 +92,12 @@ void main(string[] args)
     if (gamma && langSize > 3)
     {
         writeln("Cannot run gamma-thresholding for a language size > 3.");
-        exit(-1);
+        exit(1);
     }
     else if (iota && langSize < 5)
     {
         writeln("Cannot run iota-thresholding for a language size < 5");
-        exit(-1);
+        exit(1);
     }
 
     write("Logic: ");
@@ -157,6 +159,10 @@ void main(string[] args)
     immutable auto qualityIndex = args[$-1].to!int;
     //*************************************
     immutable auto masterQStrings = [
+        "[0.3, 0.9]",
+        "[0.5, 1.0]",
+        "[0.9, 1.0]",
+
         "[0.2, 0.4, 1.0]",
         "[0.8, 0.9, 1.0]",
         "[1.0, 1.0, 1.0]",
@@ -556,7 +562,7 @@ void main(string[] args)
                             do selection = restrictedPopulation.choice(rand).to!int;
                             while (i == selection);
                             Agent agent = population[i];
-                            selected = snapshotPopulation[selection];
+                            selected = population[selection];
 
                             static if (iota)
                             {
@@ -624,6 +630,8 @@ void main(string[] args)
 
                                 agent.beliefs = newBeliefs;
                                 agent.incrementInteractions;
+                                selected.beliefs = newBeliefs;
+                                selected.incrementInteractions;
                             }
                         }
                     }

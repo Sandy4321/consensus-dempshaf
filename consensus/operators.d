@@ -73,13 +73,6 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                /* foreach (int k, ref set; powerset)
-                {
-                    if (currentSet == set)
-                    {
-                        beliefs[k] += bel1 * bel2;
-                    }
-                } */
 
                 beliefs[DempsterShafer.setToIndex(langSize, currentSet)] += bel1 * bel2;
             }
@@ -116,10 +109,12 @@ public final class Operators
         in double[int] beliefs2,
         in double threshold,
         in bool affectOperator,
-        in double lambda) pure
+        in double lambda) //pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual, isInfinity, isNaN;
+
+        import std.stdio : writeln;
 
         double[int] beliefs;
         auto emptySet = 0.0;
@@ -152,13 +147,6 @@ public final class Operators
                     foreach (elem; intersection)
                         currentSet ~= elem;
                 }
-                /* foreach (int k, ref set; powerset)
-                {
-                    if (currentSet == set)
-                    {
-                        beliefs[k] += bel1 * bel2;
-                    }
-                } */
 
                 beliefs[DempsterShafer.setToIndex(langSize, currentSet)] += bel1 * bel2;
             }
@@ -199,6 +187,10 @@ public final class Operators
                 beliefs[index] /= renormaliser;
             }
         }
+
+        writeln(beliefs1, " + ", beliefs2);
+
+        writeln(beliefs);
 
         return beliefs;
     }
