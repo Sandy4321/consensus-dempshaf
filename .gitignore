@@ -16,4 +16,8 @@ results/
 # Executable names on linux
 world
 
+# Testing files
 bug_test.d
+
+# Valgrind/Callgrind output
+callgrind_out
