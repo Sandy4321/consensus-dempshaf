@@ -20,7 +20,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 10_000;
+    immutable auto iterations = 1_000;
     immutable auto changeThreshold = 50;
     auto maxIterations = 0;
     immutable auto iterStep = iterations / 1;
@@ -740,7 +740,7 @@ void main(string[] args)
 }
 
 private void writeToFile(T)(string directory, string fileName, string append,
-        T[][] results, int maxIterations)
+                            int maxIterations, T[][] results)
 {
     results = extendResults(results, maxIterations);
     auto file = File(directory ~ fileName, append);
@@ -755,12 +755,12 @@ private void writeToFile(T)(string directory, string fileName, string append,
     file.close();
 }
 
-private void extendResults(T)(T[][] results, int maxIterations)
+private T[][] extendResults(T)(T[][] results, int maxIterations)
 {
     int lastIteration;
-    for (auto i = 0; i < maxiterations; i++)
+    for (auto i = 0; i < maxIterations; i++)
     {
-        if (lastIterations == int.init)
+        if (lastIteration == int.init)
         {
             if (!results[i].find("").empty)
             {

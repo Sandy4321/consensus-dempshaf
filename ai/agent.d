@@ -47,8 +47,7 @@ public final class Agent
                 .equal!approxEqual(
                     this.mBeliefs.keys.sort.map!(
                         x => this.mBeliefs[x]
-                    )
-            ))
+            )))
         {
             this.mTimeSinceChange++;
         }

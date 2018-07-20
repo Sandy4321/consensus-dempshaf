@@ -188,10 +188,6 @@ public final class Operators
             }
         }
 
-        writeln(beliefs1, " + ", beliefs2);
-
-        writeln(beliefs);
-
         return beliefs;
     }
 }
