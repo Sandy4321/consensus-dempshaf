@@ -21,3 +21,4 @@ bug_test.d
 
 # Valgrind/Callgrind output
 callgrind_out
+callgrind_out.demangled
