@@ -22,3 +22,11 @@ python3 plot_dempshaf.py [ignorant/uniform] [population_size] [lang_size] [addit
 #### Useful notes
 
 rdmd -I../ -unittest -main dir/filename
+
+#### Profiling program
+
+dmd -g -I../ world.d ai/agent.d consensus/ds.d consensus/operators.d misc/importidiom.d
+
+valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes --callgrind-out-file=callgrind_out ./world [...]
+
+rdmd -I../ misc/dcallgrind.d callgrind_out
