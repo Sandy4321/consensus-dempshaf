@@ -11,6 +11,7 @@ public final class Agent
         double[int] mBeliefs;
         int mInteractions;
         int mTimeSinceChange;
+        double[2] mBelPl;
     }
 
     /**
@@ -52,16 +53,36 @@ public final class Agent
             this.mTimeSinceChange++;
         }
         else this.mTimeSinceChange = 0;
+
         this.mBeliefs = tempBeliefs;
         this.incrementInteractions;
+
+        this.belAndPl;
     }
 
     /**
-     * Return the beliefs of an agent
+     * Return the beliefs of an agent.
      */
     auto beliefs() pure
     {
         return this.mBeliefs;
+    }
+
+    /**
+     * Calculate the Bel and Pl of each singleton from an agent's
+     * mass function.
+     */
+    void belAndPl(double[int] beliefs) pure
+    {
+        double[2] belPl;
+    }
+
+    /**
+     * Return the Bel and Pl of each singleton.
+     */
+    auto belAndPl() pure
+    {
+        return this.mBelPl;
     }
 
     /**
@@ -75,7 +96,7 @@ public final class Agent
     /**
      * Set the interaction count of the agent.
      */
-    void interactions(in int interactions) pure
+    void interactions(const int interactions) pure
     {
         this.mInteractions = interactions;
     }
@@ -99,7 +120,7 @@ public final class Agent
     /**
      * Set the number of iterations since the agent's beliefs changed.
      */
-    void timeSinceChange(in int timeSinceChange) pure
+    void timeSinceChange(const int timeSinceChange) pure
     {
         this.mTimeSinceChange = timeSinceChange;
     }

@@ -18,8 +18,8 @@ public class DempsterShafer
      * and the language size.
      */
     static auto setToVec(
-        in int langSize,
-        in int[] set) pure
+        const int langSize,
+        const int[] set) pure
     {
         int[] binaryVector = new int[langSize];
 
@@ -61,8 +61,8 @@ public class DempsterShafer
      * and then return the vector.
      */
     static auto indexToVec(
-        in int langSize,
-        in int index) pure
+        const int langSize,
+        const int index) pure
     {
         int[] binaryVector = new int[langSize];
         int correctedIndex = index + 1;
@@ -83,7 +83,7 @@ public class DempsterShafer
         writeln("Unit tests:\tindexToVec : from index");
 
         int langSize = 3;
-        int index = 0;
+        int index;
         assert(indexToVec(langSize, index) == [1, 0, 0]);
         index = 5;
         assert(indexToVec(langSize, index) == [0, 1, 1]);
@@ -106,22 +106,23 @@ public class DempsterShafer
      * and then returning the set.
      */
     static auto createSet(
-        in int langSize,
-        in int index) pure
+        const int langSize,
+        const int index) pure
     {
+        import std.algorithm.searching : count;
         import std.conv : to;
 
         auto vector = indexToVec(langSize, index);
 
-        int[] set;
+        auto set = new int[vector.count(1)];
+        auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
             if (value == 1)
             {
-                set ~= i.to!int;
+                set[fillIndex] = i.to!int;
             }
         }
-
         return set;
     }
 
@@ -132,7 +133,7 @@ public class DempsterShafer
         writeln("Unit tests:\tcreateSet : from index");
 
         int langSize = 3;
-        int index = 0;
+        int index;
         assert(createSet(langSize, index) == [0]);
 
         index = 3;
@@ -148,7 +149,7 @@ public class DempsterShafer
      * Generate the set based on its binary vector, and then return
      * the set.
      */
-    static auto createSet(in int[] vector) pure
+    static auto createSet(const int[] vector) pure
     {
         import std.conv : to;
 
@@ -189,8 +190,8 @@ public class DempsterShafer
      * Calculate the index of the set in the powerset.
      */
     static auto setToIndex(
-        in int langSize,
-        in int[] set) pure
+        const int langSize,
+        const int[] set) pure
     {
 
         auto vector = setToVec(langSize, set);
@@ -207,7 +208,7 @@ public class DempsterShafer
     /**
      * Calculate the index of the vector in the powerset.
      */
-    static auto vecToIndex(in int[] vector) pure
+    static auto vecToIndex(const int[] vector) pure
     {
 
         int index;
@@ -245,9 +246,9 @@ public class DempsterShafer
      * applied to the pignistic distributions of each agent's beliefs.
      */
     static auto distance(
-        in int langSize,
-        in double[int] beliefs1,
-        in double[int] beliefs2) pure
+        const int langSize,
+        const double[int] beliefs1,
+        const double[int] beliefs2) pure
     {
         import std.math : sqrt;
 
@@ -268,8 +269,8 @@ public class DempsterShafer
      * Calculates the Deng entropy of an agent's mass function: a measure of uncertainty.
      */
     static auto entropy(
-        in int langSize,
-        in double[int] beliefs) pure
+        const int langSize,
+        const double[int] beliefs) pure
     {
         import std.math : approxEqual, log2;
 
@@ -291,9 +292,9 @@ public class DempsterShafer
      * Inconsistency measure between two beliefs.
      */
     static auto inconsistency(
-        in int langSize,
-        in double[int] beliefs1,
-        in double[int] beliefs2) pure
+        const int langSize,
+        const double[int] beliefs1,
+        const double[int] beliefs2) pure
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.math : approxEqual;
@@ -330,7 +331,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static auto generatePowerset(ref in int langSize) pure
+    static auto generatePowerset(const int langSize) pure
     {
         import std.algorithm.sorting : sort;
 
@@ -385,14 +386,35 @@ public class DempsterShafer
     }
 
     /**
+     * Generate the indices for both belief and plausibily, so that
+     * you can calculate these later on without having to generate
+     * the vectors every time in order to retrieve the indices.
+     */
+    static auto belAndPlIndices(in int langSize, ) pure
+    {
+
+    }
+
+    unittest
+    {
+        import std.stdio : writeln;
+
+        writeln("Unit tests:\tbelAndPlIndices");
+
+
+
+        writeln("\t\tPASSED.");
+    }
+
+    /**
      * Calculates the evidential mass assignment based on the agent's current
      * beliefs. This prioritises the most dominant choice to receive feedback (payoff
      * so that more accurate beliefs are reinforced, and inaccurate beliefs are
      * punished.
      */
     static auto probMassEvidence(
-        in double[] qualities,
-        in double[int] beliefs,
+        const double[] qualities,
+        const double[int] beliefs,
         ref from!"std.random".Random rand) pure
     {
         import std.conv : to;
@@ -472,7 +494,7 @@ public class DempsterShafer
      * at random.
      */
     static auto randMassEvidence(
-        in double[] qualities,
+        const double[] qualities,
         ref from!"std.random".Random rand) pure
     {
         import std.conv : to;
@@ -528,11 +550,11 @@ public class DempsterShafer
      * at random.
      */
     static auto negMassEvidence(
-        in double[] qualities,
-        in double alpha,
+        const double[] qualities,
+        const double alpha,
         ref from!"std.random".Random rand) pure
     {
-        import std.algorithm.iteration : map, filter;
+        import std.algorithm.iteration : filter;
         import std.conv : to;
         import std.math : approxEqual;
         import std.random : randomChoice = choice, uniform01;
@@ -612,13 +634,13 @@ public class DempsterShafer
      * based on the pignistic belief of the agent.
      */
     static auto probNegMassEvidence(
-        in double[] qualities,
-        in double[int] beliefs,
-        in double alpha,
+        const double[] qualities,
+        const double[int] beliefs,
+        const double alpha,
         ref from!"std.random".Random rand) //pure
     {
-        import std.algorithm.iteration : map, filter;
-        import std.algorithm.searching : find;
+        import std.algorithm.iteration : filter;
+        import std.algorithm.searching : count, find;
         import std.conv : to;
         import std.math : approxEqual;
         import std.random : randomChoice = choice, uniform01;
@@ -629,10 +651,7 @@ public class DempsterShafer
 
         // If the agent's mass function assigns mass to more than one choice
         int choice;
-        if (pignisticBel.filter!(
-                a => a > 0
-            ).array.length > 1
-        )
+        if (pignisticBel.count!("a > 0") > 1)
         {
             auto prob = uniform01(rand);
             int[] choices = [-1, -1];
@@ -718,8 +737,8 @@ public class DempsterShafer
      * agent's mass function.
      */
     static auto pignisticDist(
-        in int langSize,
-        in double[int] beliefs) pure
+        const int langSize,
+        const double[int] beliefs) pure
     {
         auto pignistic = new double[](langSize);
         pignistic[] = 0;
@@ -769,9 +788,9 @@ public class DempsterShafer
      * threshold value, and false if they are too dissimilar.
      */
     static auto setSimilarity(
-        in int[] set1,
-        in int[] set2,
-        in double threshold)
+        const int[] set1,
+        const int[] set2,
+        const double threshold)
     {
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;

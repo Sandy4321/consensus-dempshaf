@@ -20,11 +20,11 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1_000;
+    immutable auto iterations = 1000;
     immutable auto changeThreshold = 50;
-    auto maxIterations = 0;
+              auto maxIterations = 0;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 100;
+    immutable auto testSet = 2;
     immutable auto alpha = 0.0;
     immutable auto gamma = false;
     immutable auto lambda = 0.0;
@@ -139,11 +139,12 @@ void main(string[] args)
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
     // auto inconsistResults   = new string[][](arraySize, testSet);
-    auto entropyResults = new string[][](arraySize, testSet);
-    auto uniqueResults = new string[][](arraySize, testSet);
-    auto choiceResults = new string[][](arraySize, testSet);
-    auto powersetResults = new string[][](arraySize, testSet);
-    auto cardMassResults = new string[][](arraySize, testSet);
+    auto entropyResults     = new string[][](arraySize, testSet);
+    auto uniqueResults      = new string[][](arraySize, testSet);
+    auto choiceResults      = new string[][](arraySize, testSet);
+    auto powersetResults    = new string[][](arraySize, testSet);
+    auto belPlResults       = new string[][](arraySize, testSet);
+    auto cardMassResults    = new string[][](arraySize, testSet);
 
     auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
 
@@ -311,6 +312,7 @@ void main(string[] args)
             double[int] choiceBeliefs;
             double[int] powersetBeliefs;
             double[int][] uniqueBeliefs;
+            double[2][int] belPl;
             // double inconsist,
             double entropy, cardinality;
             bool append, reachedSteadyState;
@@ -336,7 +338,10 @@ void main(string[] args)
                 if (iter % (iterations / iterStep) == 0)
                 {
                     foreach (index; belIndices)
+                    {
                         choiceBeliefs[index] = 0.0;
+                        belPl[index] = [0.0, 0.0];
+                    }
                     if (langSize < powersetLimit)
                         foreach (index; 0 .. belLength)
                             powersetBeliefs[index] = 0.0;
@@ -357,8 +362,8 @@ void main(string[] args)
                             // whether the masses for those subsets are the same.
                             if (unique.keys.sort.equal(beliefs.keys.sort) && unique.keys
                                     .sort
-                                    .map!(x => unique[x])
-                                    .equal!approxEqual(beliefs.keys.sort.map!(x => beliefs[x])))
+                                    .map!(a => unique[a])
+                                    .equal!approxEqual(beliefs.keys.sort.map!(a => beliefs[a])))
                             {
                                 append = false;
                                 break;
@@ -429,7 +434,7 @@ void main(string[] args)
                 if (reachedSteadyState && iter % 100 == 0)
                 {
                     maxIterations = (iter > maxIterations) ? iter : maxIterations;
-                    continue;
+                    break;
                 }
 
                 /*
@@ -761,16 +766,10 @@ private T[][] extendResults(T)(T[][] results, int maxIterations)
     for (auto i = 0; i < maxIterations; i++)
     {
         if (lastIteration == int.init)
-        {
             if (!results[i].find("").empty)
-            {
                 lastIteration = i - 1;
-            }
-        }
         if (lastIteration != int.init)
-        {
             results[i] = results[lastIteration].dup;
-        }
     }
 
     return results[0 .. maxIterations];
