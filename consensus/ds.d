@@ -110,7 +110,9 @@ public class DempsterShafer
         const int index) pure
     {
         import std.algorithm.searching : count;
+        import std.algorithm.sorting : sort;
         import std.conv : to;
+        import std.range : array;
 
         auto vector = indexToVec(langSize, index);
 
@@ -123,7 +125,7 @@ public class DempsterShafer
                 set[fillIndex] = i.to!int;
             }
         }
-        return set;
+        return set.sort.array;
     }
 
     unittest
@@ -140,7 +142,7 @@ public class DempsterShafer
         assert(createSet(langSize, index) == [2]);
 
         index = 5;
-        assert(createSet(langSize, index) == [1, 2]);
+        assert(createSet(langSize, index) == [0, 2]);
 
         writeln("\t\tPASSED.");
     }
@@ -357,9 +359,8 @@ public class DempsterShafer
         foreach (ref level; 0 .. langSize + 1)
             foreach (ref prop; 0 .. langSize)
                 foreach (ref set; tempSet)
-                    if (set.length > 0)
-                        if (set.length == level && set[0] == prop)
-                            powerset ~= set;
+                    if (set.length > 0 && set.length == level && set[0] == prop)
+                        powerset ~= set;
 
         return powerset;
     }
@@ -390,9 +391,34 @@ public class DempsterShafer
      * you can calculate these later on without having to generate
      * the vectors every time in order to retrieve the indices.
      */
-    static auto belAndPlIndices(in int langSize, ) pure
+    static auto belAndPlIndices(const int langSize, const int choice) pure
     {
+        import std.algorithm.iteration : sum;
 
+        auto masterVector = new int[langSize - 1];
+        auto vector = new int[langSize];
+        vector[choice] = 1;
+        auto belIndex = vecToIndex(vector);
+        int[] plIndices;
+
+        while (vector.sum <= langSize)
+        {
+            if (choice != 0) vector[0 .. choice] = masterVector[0 .. choice];
+            if (choice != langSize)
+                vector[choice + 1 .. $] = masterVector[choice + 1 .. $];
+            plIndices ~= vecToIndex(vector);
+
+            masterVector[0]++;
+            foreach (i, ref prop; vector[0 .. $-1])
+            {
+                if (prop > 1)
+                {
+                    prop = 0;
+                    vector[i+1]++;
+                }
+            }
+        }
+        return [[belIndex], plIndices];
     }
 
     unittest
