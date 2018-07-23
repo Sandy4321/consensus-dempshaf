@@ -109,7 +109,7 @@ public final class Operators
         const double[int] beliefs2,
         const double threshold,
         const bool affectOperator,
-        const double lambda) //pure
+        const double lambda) pure
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual, isInfinity, isNaN;

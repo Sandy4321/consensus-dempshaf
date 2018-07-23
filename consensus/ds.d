@@ -114,6 +114,8 @@ public class DempsterShafer
         import std.conv : to;
         import std.range : array;
 
+        import std.stdio : writeln;
+
         auto vector = indexToVec(langSize, index);
 
         auto set = new int[vector.count(1)];
@@ -122,7 +124,7 @@ public class DempsterShafer
         {
             if (value == 1)
             {
-                set[fillIndex] = i.to!int;
+                set[fillIndex++] = i.to!int;
             }
         }
         return set.sort.array;
@@ -134,15 +136,34 @@ public class DempsterShafer
 
         writeln("Unit tests:\tcreateSet : from index");
 
+        createSet(3, 0);
+        createSet(3, 1);
+        createSet(3, 2);
+        createSet(3, 3);
+        createSet(3, 4);
+        createSet(3, 5);
+        createSet(3, 6);
+
         int langSize = 3;
+        // The index is the reverse binary equivalent + 1, where each 1
+        // represents the presence of the proposition (by index) in the set.
+        // E.g. <1 1 0> = 3, 3 + 1 = 4, <0 0 1> -> [1].
         int index;
+        // <0 0 0> (0) -> <1 0 0> (1)
         assert(createSet(langSize, index) == [0]);
 
         index = 3;
+        // <1 1 0> (3) -> <0 0 1> (4)
         assert(createSet(langSize, index) == [2]);
 
         index = 5;
-        assert(createSet(langSize, index) == [0, 2]);
+        // <1 0 1> (5) -> <0 1 1> (6)
+        assert(createSet(langSize, index) == [1, 2]);
+
+        langSize = 5;
+        index = 30;
+        // <0 1 1 1 1> (30) -> <1 1 1 1 1> (31)
+        assert(createSet(langSize, index) == [0, 1, 2, 3, 4]);
 
         writeln("\t\tPASSED.");
     }
@@ -401,20 +422,20 @@ public class DempsterShafer
         auto belIndex = vecToIndex(vector);
         int[] plIndices;
 
-        while (vector.sum <= langSize)
+        while (vector.sum < langSize)
         {
             if (choice != 0) vector[0 .. choice] = masterVector[0 .. choice];
-            if (choice != langSize)
-                vector[choice + 1 .. $] = masterVector[choice + 1 .. $];
+            if (choice != langSize - 1)
+                vector[choice + 1 .. $] = masterVector[choice .. $];
             plIndices ~= vecToIndex(vector);
 
             masterVector[0]++;
-            foreach (i, ref prop; vector[0 .. $-1])
+            foreach (i, ref prop; masterVector[0 .. $-1])
             {
                 if (prop > 1)
                 {
                     prop = 0;
-                    vector[i+1]++;
+                    masterVector[i+1]++;
                 }
             }
         }
