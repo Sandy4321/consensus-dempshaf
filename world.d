@@ -8,8 +8,6 @@ import core.stdc.stdlib;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
 import std.random, std.stdio, std.string, std.traits;
 
-import std.parallelism;
-
 // Set the version to symmetric or asymmetric
 version = symmetric;
 
@@ -21,8 +19,6 @@ void main(string[] args)
      * via command-line arguments.
      */
     immutable auto iterations = 10_000;
-    immutable auto changeThreshold = 100;
-              auto maxIterations = 0;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -38,8 +34,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     immutable auto evidenceOnly = false;
     // Evidence is random, not probabilistic:
@@ -251,6 +247,10 @@ void main(string[] args)
     }
     writeln(plSets); */
 
+    // Convergence parameters and variables
+    immutable auto changeThreshold = numOfAgents / 2;
+              auto maxIterations = 0;
+
     /*
      * For each threshold in thresholdSet, run the experiment using that value of gamma.
      */
@@ -455,10 +455,12 @@ void main(string[] args)
                 if ((reachedSteadyState && iter % 100 == 0) || iter == iterations)
                 {
                     writeln();
+                    writeln(iter);
                     writeln(uniqueBeliefs);
                     writeln(uniqueBeliefsCount);
                     writeln(population.minElement!"a.interactions".interactions);
                     writeln(population.maxElement!"a.interactions".interactions);
+                    writeln("Average: ", population.map!"a.interactions".sum/numOfAgents.to!double);
                     if (reachedSteadyState && iter % 100 == 0)
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
 
@@ -495,13 +497,14 @@ void main(string[] args)
                 * e.g. when a honeybee visits a site.
                 */
                 ulong[] restrictedPopulation;
+                restrictedPopulation.reserve(numOfAgents);
                 version (sanityCheck)
                 {
                     foreach (i, ref agent; population)
                     {
                         auto beliefs = agent.beliefs;
                         auto skip = false;
-                        foreach (j; 0 .. l)
+                        foreach (j; 0 .. langSize)
                         {
                             if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
                             {
@@ -509,8 +512,7 @@ void main(string[] args)
                                 break;
                             }
                         }
-                        if (!skip)
-                            restrictedPopulation ~= i;
+                        if (!skip) restrictedPopulation ~= i;
                     }
                 }
                 else
@@ -551,10 +553,6 @@ void main(string[] args)
                 /*
                 * Agents conduct some form of belief-merging/"consensus".
                 */
-                Agent[] snapshotPopulation;
-                foreach (index; 0 .. population.length)
-                    snapshotPopulation ~= population[index].dup;
-
                 static if (!evidenceOnly)
                 {
                     if (restrictedPopulation.length > 2)
@@ -565,8 +563,7 @@ void main(string[] args)
                         version (symmetric)
                         {
                             int i = restrictedPopulation.choice(rand).to!int;
-                            do
-                                selection = restrictedPopulation.choice(rand).to!int;
+                            do selection = restrictedPopulation.choice(rand).to!int;
                             while (i == selection);
                             Agent agent = population[i];
                             selected = population[selection];
@@ -586,17 +583,24 @@ void main(string[] args)
                             }
 
                             auto newBeliefs = combination(langSize, agent.beliefs,
-                                    selected.beliefs, threshold, affectOperator, lambda);
+                                selected.beliefs, threshold, affectOperator, lambda);
 
-                            agent.beliefs = newBeliefs;
-                            selected.beliefs = newBeliefs;
+                            // If newBeliefs is null, then the agents were completely
+                            // inconsistent anyway.
+                            if (newBeliefs !is null)
+                            {
+                                agent.beliefs(newBeliefs, true);
+                                selected.beliefs(newBeliefs, true);
+                            }
                         }
                         else
                         {
+                            Agent[] snapshotPopulation;
+                            foreach (index; 0 .. population.length)
+                                snapshotPopulation ~= population[index].dup;
                             foreach (i; restrictedPopulation)
                             {
-                                do
-                                    selection = restrictedPopulation.choice(rand).to!int;
+                                do selection = restrictedPopulation.choice(rand).to!int;
                                 while (i == selection);
                                 Agent agent = population[i];
                                 selected = snapshotPopulation[selection];
@@ -618,9 +622,9 @@ void main(string[] args)
                                 }
 
                                 auto newBeliefs = combination(langSize, agent.beliefs,
-                                        selected.beliefs, threshold, affectOperator, lambda);
+                                    selected.beliefs, threshold, affectOperator, lambda);
 
-                                agent.beliefs = newBeliefs;
+                                agent.beliefs(newBeliefs, true);
                             }
                         }
                     }

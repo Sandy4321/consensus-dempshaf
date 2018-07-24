@@ -166,7 +166,7 @@ public final class Operators
         else
         {
             // If beliefs are completely inconsistent, just return the original belief.
-            return cast(double[int]) beliefs1;
+            return null;
         }
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points

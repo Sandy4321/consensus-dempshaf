@@ -17,7 +17,7 @@ public final class Agent
     /**
      * Set the beliefs of an agent, which is a mass function.
      */
-    void beliefs(double[int] beliefs)
+    void beliefs(double[int] beliefs, bool increment = false)
     {
         import std.algorithm : equal, map, sort;
         import std.conv : to;
@@ -55,7 +55,7 @@ public final class Agent
         else this.mTimeSinceChange = 0;
 
         this.mBeliefs = tempBeliefs;
-        this.incrementInteractions;
+        if (increment) this.incrementInteractions;
 
         this.belAndPl;
     }
@@ -141,8 +141,6 @@ public final class Agent
         Agent duplicate = new Agent();
 
         duplicate.beliefs = this.mBeliefs;
-        duplicate.interactions = this.mInteractions;
-        duplicate.timeSinceChange = this.mTimeSinceChange;
         return duplicate;
     }
 }
