@@ -21,7 +21,7 @@ void main(string[] args)
      * via command-line arguments.
      */
     immutable auto iterations = 10_000;
-    immutable auto changeThreshold = 50;
+    immutable auto changeThreshold = 100;
               auto maxIterations = 0;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
@@ -313,6 +313,7 @@ void main(string[] args)
             double[int] choiceBeliefs;
             auto powersetBeliefs = new double[belLength];
             double[int][] uniqueBeliefs;
+            int[] uniqueBeliefsCount;
             double[2] belPl;
             // double inconsist,
             double entropy, cardinality;
@@ -346,6 +347,7 @@ void main(string[] args)
 
                     belPl = [0.0, 0.0];
                     uniqueBeliefs.length = 0;
+                    uniqueBeliefsCount.length = 0;
                     // inconsist =
                     entropy = cardinality = 0.0;
                     reachedSteadyState = true;
@@ -355,7 +357,7 @@ void main(string[] args)
                         auto beliefs = agent.beliefs;
 
                         append = true;
-                        foreach (unique; uniqueBeliefs)
+                        foreach (uniqIndex, unique; uniqueBeliefs)
                         {
                             // First compare whether the keys match. If they do, then
                             // the same subset has already been found. Then, check
@@ -368,11 +370,15 @@ void main(string[] args)
                                 ))
                             {
                                 append = false;
+                                uniqueBeliefsCount[uniqIndex]++;
                                 break;
                             }
                         }
                         if (append)
+                        {
                             uniqueBeliefs ~= beliefs;
+                            uniqueBeliefsCount ~= 1;
+                        }
 
                         // Calculate average entropy of agents' beliefs
                         entropy += DempsterShafer.entropy(belLength, beliefs);
