@@ -309,7 +309,6 @@ void main(string[] args)
             * Agents interact according to broadcasting/listening rules,
             * but states are not discrete and separate.
             */
-
             int iterIndex;
             double[int] choiceBeliefs;
             auto powersetBeliefs = new double[belLength];
@@ -332,7 +331,6 @@ void main(string[] args)
                         bestChoice = qualities.maxIndex.to!int;
                     }
                 }
-
                 /*
                  * Extract the data for each agent in the population, to be used
                  * throughout the simulation as well as for plotting results later.
@@ -536,36 +534,6 @@ void main(string[] args)
                             agent.beliefs = combination(langSize, agent.beliefs,
                                     DempsterShafer.probMassEvidence(qualities,
                                         agent.beliefs, rand), 0.0, false, lambda);
-
-                            /* auto evidence = DempsterShafer.probMassEvidence(
-                                qualities,
-                                agent.beliefs,
-                                rand
-                            );
-
-                            writeln("Evidential updating...");
-                            writeln(
-                                agent.beliefs.keys.map!(
-                                    x => DempsterShafer.createSet(langSize, x)
-                                ),
-                                " (+) ",
-                                evidence.keys.map!(
-                                    x => DempsterShafer.createSet(langSize, x)
-                                )
-                            );
-                            writeln("Old: ", agent.beliefs);
-                            writeln("Evidence: ", evidence);
-
-                            agent.beliefs = combination(
-                                langSize,
-                                agent.beliefs,
-                                evidence,
-                                0.0,
-                                false,
-                                lambda
-                            );
-
-                            writeln("New: ", agent.beliefs); */
                         }
                     }
                 }
@@ -740,14 +708,6 @@ void main(string[] args)
         // Cardinality
         fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, cardMassResults);
-
-        // Payoff
-        /* fileName = "payoff" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, maxIterations, payoffResults); */
-
-        // Maximum payoff
-        /* fileName = "max_payoff" ~ "_" ~ randomFN ~ fileExt;
-        writeToFile(directory, fileName, append, maxIterations, maxPayoffResults); */
 
         static if (!gamma && !iota)
         {
