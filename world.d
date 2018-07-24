@@ -434,6 +434,11 @@ void main(string[] args)
                         powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0
                             .. $ - 1] ~ "]";
                     }
+                    belPlResults[iterIndex][test] = "[";
+                    foreach (index; 0 .. belPl.length)
+                        belPlResults[iterIndex][test] ~= format("%.4f", belPl[index]) ~ ",";
+                    belPlResults[iterIndex][test] = belPlResults[iterIndex][test][0
+                            .. $ - 1] ~ "]";
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
                     iterIndex++;
@@ -715,6 +720,10 @@ void main(string[] args)
             fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
             writeToFile(directory, fileName, append, maxIterations, powersetResults);
         }
+
+        // Best-choice Bel and Pl
+        fileName = "bel_pl" ~ "_" ~ randomFN ~ fileExt;
+        writeToFile(directory, fileName, append, maxIterations, belPlResults);
 
         // Unique Beliefs
         fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
