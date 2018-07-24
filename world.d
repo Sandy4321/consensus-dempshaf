@@ -761,7 +761,6 @@ void main(string[] args)
 private void writeToFile(T)(string directory, string fileName, string append,
                             int maxIterations, T[][] results)
 {
-    writeln(fileName);
     if (maxIterations != int.init && !fileName.canFind("steadystate"))
         results = extendResults(results, maxIterations);
     auto file = File(directory ~ fileName, append);
