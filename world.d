@@ -20,11 +20,11 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1000;
+    immutable auto iterations = 10_000;
     immutable auto changeThreshold = 50;
               auto maxIterations = 0;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 2;
+    immutable auto testSet = 100;
     immutable auto alpha = 0.0;
     immutable auto gamma = false;
     immutable auto lambda = 0.0;
@@ -153,13 +153,6 @@ void main(string[] args)
     foreach (ref agent; population)
         agent = new Agent();
 
-    // Identify the choices that agents have and their respective,
-    // normalised quality values.
-    int[] choices;
-    foreach (i; 0 .. langSize)
-        choices ~= i + 1;
-    writeln(choices);
-
     //*************************************
     immutable auto qualityIndex = args[$ - 1].to!int;
     //*************************************
@@ -180,7 +173,7 @@ void main(string[] args)
     auto qualities = masterQualities.filter!(a => a.length == langSize).array[qualityIndex].dup;
     auto qualitiesString = masterQStrings.filter!(a => a.split(",")
             .length == langSize).array[qualityIndex];
-    writeln(qualities);
+    writeln("Qualities: ", qualities);
     // Ensure that the number of quality values matches the number of choices given.
     assert(qualities.length == langSize);
 
@@ -221,7 +214,6 @@ void main(string[] args)
             thresholdSet ~= (threshold / 100.0).to!double;
         thresholdSet.sort;
         writeln(thresholdSet);
-
     }
     else
     {
@@ -234,7 +226,7 @@ void main(string[] args)
     if (langSize <= powersetLimit)
     {
         auto powerset = DempsterShafer.generatePowerset(langSize);
-        writeln(powerset);
+        writeln("Powerset: ", powerset);
     }
     // Generate the indices of the hypotheses' singletons
     auto belIndices = new int[langSize];
@@ -244,10 +236,20 @@ void main(string[] args)
         vector[i] = 1;
         belIndices[i] = DempsterShafer.vecToIndex(vector);
     }
-    writeln(belIndices);
+    writeln("Belief indices: ", belIndices);
 
     // Find the choice with the highest payoff, and store its index in the power set.
     int bestChoice = qualities.maxIndex.to!int;
+
+    auto belPlIndices = DempsterShafer.belAndPlIndices(langSize, bestChoice);
+    writeln("Bel() and Pl() indices: ", belPlIndices);
+
+    /* int[][] plSets;
+    foreach (index; belPlIndices[1])
+    {
+        plSets ~= DempsterShafer.createSet(langSize, index);
+    }
+    writeln(plSets); */
 
     /*
      * For each threshold in thresholdSet, run the experiment using that value of gamma.
@@ -310,9 +312,9 @@ void main(string[] args)
 
             int iterIndex;
             double[int] choiceBeliefs;
-            double[int] powersetBeliefs;
+            auto powersetBeliefs = new double[belLength];
             double[int][] uniqueBeliefs;
-            double[2][int] belPl;
+            double[2] belPl;
             // double inconsist,
             double entropy, cardinality;
             bool append, reachedSteadyState;
@@ -340,11 +342,11 @@ void main(string[] args)
                     foreach (index; belIndices)
                     {
                         choiceBeliefs[index] = 0.0;
-                        belPl[index] = [0.0, 0.0];
                     }
                     if (langSize < powersetLimit)
-                        foreach (index; 0 .. belLength)
-                            powersetBeliefs[index] = 0.0;
+                        powersetBeliefs[] = 0.0;
+
+                    belPl = [0.0, 0.0];
                     uniqueBeliefs.length = 0;
                     // inconsist =
                     entropy = cardinality = 0.0;
@@ -361,9 +363,11 @@ void main(string[] args)
                             // the same subset has already been found. Then, check
                             // whether the masses for those subsets are the same.
                             if (unique.keys.sort.equal(beliefs.keys.sort) && unique.keys
-                                    .sort
-                                    .map!(a => unique[a])
-                                    .equal!approxEqual(beliefs.keys.sort.map!(a => beliefs[a])))
+                                .sort
+                                .map!(a => unique[a])
+                                .equal!approxEqual(
+                                    beliefs.keys.sort.map!(a => beliefs[a])
+                                ))
                             {
                                 append = false;
                                 break;
@@ -376,17 +380,24 @@ void main(string[] args)
                         entropy += DempsterShafer.entropy(belLength, beliefs);
 
                         foreach (index; belIndices)
+                        {
                             if (index in beliefs)
+                            {
                                 choiceBeliefs[index] += beliefs[index];
-
+                                if (belPlIndices[0].canFind(index))
+                                    belPl[0] += beliefs[index];
+                            }
+                        }
                         if (langSize < powersetLimit)
                             foreach (index; 0 .. belLength)
                                 if (index in beliefs)
                                     powersetBeliefs[index] += beliefs[index];
 
-                        foreach (j, ref bel; beliefs)
+                        foreach (index, ref bel; beliefs)
                         {
-                            cardinality += bel * DempsterShafer.createSet(langSize, j).length;
+                            if (belPlIndices[1].canFind(index))
+                                belPl[1] += bel;
+                            cardinality += bel * DempsterShafer.createSet(langSize, index).length;
                         }
 
                         // Check if agent has reached a steady state
@@ -397,6 +408,7 @@ void main(string[] args)
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     foreach (index; belIndices)
                         choiceBeliefs[index] /= numOfAgents;
+                    belPl[] /= numOfAgents;
                     if (langSize < powersetLimit)
                         foreach (index; 0 .. belLength)
                             powersetBeliefs[index] /= numOfAgents;
@@ -416,8 +428,8 @@ void main(string[] args)
                     powersetResults[iterIndex][test] = "[";
                     if (langSize < powersetLimit)
                     {
-                        foreach (key; powersetBeliefs.keys.sort)
-                            powersetResults[iterIndex][test] ~= format("%.4f", powersetBeliefs[key])
+                        foreach (index; 0 .. belLength)
+                            powersetResults[iterIndex][test] ~= format("%.4f", powersetBeliefs[index])
                                 ~ ",";
                         powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0
                             .. $ - 1] ~ "]";
@@ -431,9 +443,34 @@ void main(string[] args)
                  * If simulation has reached steady state and is at convenient
                  * cut-off point, then end this test.
                  */
-                if (reachedSteadyState && iter % 100 == 0)
+                if ((reachedSteadyState && iter % 100 == 0) || iter == iterations)
                 {
-                    maxIterations = (iter > maxIterations) ? iter : maxIterations;
+                    if (reachedSteadyState && iter % 100 == 0)
+                        maxIterations = (iter > maxIterations) ? iter : maxIterations;
+
+                    // Grab the steady state results.
+                    static if (!gamma && !iota)
+                    {
+                        // auto interactions = 0.0;
+                        foreach (i, ref agent; population)
+                        {
+                            auto beliefs = agent.beliefs;
+                            steadyStateBeliefs[i][test] = "[";
+                            foreach (index; belIndices)
+                            {
+                                if (index in beliefs)
+                                {
+                                    steadyStateBeliefs[i][test] ~= format("%.4f", beliefs[index])
+                                        ~ ",";
+                                }
+                                else
+                                {
+                                    steadyStateBeliefs[i][test] ~= format("%.4f", 0.0) ~ ",";
+                                }
+                            }
+                            steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $ - 1] ~ "]";
+                        }
+                    }
                     break;
                 }
 
@@ -604,38 +641,6 @@ void main(string[] args)
                         }
                     }
                 }
-                static if (!gamma && !iota)
-                {
-                    /*
-                    * Grab the steady state results.
-                    */
-                    if (iterIndex == iterations)
-                    {
-                        // auto interactions = 0.0;
-                        foreach (i, ref agent; population)
-                        {
-                            auto beliefs = agent.beliefs;
-
-                            steadyStateBeliefs[i][test] = "[";
-                            foreach (index; belIndices)
-                            {
-                                if (index in beliefs)
-                                {
-                                    steadyStateBeliefs[i][test] ~= format("%.4f", beliefs[index])
-                                        ~ ",";
-                                }
-                                else
-                                {
-                                    steadyStateBeliefs[i][test] ~= format("%.4f", 0.0) ~ ",";
-                                }
-                            }
-                            steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $ - 1]
-                                ~ "]";
-                            // interactions += agent.interactions;
-                        }
-                        // writeln(interactions /= numOfAgents);
-                    }
-                }
             }
         }
         // Write results to disk for current test.
@@ -747,7 +752,9 @@ void main(string[] args)
 private void writeToFile(T)(string directory, string fileName, string append,
                             int maxIterations, T[][] results)
 {
-    results = extendResults(results, maxIterations);
+    writeln(fileName);
+    if (maxIterations != int.init && !fileName.canFind("steadystate"))
+        results = extendResults(results, maxIterations);
     auto file = File(directory ~ fileName, append);
     foreach (i, ref index; results)
     {
@@ -760,17 +767,15 @@ private void writeToFile(T)(string directory, string fileName, string append,
     file.close();
 }
 
-private T[][] extendResults(T)(T[][] results, int maxIterations)
+private T[][] extendResults(T)(ref T[][] results, int maxIterations)
 {
-    int lastIteration;
+    // Results are two-dimensional arrays of the form:
+    // [ iteration 1 : [test 0] [test 1] ... [test N]
+    //   ...
+    //   iteration N : [test 0] [test 1] ... [test N] ]
     for (auto i = 0; i < maxIterations; i++)
-    {
-        if (lastIteration == int.init)
-            if (!results[i].find("").empty)
-                lastIteration = i - 1;
-        if (lastIteration != int.init)
-            results[i] = results[lastIteration].dup;
-    }
+        for (auto j = 0; j < results[i].length; j++)
+            if (results[i][j] == "") results[i][j] = results[i-1][j];
 
     return results[0 .. maxIterations];
 }
