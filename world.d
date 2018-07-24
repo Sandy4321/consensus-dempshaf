@@ -454,6 +454,11 @@ void main(string[] args)
                  */
                 if ((reachedSteadyState && iter % 100 == 0) || iter == iterations)
                 {
+                    writeln();
+                    writeln(uniqueBeliefs);
+                    writeln(uniqueBeliefsCount);
+                    writeln(population.minElement!"a.interactions".interactions);
+                    writeln(population.maxElement!"a.interactions".interactions);
                     if (reachedSteadyState && iter % 100 == 0)
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
 
@@ -584,6 +589,7 @@ void main(string[] args)
                                     selected.beliefs, threshold, affectOperator, lambda);
 
                             agent.beliefs = newBeliefs;
+                            selected.beliefs = newBeliefs;
                         }
                         else
                         {
@@ -615,7 +621,6 @@ void main(string[] args)
                                         selected.beliefs, threshold, affectOperator, lambda);
 
                                 agent.beliefs = newBeliefs;
-                                selected.beliefs = newBeliefs;
                             }
                         }
                     }
