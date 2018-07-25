@@ -248,8 +248,11 @@ void main(string[] args)
     writeln(plSets); */
 
     // Convergence parameters and variables
-    immutable auto changeThreshold = numOfAgents / 2;
-              auto maxIterations = 0;
+    static if (fullyQualifiedName!combination.canFind("dempster"))
+        immutable auto changeThreshold = 50;
+    else
+        immutable auto changeThreshold = 50; // numOfAgents / 2
+                  auto maxIterations = 0;
 
     /*
      * For each threshold in thresholdSet, run the experiment using that value of gamma.
@@ -454,13 +457,13 @@ void main(string[] args)
                  */
                 if ((reachedSteadyState && iter % 100 == 0) || iter == iterations)
                 {
-                    writeln();
+                    /* writeln();
                     writeln(iter);
                     writeln(uniqueBeliefs);
                     writeln(uniqueBeliefsCount);
                     writeln(population.minElement!"a.interactions".interactions);
                     writeln(population.maxElement!"a.interactions".interactions);
-                    writeln("Average: ", population.map!"a.interactions".sum/numOfAgents.to!double);
+                    writeln("Average: ", population.map!"a.interactions".sum/numOfAgents.to!double); */
                     if (reachedSteadyState && iter % 100 == 0)
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
 
@@ -624,7 +627,12 @@ void main(string[] args)
                                 auto newBeliefs = combination(langSize, agent.beliefs,
                                     selected.beliefs, threshold, affectOperator, lambda);
 
-                                agent.beliefs(newBeliefs, true);
+                                // If newBeliefs is null, then the agents were completely
+                                // inconsistent anyway.
+                                if (newBeliefs !is null)
+                                {
+                                    agent.beliefs(newBeliefs, true);
+                            }
                             }
                         }
                     }
@@ -705,7 +713,7 @@ void main(string[] args)
         }
 
         // Best-choice Bel and Pl
-        fileName = "bel_pl" ~ "_" ~ randomFN ~ fileExt;
+        fileName = "belief_plausibility" ~ "_" ~ randomFN ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, belPlResults);
 
         // Unique Beliefs
