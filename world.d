@@ -34,10 +34,13 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
+    // Disable consensus formation
     immutable auto evidenceOnly = false;
+    // Disable evidential updating
+    immutable auto consensusOnly = true;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -46,6 +49,13 @@ void main(string[] args)
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
         writeln("Cannot run gamma-thresholding for Dempster's rule.");
+        exit(1);
+    }
+
+    if (evidenceOnly && consensusOnly)
+    {
+        writeln("evidenceOnly and consensusOnly are mutually ",
+                "exclusive and cannot both be true.");
         exit(1);
     }
 
@@ -129,6 +139,8 @@ void main(string[] args)
         writeln("probabilistic");
     if (evidenceOnly)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
+    if (consensusOnly)
+        writeln("!!! CONSENSUS-ONLY VERSION: FOR CHECKING ONLY !!!");
     version (sanityCheck)
         writeln("!!! SANITY CHECK MODE !!!");
 
@@ -525,31 +537,34 @@ void main(string[] args)
                         restrictedPopulation[index] = index;
                 }
 
-                foreach (i; restrictedPopulation)
+                static if (consensusOnly)
                 {
-                    Agent agent = population[i];
+                    foreach (i; restrictedPopulation)
+                    {
+                        Agent agent = population[i];
 
-                    static if (negativeEvidence)
-                    {
-                        agent.beliefs = combination(langSize, agent.beliefs,
-                                DempsterShafer.negMassEvidence(qualities,
-                                    alpha, rand), 0.0, false, lambda);
-                    }
-                    else
-                    {
-                        // If evidence should be provided for a random choice.
-                        static if (randomEvidence)
+                        static if (negativeEvidence)
                         {
                             agent.beliefs = combination(langSize, agent.beliefs,
-                                    DempsterShafer.randMassEvidence(qualities,
-                                        rand,), 0.0, false, lambda);
+                                    DempsterShafer.negMassEvidence(qualities,
+                                        alpha, rand), 0.0, false, lambda);
                         }
-                        // Else, evidence should favour the most prominent choice.
-                    else
+                        else
                         {
-                            agent.beliefs = combination(langSize, agent.beliefs,
-                                    DempsterShafer.probMassEvidence(qualities,
-                                        agent.beliefs, rand), 0.0, false, lambda);
+                            // If evidence should be provided for a random choice.
+                            static if (randomEvidence)
+                            {
+                                agent.beliefs = combination(langSize, agent.beliefs,
+                                        DempsterShafer.randMassEvidence(qualities,
+                                            rand,), 0.0, false, lambda);
+                            }
+                            // Else, evidence should favour the most prominent choice.
+                        else
+                            {
+                                agent.beliefs = combination(langSize, agent.beliefs,
+                                        DempsterShafer.probMassEvidence(qualities,
+                                            agent.beliefs, rand), 0.0, false, lambda);
+                            }
                         }
                     }
                 }
