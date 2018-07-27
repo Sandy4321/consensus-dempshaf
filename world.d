@@ -60,21 +60,17 @@ void main(string[] args)
     }
 
     bool randomSelect = true;
-    int langSize, numOfAgents, initDist;
-    double initDistRaw = 0.0;
+    int langSize, numOfAgents;
     // string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$ - 1]);
 
     writeln("Simulation length: ", iterations, " iterations");
 
-    getopt(args,/* "dist",
-        (string _, string s)
-        {
-            initDistRaw = to!double(s);
-            initDist = to!int(initDistRaw * 100);
-        }, */
-            "random", &randomSelect);
+    getopt(args,
+        "random", &randomSelect
+    );
+
     foreach (i, arg; args)
     {
         switch (i)
@@ -115,14 +111,6 @@ void main(string[] args)
         writeln("! SYMMETRIC !");
     else
         writeln("! ASYMMETRIC !");
-    /* writeln("P value: ", initDistRaw, " :: ", initDist);
-    if (approxEqual(initDistRaw, 0.0))
-        distribution = "ignorant";
-    if (p == 100)
-    {
-        writeln("==> ! Uniform distribution !");
-        distribution = "uniform";
-    } */
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$ - 1]);
     writeln("Lambda value: ", lambda);
     version (alterQ)
@@ -300,20 +288,13 @@ void main(string[] args)
             foreach (agentIndex, ref agent; population)
             {
                 double[int] beliefs;
+                // If no evidential updating is taking place, then randomly
+                // initialise the agents' beliefs.
+                static if (consensusOnly)
+                {
 
-                // assign uniform masses to the power set P^W.
-                if (initDistRaw == 1)
-                {
-                    foreach (int i; 0 .. belLength)
-                    {
-                        beliefs[i] = 1.0 / belLength;
-                    }
                 }
-                // assign full mass to the set W; complete ignorance.
-                else if (initDistRaw == 0)
-                {
-                    beliefs[belLength - 1] = 1.0;
-                }
+                else beliefs[belLength - 1] = 1.0;
 
                 agent.beliefs = beliefs;
                 agent.resetInteractions;
