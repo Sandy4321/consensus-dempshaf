@@ -6,7 +6,7 @@ import dempshaf.consensus.ds;
 
 import core.stdc.stdlib;
 import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
-import std.random, std.stdio, std.string, std.traits;
+import std.random, std.range, std.stdio, std.string, std.traits;
 
 // Set the version to symmetric or asymmetric
 version = symmetric;
@@ -22,7 +22,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;
+    immutable auto gamma = true;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -290,16 +290,39 @@ void main(string[] args)
                 double[int] beliefs;
                 // If no evidential updating is taking place, then randomly
                 // initialise the agents' beliefs.
+                auto sum = 0.0;
                 static if (consensusOnly)
                 {
+                    // foreach (index; iota(belLength)
+                    //                 .randomSample(iota(1, belLength).choice))
+                    foreach (index; std.range.iota(belLength)
+                                    .randomSample(
+                                        std.range.iota(1, belLength)
+                                        .choice(rand), rand))
+                    {
+                        beliefs[index] = uniform01(rand);
+                        sum += beliefs[index];
+                    }
 
+                    assert(beliefs.length != 0);
+
+                    if (beliefs.length == 1)
+                    {
+                        beliefs[beliefs.keys[0]] = 1.0;
+                    }
+                    else
+                    {
+                        foreach (ref index; beliefs.byKey)
+                        {
+                            beliefs[index] /= sum;
+                        }
+                    }
                 }
                 else beliefs[belLength - 1] = 1.0;
 
                 agent.beliefs = beliefs;
                 agent.resetInteractions;
             }
-
             /*
             * Iteration loop;
             * Agents interact according to broadcasting/listening rules,
