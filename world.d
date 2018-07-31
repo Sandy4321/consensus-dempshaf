@@ -22,14 +22,14 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = true;
+    immutable auto gamma = false;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
     // Default precision for approxEqual is 1e-2.
-    immutable auto precision = 1e-4;
+    alias precision = DempsterShafer.precision;
 
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
@@ -40,7 +40,7 @@ void main(string[] args)
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = true;
+    immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -131,6 +131,10 @@ void main(string[] args)
         writeln("!!! CONSENSUS-ONLY VERSION: FOR TESTING PURPOSES ONLY !!!");
     version (sanityCheck)
         writeln("!!! SANITY CHECK MODE !!!");
+
+    // Set static array in Dempster-Shafer module using langSize
+    DempsterShafer.binaryVector = new int[langSize];
+    DempsterShafer.staticSet    = new int[langSize];
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
@@ -420,7 +424,7 @@ void main(string[] args)
                         {
                             if (belPlIndices[1].canFind(index))
                                 belPl[1] += bel;
-                            cardinality += bel * DempsterShafer.createSet(langSize, index).length;
+                            cardinality += bel * DempsterShafer.createSet(index).length;
                         }
 
                         // Check if agent has reached a steady state

@@ -10,7 +10,7 @@ public final class Operators
     /**
      * Set the precision of the approxEqual checks.
      */
-    static immutable auto precision = 1e-4;
+    alias precision = DempsterShafer.precision;
     /**
      * Consensus operator for Dempster-Shafer mass functions.
      */
@@ -20,7 +20,7 @@ public final class Operators
         const double[int] beliefs2,
         const double threshold,
         const bool affectOperator,
-        const double lambda) pure
+        const double lambda)
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.array : array;
@@ -31,6 +31,10 @@ public final class Operators
         import std.stdio : writeln;
 
         double[int] beliefs;
+
+        // writeln("------------------");
+        // writeln("Original beliefs:");
+        // writeln(beliefs1, "\n", beliefs2);
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -44,37 +48,31 @@ public final class Operators
                     continue;
 
                 int[] currentSet;
-                auto set1 = DempsterShafer.createSet(langSize, i);
-                auto set2 = DempsterShafer.createSet(langSize, j);
+                auto set1 = DempsterShafer.createSet(i);
+                auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
+                auto similarity = DempsterShafer.setSimilarity(set1, set2);
+
+                // writeln(set1, " + ", set2, " : ", similarity, " > ", threshold, " ?");
 
                 // Only threshold the operator if affectOperator == true
-                if (affectOperator &&
-                    !DempsterShafer.setSimilarity(
-                        set1,
-                        set2,
-                        threshold
-                    ))
+                if ((affectOperator && similarity <= threshold) || intersection.empty)
                 {
                     // If the agents are not sufficiently similar, according to
-                    // the threshold gamma, then take the union.
+                    // the threshold gamma, or if the intersection is the empty set,
+                    // then take the union.
                     currentSet = (set1 ~ set2).dup.sort.uniq.array;
-                }
-                // If not affecting the operator, or above condition fails anyway,
-                // simply check that the intersection is the empty set.
-                else if (intersection.empty)
-                {
-                    // If the intersection is the empty set, form the union instead.
-                    currentSet = (set1 ~ set2).dup.sort.uniq.array;
+                    // writeln("COMBINATION <= THRESHOLD : FAIL : UNION");
                 }
                 else
                 {
                     // If the intersection is not empty, recreate the intersection set.
                     foreach (elem; intersection)
                         currentSet ~= elem;
+                    // writeln("COMBINATION > THRESHOLD : PASS : INTERSECTION");
                 }
 
-                beliefs[DempsterShafer.setToIndex(langSize, currentSet)] += bel1 * bel2;
+                beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
             }
         }
 
@@ -97,6 +95,8 @@ public final class Operators
             }
         }
 
+        // writeln("Final beliefs: ", beliefs);
+
         return beliefs;
     }
 
@@ -109,12 +109,10 @@ public final class Operators
         const double[int] beliefs2,
         const double threshold,
         const bool affectOperator,
-        const double lambda) pure
+        const double lambda)
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual, isInfinity, isNaN;
-
-        import std.stdio : writeln;
 
         double[int] beliefs;
         auto emptySet = 0.0;
@@ -131,8 +129,8 @@ public final class Operators
                     continue;
 
                 int[] currentSet;
-                auto set1 = DempsterShafer.createSet(langSize, i);
-                auto set2 = DempsterShafer.createSet(langSize, j);
+                auto set1 = DempsterShafer.createSet(i);
+                auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
                 if (intersection.empty)
                 {
@@ -148,7 +146,7 @@ public final class Operators
                         currentSet ~= elem;
                 }
 
-                beliefs[DempsterShafer.setToIndex(langSize, currentSet)] += bel1 * bel2;
+                beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
             }
         }
 

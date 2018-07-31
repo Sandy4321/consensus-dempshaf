@@ -12,23 +12,26 @@ public class DempsterShafer
      * Set the precision of the approxEqual checks.
      */
     static immutable auto precision = 1e-4;
+    /**
+      * Binary vector placeholder used in conversion functions.
+      */
+    static int[] binaryVector;
+    static int[] staticSet;
 
     /**
      * Generate the binary vector based on the set provided,
      * and the language size.
      */
-    static auto setToVec(
-        const int langSize,
-        const int[] set) pure
+    static auto setToVec(const int[] set)
     {
-        int[] binaryVector = new int[langSize];
+        binaryVector[] = 0;
 
         foreach (ref element; set)
         {
             binaryVector[element] = 1;
         }
 
-        return binaryVector;
+        return binaryVector.dup;
     }
 
     unittest
@@ -39,19 +42,19 @@ public class DempsterShafer
 
         int langSize = 3;
         auto set = [0, 2];
-        assert(setToVec(langSize, set) == [1, 0, 1]);
+        assert(setToVec(set) == [1, 0, 1]);
         set = [1, 2];
-        assert(setToVec(langSize, set) == [0, 1, 1]);
+        assert(setToVec(set) == [0, 1, 1]);
         set = [0, 1, 2];
-        assert(setToVec(langSize, set) == [1, 1, 1]);
+        assert(setToVec(set) == [1, 1, 1]);
 
         langSize = 5;
         set = [0];
-        assert(setToVec(langSize, set) == [1, 0, 0, 0, 0]);
+        assert(setToVec(set) == [1, 0, 0, 0, 0]);
         set = [0, 1, 2, 3, 4];
-        assert(setToVec(langSize, set) == [1, 1, 1, 1, 1]);
+        assert(setToVec(set) == [1, 1, 1, 1, 1]);
         set = [0, 2, 4];
-        assert(setToVec(langSize, set) == [1, 0, 1, 0, 1]);
+        assert(setToVec(set) == [1, 0, 1, 0, 1]);
 
         writeln("\t\tPASSED.");
     }
@@ -60,11 +63,9 @@ public class DempsterShafer
      * Generate the binary vector based on its index in the powerset,
      * and then return the vector.
      */
-    static auto indexToVec(
-        const int langSize,
-        const int index) pure
+    static auto indexToVec(const int index)
     {
-        int[] binaryVector = new int[langSize];
+        binaryVector[] = 0;
         int correctedIndex = index + 1;
 
         foreach (ref element; binaryVector)
@@ -73,7 +74,7 @@ public class DempsterShafer
             correctedIndex /= 2;
         }
 
-        return binaryVector;
+        return binaryVector.dup;
     }
 
     unittest
@@ -105,9 +106,7 @@ public class DempsterShafer
      * Generate the set based on its index, first calling indexToVec
      * and then returning the set.
      */
-    static auto createSet(
-        const int langSize,
-        const int index) pure
+    static auto createSet(const int index)
     {
         import std.algorithm.searching : count;
         import std.algorithm.sorting : sort;
@@ -116,9 +115,9 @@ public class DempsterShafer
 
         import std.stdio : writeln;
 
-        auto vector = indexToVec(langSize, index);
+        auto vector = indexToVec(index);
 
-        auto set = new int[vector.count(1)];
+        auto set = staticSet[0 .. vector.count(1)];
         auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
@@ -127,7 +126,7 @@ public class DempsterShafer
                 set[fillIndex++] = i.to!int;
             }
         }
-        return set.sort.array;
+        return set.dup.sort.array;
     }
 
     unittest
@@ -172,7 +171,7 @@ public class DempsterShafer
      * Generate the set based on its binary vector, and then return
      * the set.
      */
-    static auto createSet(const int[] vector) pure
+    static auto createSet(const int[] vector)
     {
         import std.conv : to;
 
@@ -212,12 +211,10 @@ public class DempsterShafer
     /**
      * Calculate the index of the set in the powerset.
      */
-    static auto setToIndex(
-        const int langSize,
-        const int[] set) pure
+    static auto setToIndex(const int[] set)
     {
 
-        auto vector = setToVec(langSize, set);
+        auto vector = setToVec(set);
 
         int index;
         foreach (i, ref value; vector)
@@ -231,9 +228,8 @@ public class DempsterShafer
     /**
      * Calculate the index of the vector in the powerset.
      */
-    static auto vecToIndex(const int[] vector) pure
+    static auto vecToIndex(const int[] vector)
     {
-
         int index;
         foreach (i, ref value; vector)
         {
@@ -271,7 +267,7 @@ public class DempsterShafer
     static auto distance(
         const int langSize,
         const double[int] beliefs1,
-        const double[int] beliefs2) pure
+        const double[int] beliefs2)
     {
         import std.math : sqrt;
 
@@ -293,7 +289,7 @@ public class DempsterShafer
      */
     static auto entropy(
         const int langSize,
-        const double[int] beliefs) pure
+        const double[int] beliefs)
     {
         import std.math : approxEqual, log2;
 
@@ -304,7 +300,7 @@ public class DempsterShafer
             if (approxEqual(belief, 0.0))
                 continue;
             entropy -= belief * log2(
-                belief/((2^^createSet(langSize, index).length)-1)
+                belief/((2^^createSet(index).length)-1)
             );
         }
 
@@ -315,9 +311,8 @@ public class DempsterShafer
      * Inconsistency measure between two beliefs.
      */
     static auto inconsistency(
-        const int langSize,
         const double[int] beliefs1,
-        const double[int] beliefs2) pure
+        const double[int] beliefs2)
     {
         import std.algorithm : find, setIntersection, sort, sum, uniq;
         import std.math : approxEqual;
@@ -335,8 +330,8 @@ public class DempsterShafer
                 if (approxEqual(bel2, 0.0))
                     continue;
 
-                auto set1 = createSet(langSize, i);
-                auto set2 = createSet(langSize, j);
+                auto set1 = createSet(i);
+                auto set2 = createSet(j);
                 auto intersection = setIntersection(set1, set2);
                 if (intersection.empty)
                 {
@@ -354,7 +349,7 @@ public class DempsterShafer
      * Generates the power set (frame of discernment) from the number of
      * propositional variables given as l.
      */
-    static auto generatePowerset(const int langSize) pure
+    static auto generatePowerset(const int langSize)
     {
         import std.algorithm.sorting : sort;
 
@@ -412,7 +407,7 @@ public class DempsterShafer
      * you can calculate these later on without having to generate
      * the vectors every time in order to retrieve the indices.
      */
-    static auto belAndPlIndices(const int langSize, const int choice) pure
+    static auto belAndPlIndices(const int langSize, const int choice)
     {
         import std.algorithm.iteration : sum;
 
@@ -462,7 +457,7 @@ public class DempsterShafer
     static auto probMassEvidence(
         const double[] qualities,
         const double[int] beliefs,
-        ref from!"std.random".Random rand) pure
+        ref from!"std.random".Random rand)
     {
         import std.conv : to;
         import std.random : uniform01;
@@ -542,7 +537,7 @@ public class DempsterShafer
      */
     static auto randMassEvidence(
         const double[] qualities,
-        ref from!"std.random".Random rand) pure
+        ref from!"std.random".Random rand)
     {
         import std.conv : to;
         import std.random : uniform;
@@ -599,7 +594,7 @@ public class DempsterShafer
     static auto negMassEvidence(
         const double[] qualities,
         const double alpha,
-        ref from!"std.random".Random rand) pure
+        ref from!"std.random".Random rand)
     {
         import std.algorithm.iteration : filter;
         import std.conv : to;
@@ -623,7 +618,7 @@ public class DempsterShafer
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
                                     .filter!(a => a != choice)
                                     .array;
-        int index = setToIndex(qualities.length.to!int, evidenceSet);
+        int index = setToIndex(evidenceSet);
 
         assert(index != int.init);
 
@@ -760,7 +755,7 @@ public class DempsterShafer
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
                                     .filter!(a => a != choice)
                                     .array;
-        int index = setToIndex(qualities.length.to!int, evidenceSet);
+        int index = setToIndex(evidenceSet);
 
         assert(index != int.init);
 
@@ -785,14 +780,14 @@ public class DempsterShafer
      */
     static auto pignisticDist(
         const int langSize,
-        const double[int] beliefs) pure
+        const double[int] beliefs)
     {
         auto pignistic = new double[](langSize);
         pignistic[] = 0;
 
         foreach (ref key, ref value; beliefs)
         {
-            auto set = createSet(langSize, key);
+            auto set = createSet(key);
             foreach (ref choice; set)
             {
                 pignistic[choice] += value/set.length;
@@ -836,17 +831,18 @@ public class DempsterShafer
      */
     static auto setSimilarity(
         const int[] set1,
-        const int[] set2,
-        const double threshold)
+        const int[] set2)
     {
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;
         import std.range.primitives : walkLength;
 
+        import std.stdio : writeln;
+
         immutable auto setIntersec = setIntersection(set1, set2).walkLength;
         immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
 
-        return (setIntersec.to!double / setUnion.to!double) > threshold;
+        return setIntersec.to!double / setUnion.to!double;
     }
 
     unittest
@@ -858,14 +854,14 @@ public class DempsterShafer
         auto set1 = [0, 1, 3, 5];
         auto set2 = [1, 2, 4, 5];
         auto threshold = 0.4;
-        assert(!setSimilarity(set1, set2, threshold));
+        assert(!setSimilarity(set1, set2) > threshold);
         threshold = 0.3;
-        assert(setSimilarity(set1, set2, threshold));
+        assert(setSimilarity(set1, set2) > threshold);
 
         set1 = [0, 1, 2, 3, 4, 5];
         set2 = [0, 1, 2, 3, 4, 5];
         threshold = 1.0;
-        assert(!setSimilarity(set1, set2, threshold));
+        assert(!setSimilarity(set1, set2) > threshold);
 
         writeln("\t\tPASSED.");
     }
