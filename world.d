@@ -128,7 +128,7 @@ void main(string[] args)
     if (evidenceOnly)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
     if (consensusOnly)
-        writeln("!!! CONSENSUS-ONLY VERSION: FOR CHECKING ONLY !!!");
+        writeln("!!! CONSENSUS-ONLY VERSION: FOR TESTING PURPOSES ONLY !!!");
     version (sanityCheck)
         writeln("!!! SANITY CHECK MODE !!!");
 
@@ -541,7 +541,7 @@ void main(string[] args)
                         restrictedPopulation[index] = index;
                 }
 
-                static if (consensusOnly)
+                static if (!consensusOnly)
                 {
                     foreach (i; restrictedPopulation)
                     {
