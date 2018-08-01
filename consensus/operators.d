@@ -31,6 +31,8 @@ public final class Operators
         import std.stdio : writeln;
 
         double[int] beliefs;
+        int[] currentSet;
+        currentSet.reserve(langSize);
 
         // writeln("------------------");
         // writeln("Original beliefs:");
@@ -47,16 +49,16 @@ public final class Operators
                 if (approxEqual(bel2, 0.0, precision))
                     continue;
 
-                int[] currentSet;
+                currentSet.length = 0;
                 auto set1 = DempsterShafer.createSet(i);
                 auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
-                auto similarity = DempsterShafer.setSimilarity(set1, set2);
+                // auto similarity = DempsterShafer.setSimilarity(set1, set2);
 
                 // writeln(set1, " + ", set2, " : ", similarity, " > ", threshold, " ?");
 
                 // Only threshold the operator if affectOperator == true
-                if ((affectOperator && similarity <= threshold) || intersection.empty)
+                if ((affectOperator && DempsterShafer.setSimilarity(set1, set2) <= threshold) || intersection.empty)
                 {
                     // If the agents are not sufficiently similar, according to
                     // the threshold gamma, or if the intersection is the empty set,

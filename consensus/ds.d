@@ -19,6 +19,8 @@ public class DempsterShafer
     static int[] staticSet;
     static double[] staticPignistic;
 
+    static int[] staticUnion;
+
     /**
      * Generate the binary vector based on the set provided,
      * and the language size.
@@ -832,6 +834,7 @@ public class DempsterShafer
         const int[] set1,
         const int[] set2)
     {
+        import std.algorithm.searching : canFind;
         import std.algorithm.setops : multiwayUnion, setIntersection;
         import std.conv : to;
         import std.range.primitives : walkLength;
@@ -839,7 +842,14 @@ public class DempsterShafer
         import std.stdio : writeln;
 
         immutable auto setIntersec = setIntersection(set1, set2).walkLength;
-        immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
+        // immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
+        staticUnion = set1.dup;
+        foreach (element; set2)
+        {
+            if (!staticUnion.canFind(element)) staticUnion ~= element;
+        }
+        immutable auto setUnion = staticUnion.length;
+
 
         return setIntersec.to!double / setUnion.to!double;
     }
