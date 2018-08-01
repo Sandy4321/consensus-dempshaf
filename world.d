@@ -133,8 +133,9 @@ void main(string[] args)
         writeln("!!! SANITY CHECK MODE !!!");
 
     // Set static array in Dempster-Shafer module using langSize
-    DempsterShafer.binaryVector = new int[langSize];
-    DempsterShafer.staticSet    = new int[langSize];
+    DempsterShafer.staticVector     = new int[langSize];
+    DempsterShafer.staticSet        = new int[langSize];
+    DempsterShafer.staticPignistic  = new double[langSize];
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
@@ -341,6 +342,11 @@ void main(string[] args)
             // double inconsist,
             double entropy, cardinality;
             bool append, reachedSteadyState;
+
+            auto restrictedPopulation = new ulong[numOfAgents];
+            foreach (index; 0 .. numOfAgents)
+                restrictedPopulation[index] = index;
+
             foreach (iter; 0 .. iterations + 1)
             {
                 /*
@@ -519,10 +525,9 @@ void main(string[] args)
                 * assumed to be received when the agent assesses its choice
                 * e.g. when a honeybee visits a site.
                 */
-                ulong[] restrictedPopulation;
-                restrictedPopulation.reserve(numOfAgents);
                 version (sanityCheck)
                 {
+                    restrictedPopulation.length = 0;
                     foreach (i, ref agent; population)
                     {
                         auto beliefs = agent.beliefs;
@@ -537,12 +542,6 @@ void main(string[] args)
                         }
                         if (!skip) restrictedPopulation ~= i;
                     }
-                }
-                else
-                {
-                    restrictedPopulation = new ulong[numOfAgents];
-                    foreach (index; 0 .. numOfAgents)
-                        restrictedPopulation[index] = index;
                 }
 
                 static if (!consensusOnly)

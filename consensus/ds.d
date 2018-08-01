@@ -15,8 +15,9 @@ public class DempsterShafer
     /**
       * Binary vector placeholder used in conversion functions.
       */
-    static int[] binaryVector;
+    static int[] staticVector;
     static int[] staticSet;
+    static double[] staticPignistic;
 
     /**
      * Generate the binary vector based on the set provided,
@@ -24,14 +25,14 @@ public class DempsterShafer
      */
     static auto setToVec(const int[] set)
     {
-        binaryVector[] = 0;
+        staticVector[] = 0;
 
         foreach (ref element; set)
         {
-            binaryVector[element] = 1;
+            staticVector[element] = 1;
         }
 
-        return binaryVector.dup;
+        return staticVector.dup;
     }
 
     unittest
@@ -65,16 +66,16 @@ public class DempsterShafer
      */
     static auto indexToVec(const int index)
     {
-        binaryVector[] = 0;
+        staticVector[] = 0;
         int correctedIndex = index + 1;
 
-        foreach (ref element; binaryVector)
+        foreach (ref element; staticVector)
         {
             element = (correctedIndex % 2 == 0) ? 0 : 1;
             correctedIndex /= 2;
         }
 
-        return binaryVector.dup;
+        return staticVector.dup;
     }
 
     unittest
@@ -271,8 +272,8 @@ public class DempsterShafer
     {
         import std.math : sqrt;
 
-        auto pignisticBel1 = pignisticDist(langSize, beliefs1);
-        auto pignisticBel2 = pignisticDist(langSize, beliefs2);
+        auto pignisticBel1 = pignisticDist(beliefs1);
+        auto pignisticBel2 = pignisticDist(beliefs2);
 
         double distance = 0.0;
         double sum = 0.0;
@@ -462,8 +463,7 @@ public class DempsterShafer
         import std.conv : to;
         import std.random : uniform01;
 
-        auto langSize = qualities.length.to!int;
-        auto pignisticBel = pignisticDist(langSize, beliefs);
+        auto pignisticBel = pignisticDist(beliefs);
         immutable auto prob = uniform01(rand);
         auto sum = 0.0;
         int choice;
@@ -477,14 +477,14 @@ public class DempsterShafer
             }
         }
 
-        auto vector = new int[langSize];
-        vector[choice] = 1;
-        auto index = vecToIndex(vector);
+        staticVector[] = 0;
+        staticVector[choice] = 1;
+        auto index = vecToIndex(staticVector);
 
         double[int] massFunction;
         massFunction[index] = qualities[choice];
         if (qualities[choice] != 1.0)
-            massFunction[(2^^langSize)-2] = 1.0 - qualities[choice];
+            massFunction[(2^^qualities.length.to!int)-2] = 1.0 - qualities[choice];
 
         return massFunction;
     }
@@ -689,7 +689,7 @@ public class DempsterShafer
         import std.range : array, iota;
         import std.stdio : writeln;
 
-        auto pignisticBel = pignisticDist(qualities.length.to!int, beliefs);
+        auto pignisticBel = pignisticDist(beliefs);
 
         // If the agent's mass function assigns mass to more than one choice
         int choice;
@@ -778,23 +778,20 @@ public class DempsterShafer
      * Generates the pignistic (uniform) probability distribution from an
      * agent's mass function.
      */
-    static auto pignisticDist(
-        const int langSize,
-        const double[int] beliefs)
+    static auto pignisticDist(const double[int] beliefs)
     {
-        auto pignistic = new double[](langSize);
-        pignistic[] = 0;
+        staticPignistic[] = 0;
 
         foreach (ref key, ref value; beliefs)
         {
             auto set = createSet(key);
             foreach (ref choice; set)
             {
-                pignistic[choice] += value/set.length;
+                staticPignistic[choice] += value/set.length;
             }
         }
 
-        return pignistic;
+        return staticPignistic;
     }
 
     unittest
@@ -804,20 +801,22 @@ public class DempsterShafer
 
         writeln("Unit tests:\tpignisticDist");
 
-        auto langSize = 2;
+        DempsterShafer.staticVector     = new int[langSize];
+        DempsterShafer.staticSet        = new int[langSize];
+        DempsterShafer.staticPignistic  = new double[langSize];
 
         double[int] probDist;
         probDist[0] = 0.2;
         probDist[1] = 0.2;
         probDist[2] = 0.6;
-        auto uniformDist = pignisticDist(langSize, probDist);
+        auto uniformDist = pignisticDist(probDist);
         assert(approxEqual(uniformDist[0], 0.5, precision));
         assert(approxEqual(uniformDist[1], 0.5, precision));
 
         probDist[0] = 0.2;
         probDist[1] = 0.1;
         probDist[2] = 0.7;
-        uniformDist = pignisticDist(langSize, probDist);
+        uniformDist = pignisticDist(probDist);
         assert(approxEqual(uniformDist, [0.55,0.45], precision));
         assert(approxEqual(uniformDist, [0.55,0.45], precision));
 

@@ -12,6 +12,10 @@ public final class Agent
         int mInteractions;
         int mTimeSinceChange;
         double[2] mBelPl;
+
+        // Temp variables
+        double[int] tempBeliefs;
+        string tempProp;
     }
 
     /**
@@ -24,8 +28,9 @@ public final class Agent
         import std.math : approxEqual;
         import std.string : format;
 
-        double[int] tempBeliefs;
-        string tempProp;
+        // double[int] tempBeliefs;
+        tempBeliefs.clear;
+        // string tempProp;
         foreach (index, ref prop; beliefs)
         {
             if (prop >= 1.0)
@@ -54,7 +59,7 @@ public final class Agent
         }
         else this.mTimeSinceChange = 0;
 
-        this.mBeliefs = tempBeliefs;
+        this.mBeliefs = tempBeliefs.dup;
         if (increment) this.incrementInteractions;
 
         this.belAndPl;
