@@ -24,4 +24,4 @@ callgrind_out
 callgrind_out.demangled
 
 # Memory profiling
-profilegc.log
+*.log
