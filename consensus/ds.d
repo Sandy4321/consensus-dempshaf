@@ -19,8 +19,6 @@ public class DempsterShafer
     static int[] staticSet;
     static double[] staticPignistic;
 
-    static int[] staticUnion;
-
     /**
      * Generate the binary vector based on the set provided,
      * and the language size.
@@ -111,7 +109,7 @@ public class DempsterShafer
      */
     static auto createSet(const int index)
     {
-        import std.algorithm.searching : count;
+        import std.algorithm.iteration : sum;
         import std.algorithm.sorting : sort;
         import std.conv : to;
         import std.range : array;
@@ -119,8 +117,8 @@ public class DempsterShafer
         import std.stdio : writeln;
 
         auto vector = indexToVec(index);
-
-        auto set = staticSet[0 .. vector.count(1)];
+        auto set = staticSet[0 .. vector.sum];
+        set[] = 0;
         auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
@@ -129,7 +127,7 @@ public class DempsterShafer
                 set[fillIndex++] = i.to!int;
             }
         }
-        return set.dup.sort.array;
+        return set.dup;
     }
 
     unittest
@@ -176,18 +174,21 @@ public class DempsterShafer
      */
     static auto createSet(const int[] vector)
     {
+        import std.algorithm.iteration : sum;
         import std.conv : to;
 
-        int[] set;
+        auto set = staticSet[0 .. vector.sum];
+        set[] = 0;
+        auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
             if (value == 1)
             {
-                set ~= i.to!int;
+                set[fillIndex++] = i.to!int;
             }
         }
 
-        return set;
+        return set.dup;
     }
 
     unittest
@@ -290,9 +291,7 @@ public class DempsterShafer
     /**
      * Calculates the Deng entropy of an agent's mass function: a measure of uncertainty.
      */
-    static auto entropy(
-        const int langSize,
-        const double[int] beliefs)
+    static auto entropy(const double[int] beliefs)
     {
         import std.math : approxEqual, log2;
 
@@ -350,7 +349,7 @@ public class DempsterShafer
 
     /**
      * Generates the power set (frame of discernment) from the number of
-     * propositional variables given as l.
+     * propositional variables given as langSize.
      */
     static auto generatePowerset(const int langSize)
     {
@@ -793,7 +792,7 @@ public class DempsterShafer
             }
         }
 
-        return staticPignistic;
+        return staticPignistic.dup;
     }
 
     unittest
@@ -834,8 +833,11 @@ public class DempsterShafer
         const int[] set1,
         const int[] set2)
     {
+        import std.algorithm.iteration : uniq;
         import std.algorithm.searching : canFind;
+        import std.algorithm.sorting : sort;
         import std.algorithm.setops : multiwayUnion, setIntersection;
+        import std.array : array;
         import std.conv : to;
         import std.range.primitives : walkLength;
 
@@ -843,13 +845,7 @@ public class DempsterShafer
 
         immutable auto setIntersec = setIntersection(set1, set2).walkLength;
         // immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
-        staticUnion = set1.dup;
-        foreach (element; set2)
-        {
-            if (!staticUnion.canFind(element)) staticUnion ~= element;
-        }
-        immutable auto setUnion = staticUnion.length;
-
+        immutable auto setUnion = (set1 ~ set2).dup.sort.uniq.array.length;
 
         return setIntersec.to!double / setUnion.to!double;
     }

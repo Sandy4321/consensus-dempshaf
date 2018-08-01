@@ -22,7 +22,7 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;
+    immutable auto gamma = true;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -40,7 +40,7 @@ void main(string[] args)
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = false;
+    immutable auto consensusOnly = true;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -139,15 +139,6 @@ void main(string[] args)
 
     // Prepare arrays for storing all results collected during simulation
     immutable int arraySize = iterStep + 1;
-    // auto inconsistResults   = new string[][](arraySize, testSet);
-    auto entropyResults     = new string[][](arraySize, testSet);
-    auto uniqueResults      = new string[][](arraySize, testSet);
-    auto choiceResults      = new string[][](arraySize, testSet);
-    auto powersetResults    = new string[][](arraySize, testSet);
-    auto belPlResults       = new string[][](arraySize, testSet);
-    auto cardMassResults    = new string[][](arraySize, testSet);
-
-    auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
 
     // Initialize the population of agents according to population size l
     auto population = new Agent[numOfAgents];
@@ -275,6 +266,15 @@ void main(string[] args)
 
         auto seed = setSeed ? 128 : unpredictableSeed;
         auto rand = Random(seed);
+
+        // auto inconsistResults   = new string[][](arraySize, testSet);
+        auto entropyResults     = new string[][](arraySize, testSet);
+        auto uniqueResults      = new string[][](arraySize, testSet);
+        auto choiceResults      = new string[][](arraySize, testSet);
+        auto powersetResults    = new string[][](arraySize, testSet);
+        auto belPlResults       = new string[][](arraySize, testSet);
+        auto cardMassResults    = new string[][](arraySize, testSet);
+        auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
 
         /*
         * Main test loop;
@@ -410,7 +410,7 @@ void main(string[] args)
                         }
 
                         // Calculate average entropy of agents' beliefs
-                        entropy += DempsterShafer.entropy(belLength, beliefs);
+                        entropy += DempsterShafer.entropy(beliefs);
 
                         foreach (index; belIndices)
                         {

@@ -34,10 +34,6 @@ public final class Operators
         int[] currentSet;
         currentSet.reserve(langSize);
 
-        // writeln("------------------");
-        // writeln("Original beliefs:");
-        // writeln(beliefs1, "\n", beliefs2);
-
         foreach (i, ref bel1; beliefs1)
         {
             // If the mass is 0, skip this set.
@@ -53,27 +49,20 @@ public final class Operators
                 auto set1 = DempsterShafer.createSet(i);
                 auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
-                // auto similarity = DempsterShafer.setSimilarity(set1, set2);
-
-                // writeln(set1, " + ", set2, " : ", similarity, " > ", threshold, " ?");
 
                 // Only threshold the operator if affectOperator == true
-                if ((affectOperator && DempsterShafer.setSimilarity(set1, set2) <= threshold) || intersection.empty)
+                if (intersection.empty || (affectOperator && DempsterShafer.setSimilarity(set1, set2) <= threshold))
                 {
                     // If the agents are not sufficiently similar, according to
                     // the threshold gamma, or if the intersection is the empty set,
                     // then take the union.
                     currentSet = (set1 ~ set2).dup.sort.uniq.array;
-                    // writeln("COMBINATION <= THRESHOLD : FAIL : UNION");
                 }
                 else
                 {
                     // If the intersection is not empty, recreate the intersection set.
-                    foreach (elem; intersection)
-                        currentSet ~= elem;
-                    // writeln("COMBINATION > THRESHOLD : PASS : INTERSECTION");
+                    currentSet = intersection.array;
                 }
-
                 beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
             }
         }
@@ -97,8 +86,6 @@ public final class Operators
             }
         }
 
-        // writeln("Final beliefs: ", beliefs);
-
         return beliefs;
     }
 
@@ -115,9 +102,12 @@ public final class Operators
     {
         import std.algorithm : setIntersection, sort, sum;
         import std.math : approxEqual, isInfinity, isNaN;
+        import std.range : array;
 
         double[int] beliefs;
         auto emptySet = 0.0;
+        int[] currentSet;
+        currentSet.reserve(langSize);
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -144,8 +134,7 @@ public final class Operators
                 else
                 {
                     // If the intersection is not empty, recreate the intersection set.
-                    foreach (elem; intersection)
-                        currentSet ~= elem;
+                    currentSet = intersection.array;
                 }
 
                 beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
