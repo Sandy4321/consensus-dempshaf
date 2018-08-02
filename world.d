@@ -18,11 +18,11 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 10_000;
+    immutable auto iterations = 1_000;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;
+    immutable auto gamma = true;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -337,7 +337,7 @@ void main(string[] args)
             * but states are not discrete and separate.
             */
             int iterIndex;
-            double[int] choiceBeliefs;
+            auto choiceBeliefs = new double[langSize];
             auto powersetBeliefs = new double[belLength];
             double[int][] uniqueBeliefs;
             int[] uniqueBeliefsCount;
@@ -349,6 +349,7 @@ void main(string[] args)
             auto restrictedPopulation = new ulong[numOfAgents];
             foreach (index; 0 .. numOfAgents)
                 restrictedPopulation[index] = index;
+            version (asymmetric) auto snapshotPopulation = new Agent[numOfAgents];
 
             foreach (iter; 0 .. iterations + 1)
             {
@@ -370,10 +371,7 @@ void main(string[] args)
                  */
                 if (iter % (iterations / iterStep) == 0)
                 {
-                    foreach (index; belIndices)
-                    {
-                        choiceBeliefs[index] = 0.0;
-                    }
+                    choiceBeliefs[] = 0.0;
                     if (langSize < powersetLimit)
                         powersetBeliefs[] = 0.0;
 
@@ -415,13 +413,13 @@ void main(string[] args)
                         // Calculate average entropy of agents' beliefs
                         entropy += DempsterShafer.entropy(beliefs);
 
-                        foreach (index; belIndices)
+                        foreach (index, belIndex; belIndices)
                         {
-                            if (index in beliefs)
+                            if (belIndex in beliefs)
                             {
-                                choiceBeliefs[index] += beliefs[index];
-                                if (belPlIndices[0].canFind(index))
-                                    belPl[0] += beliefs[index];
+                                choiceBeliefs[index] += beliefs[belIndex];
+                                if (belPlIndices[0].canFind(belIndex))
+                                    belPl[0] += beliefs[belIndex];
                             }
                         }
                         if (langSize < powersetLimit)
@@ -442,39 +440,34 @@ void main(string[] args)
                     }
                     entropy /= numOfAgents;
                     // inconsist = (2 * inconsist) / (n * (n - 1));
-                    foreach (index; belIndices)
-                        choiceBeliefs[index] /= numOfAgents;
+                    choiceBeliefs[] /= numOfAgents;
                     belPl[] /= numOfAgents;
                     if (langSize < powersetLimit)
-                        foreach (index; 0 .. belLength)
-                            powersetBeliefs[index] /= numOfAgents;
+                        foreach (index; 0 .. belLength) powersetBeliefs[index] /= numOfAgents;
                     cardinality /= numOfAgents;
 
-                    // Format and tore the resulting simulation data into their
+                    // Format and store the resulting simulation data into their
                     // respective arrays.
 
                     // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
                     entropyResults[iterIndex][test] = format("%.4f", entropy);
                     uniqueResults[iterIndex][test] = format("%d", uniqueBeliefs.length);
-                    choiceResults[iterIndex][test] = "[";
-                    foreach (key; choiceBeliefs.keys.sort)
-                        choiceResults[iterIndex][test] ~= format("%.4f", choiceBeliefs[key]) ~ ",";
-                    choiceResults[iterIndex][test] = choiceResults[iterIndex][test][0 .. $ - 1]
+                    choiceResults[iterIndex][test] = "["
+                        ~ choiceBeliefs
+                          .map!(x => format("%.4f", x))
+                          .join(",")
                         ~ "]";
-                    powersetResults[iterIndex][test] = "[";
                     if (langSize < powersetLimit)
                     {
-                        foreach (index; 0 .. belLength)
-                            powersetResults[iterIndex][test] ~= format("%.4f", powersetBeliefs[index])
-                                ~ ",";
-                        powersetResults[iterIndex][test] = powersetResults[iterIndex][test][0
-                            .. $ - 1] ~ "]";
+                        powersetResults[iterIndex][test] = "["
+                            ~ std.range.iota(belLength)
+                            .map!(x => format("%.4f", powersetBeliefs[x]))
+                            .join(",")
+                            ~ "]";
                     }
-                    belPlResults[iterIndex][test] = "[";
-                    foreach (index; 0 .. belPl.length)
-                        belPlResults[iterIndex][test] ~= format("%.4f", belPl[index]) ~ ",";
-                    belPlResults[iterIndex][test] = belPlResults[iterIndex][test][0
-                            .. $ - 1] ~ "]";
+                    belPlResults[iterIndex][test] = "[" ~
+                        format("%.4f", belPl[0]) ~ "," ~
+                        format("%.4f", belPl[1]) ~ "]";
                     cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
                     iterIndex++;
@@ -484,7 +477,7 @@ void main(string[] args)
                  * If simulation has reached steady state and is at convenient
                  * cut-off point, then end this test.
                  */
-                if ((reachedSteadyState && iter % 100 == 0) || iter == iterations)
+                if ((reachedSteadyState && iter % 100 == 1) || iter == iterations)
                 {
                     /* writeln();
                     writeln(iter);
@@ -493,7 +486,7 @@ void main(string[] args)
                     writeln(population.minElement!"a.interactions".interactions);
                     writeln(population.maxElement!"a.interactions".interactions);
                     writeln("Average: ", population.map!"a.interactions".sum/numOfAgents.to!double); */
-                    if (reachedSteadyState && iter % 100 == 0)
+                    if (reachedSteadyState && iter % 100 == 1)
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
 
                     // Grab the steady state results.
@@ -503,20 +496,14 @@ void main(string[] args)
                         foreach (i, ref agent; population)
                         {
                             auto beliefs = agent.beliefs;
-                            steadyStateBeliefs[i][test] = "[";
-                            foreach (index; belIndices)
-                            {
-                                if (index in beliefs)
-                                {
-                                    steadyStateBeliefs[i][test] ~= format("%.4f", beliefs[index])
-                                        ~ ",";
-                                }
-                                else
-                                {
-                                    steadyStateBeliefs[i][test] ~= format("%.4f", 0.0) ~ ",";
-                                }
-                            }
-                            steadyStateBeliefs[i][test] = steadyStateBeliefs[i][test][0 .. $ - 1] ~ "]";
+                            steadyStateBeliefs[i][test] = "["
+                                ~ belIndices
+                                  .map!(
+                                    x => (x in beliefs) ?
+                                          format("%.4f", beliefs[x]) :
+                                          format("%.4f", 0.0))
+                                  .join(",")
+                                ~ "]";
                         }
                     }
                     break;
@@ -531,6 +518,7 @@ void main(string[] args)
                 version (sanityCheck)
                 {
                     restrictedPopulation.length = 0;
+                    restrictedPopulation.reserve(numOfAgents);
                     foreach (i, ref agent; population)
                     {
                         auto beliefs = agent.beliefs;
@@ -623,9 +611,8 @@ void main(string[] args)
                         }
                         else
                         {
-                            Agent[] snapshotPopulation;
-                            foreach (index; 0 .. population.length)
-                                snapshotPopulation ~= population[index].dup;
+                            foreach (index, ref snapshotAgent; snapshotPopulation)
+                                snapshotAgent = population[index].dup;
                             foreach (i; restrictedPopulation)
                             {
                                 do selection = restrictedPopulation.choice(rand).to!int;
@@ -654,10 +641,7 @@ void main(string[] args)
 
                                 // If newBeliefs is null, then the agents were completely
                                 // inconsistent anyway.
-                                if (newBeliefs !is null)
-                                {
-                                    agent.beliefs(newBeliefs, true);
-                            }
+                                if (newBeliefs !is null) agent.beliefs(newBeliefs, true);
                             }
                         }
                     }
@@ -791,7 +775,7 @@ private T[][] extendResults(T)(ref T[][] results, int maxIterations)
     //   iteration N : [test 0] [test 1] ... [test N] ]
     for (auto i = 0; i < maxIterations; i++)
         for (auto j = 0; j < results[i].length; j++)
-            if (results[i][j] == "") results[i][j] = results[i-1][j];
+            if (results[i][j] == "" && i-1 >= 0) results[i][j] = results[i-1][j];
 
     return results[0 .. maxIterations];
 }

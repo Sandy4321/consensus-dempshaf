@@ -12,6 +12,12 @@ public final class Operators
      */
     alias precision = DempsterShafer.precision;
     /**
+      * Set of static variables.
+      */
+    static int[] currentSet;
+
+
+    /**
      * Consensus operator for Dempster-Shafer mass functions.
      */
     static auto consensus(
@@ -22,7 +28,7 @@ public final class Operators
         const bool affectOperator,
         const double lambda)
     {
-        import std.algorithm : find, setIntersection, sort, sum, uniq;
+        import std.algorithm : canFind, setIntersection, sort, sum, uniq;
         import std.array : array;
         import std.math : approxEqual, isNaN;
 
@@ -31,8 +37,7 @@ public final class Operators
         import std.stdio : writeln;
 
         double[int] beliefs;
-        int[] currentSet;
-        currentSet.reserve(langSize);
+        if (currentSet == null) currentSet.reserve(langSize);
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -45,7 +50,6 @@ public final class Operators
                 if (approxEqual(bel2, 0.0, precision))
                     continue;
 
-                currentSet.length = 0;
                 auto set1 = DempsterShafer.createSet(i);
                 auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
@@ -56,7 +60,13 @@ public final class Operators
                     // If the agents are not sufficiently similar, according to
                     // the threshold gamma, or if the intersection is the empty set,
                     // then take the union.
-                    currentSet = (set1 ~ set2).dup.sort.uniq.array;
+                    // currentSet = (set1 ~ set2).dup.sort.uniq.array;
+                    currentSet = set1;
+                    foreach (elem; set2)
+                    {
+                        if (!set1.canFind(elem)) currentSet ~= elem;
+                    }
+                    currentSet.sort;
                 }
                 else
                 {
@@ -106,8 +116,7 @@ public final class Operators
 
         double[int] beliefs;
         auto emptySet = 0.0;
-        int[] currentSet;
-        currentSet.reserve(langSize);
+        if (currentSet == null) currentSet.reserve(langSize);
 
         foreach (i, ref bel1; beliefs1)
         {
@@ -120,7 +129,6 @@ public final class Operators
                 if (approxEqual(bel2, 0.0, this.precision))
                     continue;
 
-                int[] currentSet;
                 auto set1 = DempsterShafer.createSet(i);
                 auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
