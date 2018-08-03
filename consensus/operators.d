@@ -36,6 +36,13 @@ public final class Operators
 
         import std.stdio : writeln;
 
+        if (false)
+        {
+            writeln("-------------");
+
+            writeln("STARTING BELIEFS: ", beliefs1, ", ", beliefs2);
+        }
+
         double[int] beliefs;
         if (currentSet == null) currentSet.reserve(langSize);
 
@@ -54,8 +61,20 @@ public final class Operators
                 auto set2 = DempsterShafer.createSet(j);
                 auto intersection = setIntersection(set1, set2);
 
+                if (false) writeln(set1, " + ", set2, " = ", DempsterShafer.setSimilarity(set1, set2));
+
                 // Only threshold the operator if affectOperator == true
-                if (intersection.empty || (affectOperator && DempsterShafer.setSimilarity(set1, set2) <= threshold))
+                if (affectOperator && DempsterShafer.setSimilarity(set1, set2) <= threshold)
+                {
+                    currentSet = set1;
+                    foreach (elem; set2)
+                    {
+                        if (!set1.canFind(elem)) currentSet ~= elem;
+                    }
+                    currentSet.sort;
+                    if (false) writeln("LESS THAN THRESHOLD: UNION : ", currentSet);
+                }
+                else if (intersection.empty)
                 {
                     // If the agents are not sufficiently similar, according to
                     // the threshold gamma, or if the intersection is the empty set,
@@ -67,11 +86,13 @@ public final class Operators
                         if (!set1.canFind(elem)) currentSet ~= elem;
                     }
                     currentSet.sort;
+                    if (false) writeln("LESS THAN THRESHOLD: UNION : ", currentSet);
                 }
                 else
                 {
                     // If the intersection is not empty, recreate the intersection set.
                     currentSet = intersection.array;
+                    if (false) writeln("SHOULD NOT BE INTERSECTING: INTERSEC : ", currentSet);
                 }
                 beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
             }
@@ -95,6 +116,8 @@ public final class Operators
                 beliefs[index] /= renormaliser;
             }
         }
+
+        if (false) writeln("FINAL BELIEF: ", beliefs);
 
         return beliefs;
     }

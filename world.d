@@ -18,7 +18,7 @@ void main(string[] args)
      * Initialise consistent variables first, then sort through those passed
      * via command-line arguments.
      */
-    immutable auto iterations = 1_000;
+    immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
@@ -303,28 +303,7 @@ void main(string[] args)
                 {
                     // foreach (index; iota(belLength)
                     //                 .randomSample(iota(1, belLength).choice))
-                    foreach (index; std.range.iota(belLength)
-                                    .randomSample(
-                                        std.range.iota(1, belLength)
-                                        .choice(rand), rand))
-                    {
-                        beliefs[index] = uniform01(rand);
-                        sum += beliefs[index];
-                    }
-
-                    assert(beliefs.length != 0);
-
-                    if (beliefs.length == 1)
-                    {
-                        beliefs[beliefs.keys[0]] = 1.0;
-                    }
-                    else
-                    {
-                        foreach (ref index; beliefs.byKey)
-                        {
-                            beliefs[index] /= sum;
-                        }
-                    }
+                    beliefs[std.range.iota(belLength).choice] = 1.0;
                 }
                 else beliefs[belLength - 1] = 1.0;
 
