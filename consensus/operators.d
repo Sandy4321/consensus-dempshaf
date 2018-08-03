@@ -4,6 +4,7 @@ import dempshaf.consensus.ds;
 
 /**
  * The Operators class provides operators for dealing with agents' beliefs.
+ * These are specific to Dempster-Shafer mass functions.
  */
 public final class Operators
 {

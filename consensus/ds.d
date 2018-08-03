@@ -4,7 +4,7 @@ import dempshaf.misc.importidiom;
 
 /**
  * DempsterShafer is a class for containing all of the calculation functions
- * specific to the DempsterShafer model of beliefs.
+ * specific to the Dempster-Shafer framework of beliefs.
  */
 public class DempsterShafer
 {
