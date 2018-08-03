@@ -6,15 +6,14 @@ module dempshaf.ai.agent;
  */
 public final class Agent
 {
+    import std.array : appender;
+
     private
     {
         double[int] mBeliefs;
         int mInteractions;
         int mTimeSinceChange;
-        double[2] mBelPl;
-
         // Temp variables
-        double[int] tempBeliefs;
         string tempProp;
     }
 
@@ -23,19 +22,15 @@ public final class Agent
      */
     void beliefs(double[int] beliefs, bool increment = false)
     {
-        import std.algorithm : equal, map, sort;
         import std.conv : to;
         import std.math : approxEqual;
         import std.string : format;
 
-        // double[int] tempBeliefs;
-        tempBeliefs.clear;
-        // string tempProp;
-        foreach (index, ref prop; beliefs)
+        foreach (int index, ref prop; beliefs)
         {
             if (prop >= 1.0)
             {
-                tempBeliefs[index] = 1.0;
+                prop = 1.0;
             }
             else if (prop == 0.0)
             {
@@ -44,25 +39,25 @@ public final class Agent
             else
             {
                 tempProp = format("%.5f", prop);
-                tempBeliefs[index] = to!double(tempProp);
+                prop = to!double(tempProp);
             }
         }
 
-        if (tempBeliefs.keys.sort.equal(this.mBeliefs.keys.sort) &&
-            tempBeliefs.keys.sort.map!(x => tempBeliefs[x])
-                .equal!approxEqual(
-                    this.mBeliefs.keys.sort.map!(
-                        x => this.mBeliefs[x]
-            )))
+        if (beliefs.length == this.mBeliefs.length)
         {
-            this.mTimeSinceChange++;
+            foreach (index; beliefs.byKey)
+            {
+                if (index in this.mBeliefs &&
+                    beliefs[index].approxEqual(this.mBeliefs[index]))
+                {
+                    this.mTimeSinceChange++;
+                }
+                else this.mTimeSinceChange = 0;
+            }
         }
-        else this.mTimeSinceChange = 0;
 
-        this.mBeliefs = tempBeliefs.dup;
+        this.mBeliefs = beliefs.dup;
         if (increment) this.incrementInteractions;
-
-        this.belAndPl;
     }
 
     /**
@@ -71,23 +66,6 @@ public final class Agent
     auto beliefs() pure
     {
         return this.mBeliefs;
-    }
-
-    /**
-     * Calculate the Bel and Pl of each singleton from an agent's
-     * mass function.
-     */
-    void belAndPl(double[int] beliefs) pure
-    {
-        double[2] belPl;
-    }
-
-    /**
-     * Return the Bel and Pl of each singleton.
-     */
-    auto belAndPl() pure
-    {
-        return this.mBelPl;
     }
 
     /**

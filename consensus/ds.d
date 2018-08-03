@@ -13,7 +13,7 @@ public class DempsterShafer
      */
     static immutable auto precision = 1e-4;
     /**
-      * Binary vector placeholder used in conversion functions.
+      * Set of static variables.
       */
     static int[] staticVector;
     static int[] staticSet;
@@ -117,17 +117,16 @@ public class DempsterShafer
         import std.stdio : writeln;
 
         auto vector = indexToVec(index);
-        auto set = staticSet[0 .. vector.sum];
-        set[] = 0;
+        staticSet[] = 0;
         auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
             if (value == 1)
             {
-                set[fillIndex++] = i.to!int;
+                staticSet[fillIndex++] = i.to!int;
             }
         }
-        return set.dup;
+        return staticSet[0 .. vector.sum].dup;
     }
 
     unittest
@@ -177,18 +176,17 @@ public class DempsterShafer
         import std.algorithm.iteration : sum;
         import std.conv : to;
 
-        auto set = staticSet[0 .. vector.sum];
-        set[] = 0;
+        staticSet[] = 0;
         auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
             if (value == 1)
             {
-                set[fillIndex++] = i.to!int;
+                staticSet[fillIndex++] = i.to!int;
             }
         }
 
-        return set.dup;
+        return staticSet[0 .. vector.sum].dup;
     }
 
     unittest

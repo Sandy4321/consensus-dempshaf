@@ -30,3 +30,7 @@ dmd -g -I../ world.d ai/agent.d consensus/ds.d consensus/operators.d misc/import
 valgrind --tool=callgrind --dump-instr=yes --collect-jumps=yes --callgrind-out-file=callgrind_out ./world [...]
 
 rdmd -I../ misc/dcallgrind.d callgrind_out
+
+#### Profiling GC
+
+rdmd -profile=gc -I../ ...
