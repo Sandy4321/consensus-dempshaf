@@ -20,9 +20,9 @@ void main(string[] args)
      */
     immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 100;
+    immutable auto testSet = 20;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;
+    immutable auto gamma = true;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -40,7 +40,7 @@ void main(string[] args)
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = false;
+    immutable auto consensusOnly = true;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -250,7 +250,6 @@ void main(string[] args)
         immutable auto changeThreshold = 50; // numOfAgents / 2
                   auto maxIterations = 0;
 
-
     writeln("----------");
 
     /*
@@ -298,12 +297,9 @@ void main(string[] args)
                 double[int] beliefs;
                 // If no evidential updating is taking place, then randomly
                 // initialise the agents' beliefs.
-                auto sum = 0.0;
                 static if (consensusOnly)
                 {
-                    // foreach (index; iota(belLength)
-                    //                 .randomSample(iota(1, belLength).choice))
-                    beliefs[std.range.iota(belLength).choice] = 1.0;
+                    beliefs[std.range.iota(belLength).choice(rand)] = 1.0;
                 }
                 else beliefs[belLength - 1] = 1.0;
 

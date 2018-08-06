@@ -831,19 +831,12 @@ public class DempsterShafer
         const int[] set1,
         const int[] set2)
     {
-        import std.algorithm.iteration : uniq;
-        import std.algorithm.searching : canFind;
-        import std.algorithm.sorting : sort;
         import std.algorithm.setops : multiwayUnion, setIntersection;
-        import std.array : array;
         import std.conv : to;
         import std.range.primitives : walkLength;
 
-        import std.stdio : writeln;
-
         immutable auto setIntersec = setIntersection(set1, set2).walkLength;
-        // immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
-        immutable auto setUnion = (set1 ~ set2).dup.sort.uniq.array.length;
+        immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
 
         return setIntersec.to!double / setUnion.to!double;
     }

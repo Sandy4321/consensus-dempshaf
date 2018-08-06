@@ -16,6 +16,7 @@ public final class Operators
       * Set of static variables.
       */
     static int[] currentSet;
+    static int[] setUnion;
 
 
     /**
@@ -29,20 +30,13 @@ public final class Operators
         const bool affectOperator,
         const double lambda)
     {
-        import std.algorithm : canFind, setIntersection, sort, sum, uniq;
+        import std.algorithm : copy, multiwayUnion, setIntersection, sort, sum, uniq;
         import std.array : array;
-        import std.math : approxEqual, isNaN;
-
-        import dempshaf.consensus.ds;
+        import std.conv : to;
+        import std.math : approxEqual;
+        import std.range.primitives : walkLength;
 
         import std.stdio : writeln;
-
-        if (false)
-        {
-            writeln("-------------");
-
-            writeln("STARTING BELIEFS: ", beliefs1, ", ", beliefs2);
-        }
 
         double[int] beliefs;
         if (currentSet == null) currentSet.reserve(langSize);
@@ -60,40 +54,32 @@ public final class Operators
 
                 auto set1 = DempsterShafer.createSet(i);
                 auto set2 = DempsterShafer.createSet(j);
-                auto intersection = setIntersection(set1, set2);
+                auto setIntersec = setIntersection(set1, set2);
 
-                if (false) writeln(set1, " + ", set2, " = ", DempsterShafer.setSimilarity(set1, set2));
+                setUnion.length = set1.length + set2.length;
+                setUnion[0 .. set1.length] = set1;
+                setUnion[set1.length .. set1.length + set2.length] = set2;
 
-                // Only threshold the operator if affectOperator == true
-                if (affectOperator && DempsterShafer.setSimilarity(set1, set2) <= threshold)
+                setUnion.length -= setUnion.sort.uniq.copy(setUnion).length;
+
+                immutable auto similarity = setIntersec.walkLength.to!double /
+                                  setUnion.length.to!double;
+
+                /*
+                 * Only threshold the operator if affectOperator == true.
+                 * If the agents are not sufficiently similar, according to
+                 * the threshold gamma, or if the intersection is the empty set,
+                 * then take the union.
+                 */
+                if (setIntersec.empty ||
+                        (affectOperator && similarity <= threshold))
                 {
-                    currentSet = set1;
-                    foreach (elem; set2)
-                    {
-                        if (!set1.canFind(elem)) currentSet ~= elem;
-                    }
-                    currentSet.sort;
-                    if (false) writeln("LESS THAN THRESHOLD: UNION : ", currentSet);
+                    currentSet = setUnion;
                 }
-                else if (intersection.empty)
-                {
-                    // If the agents are not sufficiently similar, according to
-                    // the threshold gamma, or if the intersection is the empty set,
-                    // then take the union.
-                    // currentSet = (set1 ~ set2).dup.sort.uniq.array;
-                    currentSet = set1;
-                    foreach (elem; set2)
-                    {
-                        if (!set1.canFind(elem)) currentSet ~= elem;
-                    }
-                    currentSet.sort;
-                    if (false) writeln("LESS THAN THRESHOLD: UNION : ", currentSet);
-                }
+                // If the intersection is not empty, recreate the intersection set.
                 else
                 {
-                    // If the intersection is not empty, recreate the intersection set.
-                    currentSet = intersection.array;
-                    if (false) writeln("SHOULD NOT BE INTERSECTING: INTERSEC : ", currentSet);
+                    currentSet = setIntersec.array;
                 }
                 beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
             }
@@ -101,10 +87,7 @@ public final class Operators
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
-        foreach (ref index; beliefs.byKey)
-        {
-            beliefs[index] *= 1 - lambda;
-        }
+        foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
         if (lambda > 0) beliefs[cast(int) (2^^langSize) - 2] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
@@ -117,8 +100,6 @@ public final class Operators
                 beliefs[index] /= renormaliser;
             }
         }
-
-        if (false) writeln("FINAL BELIEF: ", beliefs);
 
         return beliefs;
     }
@@ -134,8 +115,8 @@ public final class Operators
         const bool affectOperator,
         const double lambda)
     {
-        import std.algorithm : setIntersection, sort, sum;
-        import std.math : approxEqual, isInfinity, isNaN;
+        import std.algorithm : setIntersection, sum;
+        import std.math : approxEqual, isInfinity;
         import std.range : array;
 
         double[int] beliefs;
@@ -155,8 +136,9 @@ public final class Operators
 
                 auto set1 = DempsterShafer.createSet(i);
                 auto set2 = DempsterShafer.createSet(j);
-                auto intersection = setIntersection(set1, set2);
-                if (intersection.empty)
+                auto setIntersec = setIntersection(set1, set2);
+
+                if (setIntersec.empty)
                 {
                     // If the intersection is the empty set, add to empty set
                     // and renormalise later.
@@ -166,7 +148,7 @@ public final class Operators
                 else
                 {
                     // If the intersection is not empty, recreate the intersection set.
-                    currentSet = intersection.array;
+                    currentSet = setIntersec.array;
                 }
 
                 beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
@@ -192,10 +174,7 @@ public final class Operators
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
-        foreach (ref index; beliefs.byKey)
-        {
-            beliefs[index] *= 1 - lambda;
-        }
+        foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
         if (lambda > 0) beliefs[cast(int) (2^^langSize) - 2] += lambda;
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
