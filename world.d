@@ -20,9 +20,9 @@ void main(string[] args)
      */
     immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 20;
+    immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = true;
+    immutable auto gamma = false;
     immutable auto lambda = 0.0;
     immutable auto iota = false;
     immutable auto alterIter = 10;
@@ -34,13 +34,13 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = true;
+    immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
