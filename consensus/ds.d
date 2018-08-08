@@ -27,10 +27,7 @@ public class DempsterShafer
     {
         staticVector[] = 0;
 
-        foreach (ref element; set)
-        {
-            staticVector[element] = 1;
-        }
+        foreach (ref element; set) staticVector[element] = 1;
 
         return staticVector.dup;
     }
@@ -121,10 +118,7 @@ public class DempsterShafer
         auto fillIndex = 0;
         foreach (i, ref value; vector)
         {
-            if (value == 1)
-            {
-                staticSet[fillIndex++] = i.to!int;
-            }
+            if (value == 1) staticSet[fillIndex++] = i.to!int;
         }
         return staticSet[0 .. vector.sum].dup;
     }
@@ -179,12 +173,7 @@ public class DempsterShafer
         staticSet[] = 0;
         auto fillIndex = 0;
         foreach (i, ref value; vector)
-        {
-            if (value == 1)
-            {
-                staticSet[fillIndex++] = i.to!int;
-            }
-        }
+            if (value == 1) staticSet[fillIndex++] = i.to!int;
 
         return staticSet[0 .. vector.sum].dup;
     }
@@ -215,14 +204,9 @@ public class DempsterShafer
      */
     static auto setToIndex(const int[] set)
     {
-
         auto vector = setToVec(set);
-
         int index;
-        foreach (i, ref value; vector)
-        {
-            index += value * 2^^i;
-        }
+        foreach (i, ref value; vector) index += value * 2^^i;
 
         return index - 1;
     }
@@ -233,10 +217,7 @@ public class DempsterShafer
     static auto vecToIndex(const int[] vector)
     {
         int index;
-        foreach (i, ref value; vector)
-        {
-            index += value * 2^^i;
-        }
+        foreach (i, ref value; vector) index += value * 2^^i;
 
         return index - 1;
     }
@@ -297,11 +278,8 @@ public class DempsterShafer
 
         foreach (index, belief; beliefs)
         {
-            if (approxEqual(belief, 0.0))
-                continue;
-            entropy -= belief * log2(
-                belief/((2^^createSet(index).length)-1)
-            );
+            if (approxEqual(belief, 0.0)) continue;
+            entropy -= belief * log2(belief/((2^^createSet(index).length)-1));
         }
 
         return entropy;
