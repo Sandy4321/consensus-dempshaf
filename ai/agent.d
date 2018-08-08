@@ -28,14 +28,8 @@ public final class Agent
 
         foreach (int index, ref prop; beliefs)
         {
-            if (prop >= 1.0)
-            {
-                prop = 1.0;
-            }
-            else if (prop == 0.0)
-            {
-                continue;
-            }
+            if (prop >= 1.0) prop = 1.0;
+            else if (prop == 0.0) continue;
             else
             {
                 tempProp = format("%.5f", prop);
