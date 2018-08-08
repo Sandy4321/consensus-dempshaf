@@ -19,7 +19,6 @@ public final class Operators
     static int[] currentSet;
     static int[] setUnion;
 
-
     /**
      * Consensus operator for Dempster-Shafer mass functions.
      */
@@ -62,7 +61,7 @@ public final class Operators
                 setUnion.length -= setUnion.sort.uniq.copy(setUnion).length;
 
                 immutable auto similarity = setIntersec.walkLength.to!double /
-                                  setUnion.length.to!double;
+                                            setUnion.length.to!double;
 
                 /*
                  * Only threshold the operator if affectOperator == true.
