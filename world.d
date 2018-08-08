@@ -34,8 +34,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
     // Disable consensus formation
     immutable auto evidenceOnly = false;
@@ -101,30 +101,25 @@ void main(string[] args)
     }
 
     write("Logic: ");
-    version (boolean)
-        writeln("Boolean");
-    else
-        writeln("Three-valued");
+    version (boolean) writeln("Boolean");
+    else  writeln("Three-valued");
 
     write("Updating method: ");
-    version (symmetric)
-        writeln("! SYMMETRIC !");
-    else
-        writeln("! ASYMMETRIC !");
+    version (symmetric)  writeln("! SYMMETRIC !");
+    else writeln("! ASYMMETRIC !");
+
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$ - 1]);
+
     writeln("Lambda value: ", lambda);
-    version (alterQ)
-    {
-        writeln("Altering value(s) after ", alterIter, " iterations.");
-    }
+    version (alterQ) writeln("Altering value(s) after ", alterIter, " iterations.");
+
     writeln("Random selection: ", randomSelect);
+
     write("Evidence mass: ");
-    static if (negativeEvidence)
-        writeln("negative");
-    else static if (randomEvidence)
-        writeln("random");
-    else
-        writeln("probabilistic");
+    static if (negativeEvidence) writeln("negative");
+    else static if (randomEvidence) writeln("random");
+    else writeln("probabilistic");
+
     if (evidenceOnly)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
     if (consensusOnly)
