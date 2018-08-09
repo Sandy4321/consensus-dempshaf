@@ -6,8 +6,6 @@ module dempshaf.ai.agent;
  */
 public final class Agent
 {
-    import std.array : appender;
-
     private
     {
         double[int] mBeliefs;
