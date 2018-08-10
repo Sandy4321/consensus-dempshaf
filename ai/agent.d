@@ -114,7 +114,6 @@ public final class Agent
     auto dup()
     {
         Agent duplicate = new Agent();
-
         duplicate.beliefs = this.mBeliefs;
         return duplicate;
     }
