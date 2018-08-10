@@ -22,9 +22,11 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;
+    immutable auto gamma = false;   // Lambda operator switch
     immutable auto lambda = 0.0;
-    immutable auto iota = false;
+    immutable auto iota = false;    // Inconsistency threshold
+    immutable auto paramHeatmaps = false;
+    immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
 
@@ -37,6 +39,8 @@ void main(string[] args)
     alias combination = Operators.consensus;
     // alias combination = Operators.dempsterRoC;
 
+    // Only record steadystate results
+    immutable auto steadyStatesOnly = false;
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
@@ -45,6 +49,12 @@ void main(string[] args)
     immutable auto randomEvidence = false;
     // Agents receive negative information.
     immutable auto negativeEvidence = false;
+
+    if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
+    {
+        writeln("If producing heatmaps, steadyStatesOnly must be true.");
+        exit(1);
+    }
 
     if (gamma && fullyQualifiedName!combination.canFind("dempster"))
     {
@@ -133,7 +143,8 @@ void main(string[] args)
     DempsterShafer.staticPignistic  = new double[langSize];
 
     // Prepare arrays for storing all results collected during simulation
-    immutable int arraySize = iterStep + 1;
+    static if (steadyStatesOnly) immutable int arraySize = 1;
+    else immutable int arraySize = iterStep + 1;
 
     // Initialize the population of agents according to population size l
     auto population = new Agent[numOfAgents];
@@ -184,35 +195,40 @@ void main(string[] args)
         // If gamma is set, then threshold the operator.
         affectOperator = true;
         // Generate the set of threshold values relevant to the language size.
-        double[] thresholdSet, thresholdTempSet;
-        thresholdTempSet ~= 0.0;
+        double[] parameterSet, parameterTempSet;
+        parameterTempSet ~= 0.0;
         foreach (double i; 1 .. langSize + 1)
         {
             foreach (double j; 1 .. i)
             {
-                thresholdTempSet ~= j / i;
+                parameterTempSet ~= j / i;
             }
         }
-        thresholdTempSet ~= 1.0;
-        thresholdTempSet = thresholdTempSet.sort.uniq.array;
-        write(thresholdTempSet, " --> ");
-        foreach (index; 0 .. thresholdTempSet.length.to!long - 1)
-            thresholdSet ~= (thresholdTempSet[index] + thresholdTempSet[index + 1]) / 2.0;
-        writeln(thresholdSet);
+        parameterTempSet ~= 1.0;
+        parameterTempSet = parameterTempSet.sort.uniq.array;
+        write(parameterTempSet, " --> ");
+        foreach (index; 0 .. parameterTempSet.length.to!long - 1)
+            parameterSet ~= (parameterTempSet[index] + parameterTempSet[index + 1]) / 2.0;
+        writeln(parameterSet);
     }
     else static if (iota)
     {
-        double[] thresholdSet;
-        foreach (threshold; 0 .. 11)
-            thresholdSet ~= (threshold / 10.0).to!double;
-        foreach (threshold; 91 .. 100)
-            thresholdSet ~= (threshold / 100.0).to!double;
-        thresholdSet.sort;
-        writeln(thresholdSet);
+        double[] parameterSet;
+        foreach (parameter; 0 .. 11)
+            parameterSet ~= (parameter / 10.0).to!double;
+        foreach (parameter; 91 .. 100)
+            parameterSet ~= (parameter / 100.0).to!double;
+        parameterSet.sort;
+        writeln(parameterSet);
     }
+    else static if (paramHeatmaps)
+    {
+        int[] parameterSet = [2, 3, 5, 7, 9, 10];
+    }
+    else static if (qualityHeatmaps){}
     else
     {
-        immutable double[] thresholdSet = [0.0];
+        immutable double[] parameterSet = [0.0];
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -251,22 +267,32 @@ void main(string[] args)
         immutable auto changeThreshold = 50;
     else
         immutable auto changeThreshold = 50; // numOfAgents / 2
-                  auto maxIterations = 0;
+
+    auto maxIterations = 0;
 
     writeln("----------");
 
     /*
      * For each threshold in thresholdSet, run the experiment using that value of gamma.
      */
-    foreach (threshold; thresholdSet)
+    foreach (parameter; parameterSet)
     {
         static if (gamma)
         {
-            writeln("threshold: %.4f".format(threshold));
+            writeln("gamma threshold: %.4f".format(parameter));
+            immutable auto threshold = parameter;
         }
         else static if (iota)
         {
-            writeln("threshold: %.2f".format(threshold));
+            writeln("iota threshold: %.2f".format(parameter));
+            immutable auto threshold = parameter;
+        }
+        else immutable auto threshold = 0.0;
+
+        static if (paramHeatmaps)
+        {
+            writeln("Language size: %d".format(parameter));
+            langSize = parameter;
         }
 
         auto seed = setSeed ? 128 : unpredictableSeed;
@@ -427,28 +453,31 @@ void main(string[] args)
                     // Format and store the resulting simulation data into their
                     // respective arrays.
 
-                    // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
-                    entropyResults[iterIndex][test] = format("%.4f", entropy);
-                    uniqueResults[iterIndex][test] = format("%d", uniqueBeliefs.length);
-                    choiceResults[iterIndex][test] = "["
-                        ~ choiceBeliefs
-                          .map!(x => format("%.4f", x))
-                          .join(",")
-                        ~ "]";
-                    if (langSize < powersetLimit)
+                    if (!steadyStatesOnly || (reachedSteadyState && iter % 100 == 1) || iter == iterations)
                     {
-                        powersetResults[iterIndex][test] = "["
-                            ~ std.range.iota(belLength)
-                            .map!(x => format("%.4f", powersetBeliefs[x]))
+                        // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
+                        entropyResults[iterIndex][test] = format("%.4f", entropy);
+                        uniqueResults[iterIndex][test] = format("%d", uniqueBeliefs.length);
+                        choiceResults[iterIndex][test] = "["
+                            ~ choiceBeliefs
+                            .map!(x => format("%.4f", x))
                             .join(",")
                             ~ "]";
-                    }
-                    belPlResults[iterIndex][test] = "[" ~
-                        format("%.4f", belPl[0]) ~ "," ~
-                        format("%.4f", belPl[1]) ~ "]";
-                    cardMassResults[iterIndex][test] = format("%.4f", cardinality);
+                        if (langSize < powersetLimit)
+                        {
+                            powersetResults[iterIndex][test] = "["
+                                ~ std.range.iota(belLength)
+                                .map!(x => format("%.4f", powersetBeliefs[x]))
+                                .join(",")
+                                ~ "]";
+                        }
+                        belPlResults[iterIndex][test] = "[" ~
+                            format("%.4f", belPl[0]) ~ "," ~
+                            format("%.4f", belPl[1]) ~ "]";
+                        cardMassResults[iterIndex][test] = format("%.4f", cardinality);
 
-                    iterIndex++;
+                        iterIndex++;
+                    }
                 }
 
                 /*
@@ -457,20 +486,12 @@ void main(string[] args)
                  */
                 if ((reachedSteadyState && iter % 100 == 1) || iter == iterations)
                 {
-                    /* writeln();
-                    writeln(iter);
-                    writeln(uniqueBeliefs);
-                    writeln(uniqueBeliefsCount);
-                    writeln(population.minElement!"a.interactions".interactions);
-                    writeln(population.maxElement!"a.interactions".interactions);
-                    writeln("Average: ", population.map!"a.interactions".sum/numOfAgents.to!double); */
                     if (reachedSteadyState && iter % 100 == 1)
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
 
                     // Grab the steady state results.
                     static if (!gamma && !iota)
                     {
-                        // auto interactions = 0.0;
                         foreach (i, ref agent; population)
                         {
                             auto beliefs = agent.beliefs;
@@ -484,6 +505,8 @@ void main(string[] args)
                                 ~ "]";
                         }
                     }
+
+                    static if (steadyStatesOnly) maxIterations = int.init;
                     break;
                 }
 
@@ -631,21 +654,23 @@ void main(string[] args)
         string fileExt = ".csv";
         static if (gamma)
         {
-            fileExt = "_%.4f".format(threshold) ~ fileExt;
+            fileExt = "_%.4f".format(parameter) ~ fileExt;
         }
         else static if (iota)
         {
-            fileExt = "_%.2f".format(threshold) ~ fileExt;
+            fileExt = "_%.2f".format(parameter) ~ fileExt;
         }
         string randomFN = "";
-        if (randomSelect)
-        {
-            randomFN = "random";
-        }
+        if (randomSelect) randomFN = "random";
+
         /*
         * Change the directory to store results in the appropriate directory structure.
         */
-        string directory = format("../results/test_results/dempshaf/%s_agents/", numOfAgents);
+        string directory = "../results/test_results/dempshaf/";
+
+        static if (!paramHeatmaps)
+            directory ~= format("%s_agents/", numOfAgents);
+
         version (symmetric)
         {
             directory ~= "symmetric/";
@@ -685,44 +710,50 @@ void main(string[] args)
                 directory ~= "no_change/";
             }
         }
-        directory ~= format("%s/%s/", langSize, qualitiesString);
+        static if (!paramHeatmaps)
+            directory ~= format("%s/%s/", langSize, qualitiesString);
         auto append = "w";
 
+        static if (paramHeatmaps)
+            immutable auto parameterString = "_" ~ numOfAgents.to!string ~ "_" ~ langSize.to!string;
+        else
+            immutable auto parameterString = "";
+
         // Best-choice belief
-        fileName = "average_beliefs" ~ "_" ~ randomFN ~ fileExt;
+        fileName = "average_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, choiceResults);
 
         // Powerset belief
         if (langSize < powersetLimit)
         {
-            fileName = "average_masses" ~ "_" ~ randomFN ~ fileExt;
+            fileName = "average_masses" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
             writeToFile(directory, fileName, append, maxIterations, powersetResults);
         }
 
         // Best-choice Bel and Pl
-        fileName = "belief_plausibility" ~ "_" ~ randomFN ~ fileExt;
+        fileName = "belief_plausibility" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, belPlResults);
 
         // Unique Beliefs
-        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ fileExt;
+        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, uniqueResults);
 
         // Inconsistency
-        /* fileName = "inconsistency" ~ "_" ~ randomFN ~ fileExt;
+        /* fileName = "inconsistency" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, inconsistResults); */
 
         // Entropy
-        fileName = "entropy" ~ "_" ~ randomFN ~ fileExt;
+        fileName = "entropy" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, entropyResults);
 
         // Cardinality
-        fileName = "cardinality" ~ "_" ~ randomFN ~ fileExt;
+        fileName = "cardinality" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, cardMassResults);
 
         static if (!gamma && !iota)
         {
             // Steady state belief results
-            fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ fileExt;
+            fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
             writeToFile(directory, fileName, append, maxIterations, steadyStateBeliefs);
         }
     }
@@ -731,6 +762,8 @@ void main(string[] args)
 private void writeToFile(T)(string directory, string fileName, string append,
                             int maxIterations, T[][] results)
 {
+    import std.stdio : writeln;
+    writeln(fileName);
     if (maxIterations != int.init && !fileName.canFind("steadystate"))
         results = extendResults(results, maxIterations);
     auto file = File(directory ~ fileName, append);
@@ -752,8 +785,12 @@ private T[][] extendResults(T)(ref T[][] results, int maxIterations)
     //   ...
     //   iteration N : [test 0] [test 1] ... [test N] ]
     for (auto i = 0; i < maxIterations; i++)
+    {
+        import std.stdio : writeln;
+        writeln(results);
+        writeln(results[i].length);
         for (auto j = 0; j < results[i].length; j++)
             if (results[i][j] == "" && i-1 >= 0) results[i][j] = results[i-1][j];
-
+    }
     return results[0 .. maxIterations];
 }
