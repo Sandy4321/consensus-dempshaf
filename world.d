@@ -762,8 +762,6 @@ void main(string[] args)
 private void writeToFile(T)(string directory, string fileName, string append,
                             int maxIterations, T[][] results)
 {
-    import std.stdio : writeln;
-    writeln(fileName);
     if (maxIterations != int.init && !fileName.canFind("steadystate"))
         results = extendResults(results, maxIterations);
     auto file = File(directory ~ fileName, append);
@@ -786,9 +784,6 @@ private T[][] extendResults(T)(ref T[][] results, int maxIterations)
     //   iteration N : [test 0] [test 1] ... [test N] ]
     for (auto i = 0; i < maxIterations; i++)
     {
-        import std.stdio : writeln;
-        writeln(results);
-        writeln(results[i].length);
         for (auto j = 0; j < results[i].length; j++)
             if (results[i][j] == "" && i-1 >= 0) results[i][j] = results[i-1][j];
     }
