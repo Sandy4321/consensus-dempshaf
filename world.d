@@ -22,9 +22,10 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;   // Lambda operator switch
+    immutable auto gamma = false;           // Lambda operator switch
     immutable auto lambda = 0.0;
-    immutable auto iota = false;    // Inconsistency threshold
+    immutable auto iota = false;            // Inconsistency threshold
+    immutable auto evidenceRate = 100;    // Evidence rate will equal 1/evidenceRate
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -538,31 +539,74 @@ void main(string[] args)
 
                 static if (!consensusOnly)
                 {
-                    foreach (i; restrictedPopulation)
+                    version(asymmetric)
                     {
-                        Agent agent = population[i];
+                        foreach (i; restrictedPopulation)
+                        {
+                            Agent agent = population[i];
 
-                        static if (negativeEvidence)
-                        {
-                            agent.beliefs = combination(langSize, agent.beliefs,
-                                    DempsterShafer.negMassEvidence(qualities,
-                                        alpha, rand), 0.0, false, lambda);
-                        }
-                        else
-                        {
-                            // If evidence should be provided for a random choice.
-                            static if (randomEvidence)
+                            static if (negativeEvidence)
                             {
-                                agent.beliefs = combination(langSize, agent.beliefs,
-                                        DempsterShafer.randMassEvidence(qualities,
-                                            rand,), 0.0, false, lambda);
+                                agent.beliefs = combination(
+                                    langSize, agent.beliefs,
+                                    DempsterShafer.negMassEvidence(
+                                        qualities, alpha, rand),
+                                    0.0, false, lambda);
+                            }
+                            // If evidence should be provided for a random choice.
+                            else static if (randomEvidence)
+                            {
+                                agent.beliefs = combination(
+                                    langSize, agent.beliefs,
+                                    DempsterShafer.randMassEvidence(
+                                        qualities, rand),
+                                    0.0, false, lambda);
                             }
                             // Else, evidence should favour the most prominent choice.
-                        else
+                            else
                             {
-                                agent.beliefs = combination(langSize, agent.beliefs,
-                                        DempsterShafer.probMassEvidence(qualities,
-                                            agent.beliefs, rand), 0.0, false, lambda);
+                                agent.beliefs = combination(
+                                    langSize, agent.beliefs,
+                                    DempsterShafer.probMassEvidence(
+                                        qualities, agent.beliefs, rand),
+                                    0.0, false, lambda);
+                            }
+                        }
+                    }
+                    version(symmetric)
+                    {
+                        foreach (i; restrictedPopulation)
+                        {
+                            Agent agent = population[i];
+
+                            if (uniform01(rand) > 1/evidenceRate.to!double)
+                                continue;
+
+                            static if (negativeEvidence)
+                            {
+                                agent.beliefs = combination(
+                                    langSize, agent.beliefs,
+                                    DempsterShafer.negMassEvidence(
+                                        qualities, alpha, rand),
+                                    0.0, false, lambda);
+                            }
+                            // If evidence should be provided for a random choice.
+                            else static if (randomEvidence)
+                            {
+                                agent.beliefs = combination(
+                                    langSize, agent.beliefs,
+                                    DempsterShafer.randMassEvidence(
+                                        qualities, rand),
+                                    0.0, false, lambda);
+                            }
+                            // Else, evidence should favour the most prominent choice.
+                            else
+                            {
+                                agent.beliefs = combination(
+                                    langSize, agent.beliefs,
+                                    DempsterShafer.probMassEvidence(
+                                        qualities, agent.beliefs, rand),
+                                    0.0, false, lambda);
                             }
                         }
                     }
@@ -697,7 +741,7 @@ void main(string[] args)
         }
         else static if (evidenceOnly)
         {
-            directory ~= "evidence_only/";
+            // directory ~= "evidence_only/";
         }
         static if (lambda > 0.0)
         {
@@ -714,10 +758,12 @@ void main(string[] args)
             directory ~= format("%s/%s/", langSize, qualitiesString);
         auto append = "w";
 
+        auto parameterString = "";
+
         static if (paramHeatmaps)
-            immutable auto parameterString = "_" ~ numOfAgents.to!string ~ "_" ~ langSize.to!string;
-        else
-            immutable auto parameterString = "";
+            parameterString = "_" ~ numOfAgents.to!string ~ "_" ~ langSize.to!string;
+        else static if (evidenceOnly)
+            parameterString = "_eo";
 
         // Best-choice belief
         fileName = "average_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
