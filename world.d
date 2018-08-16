@@ -45,7 +45,7 @@ void main(string[] args)
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = false;
+    immutable auto consensusOnly = true;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -329,7 +329,17 @@ void main(string[] args)
                 // initialise the agents' beliefs.
                 static if (consensusOnly)
                 {
-                    beliefs[std.range.iota(belLength).choice(rand)] = 1.0;
+                    // beliefs[std.range.iota(belLength).choice(rand)] = 1.0;
+                    auto partitions = new double[belLength - 1];
+                    foreach (ref elem; partitions) elem = uniform!"[]"(0.0, 1.0, rand);
+                    partitions.sort;
+                    foreach (index; 0 .. belLength)
+                    {
+                        if (index == 0) beliefs[index] = partitions[index];
+                        else if (index < belLength - 1)
+                            beliefs[index] = partitions[index] - partitions[index - 1];
+                        else beliefs[index] = 1 - partitions[index - 1];
+                    }
                 }
                 else beliefs[belLength - 1] = 1.0;
 
