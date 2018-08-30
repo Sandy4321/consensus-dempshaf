@@ -25,7 +25,7 @@ void main(string[] args)
     immutable auto gamma = false;           // Lambda operator switch
     immutable auto lambda = 0.0;
     immutable auto iota = false;            // Inconsistency threshold
-    immutable auto evidenceRate = 100;    // Evidence rate will equal 1/evidenceRate
+    immutable auto evidenceRate = 100;      // Evidence rate will equal 1/evidenceRate
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
