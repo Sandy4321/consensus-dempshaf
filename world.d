@@ -21,10 +21,20 @@ void main(string[] args)
     immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
+    // alpha (a) is a parameter for negative evidential updating, such that 1-a is the
+    // mass assigned to the set of all choices - the worst choice selected (at random).
+    // The set of complete ignorance is then assigned a mass.
     immutable auto alpha = 0.0;
-    immutable auto gamma = false;           // Lambda operator switch
+    // gamma is used as a switch to determine whether we should threshold the operator
+    // based on similarity of the agents' beliefs. This parameter attempts to control
+    // how imprecise agents' beliefs are at steady state.
+    immutable auto gamma = false;
+    // The lambda operator is used to adjust the fixed points of the combination
+    //operators (away from the corners). Default: 0.0 means no adjustment.
     immutable auto lambda = 0.0;
-    immutable auto iota = false;            // Inconsistency threshold
+    // iota is used as a switch to determine whether we should threshold the operator
+    // based on relative inconsistency between pairs of agents.
+    immutable auto iota = false;
     immutable auto evidenceRate = 100;      // Evidence rate will equal 1/evidenceRate
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
@@ -50,6 +60,11 @@ void main(string[] args)
     immutable auto randomEvidence = false;
     // Agents receive negative information.
     immutable auto negativeEvidence = false;
+
+    // Set whether evidence should be associated with noise
+    // and set the paramater value for the noise if so.
+    immutable auto noisyEvidence = true;
+    immutable auto noiseSigma = 0.1;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -292,7 +307,7 @@ void main(string[] args)
             langSize = parameter;
         }
 
-        auto seed = setSeed ? 128 : unpredictableSeed;
+        auto seed = false ? 128 : unpredictableSeed;
         auto rand = Random(seed);
 
         // auto inconsistResults   = new string[][](arraySize, testSet);

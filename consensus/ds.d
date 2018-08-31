@@ -427,10 +427,10 @@ public class DempsterShafer
     }
 
     /**
-     * Calculates the evidential mass assignment based on the agent's current
-     * beliefs. This prioritises the most dominant choice to receive feedback (payoff
-     * so that more accurate beliefs are reinforced, and inaccurate beliefs are
-     * punished.
+     * Calculates the evidential mass assignment based on the agent's pignistic
+     * distribution. This prioritises the most dominant choice to receive feedback
+     * (payoff so that more accurate beliefs are reinforced, and inaccurate beliefs
+     * are punished.
      */
     static auto probMassEvidence(
         const double[] qualities,
@@ -565,8 +565,9 @@ public class DempsterShafer
     }
 
     /**
-     * Calculates the evidential mass assignment, selecting a quality value
-     * at random.
+     * Uses negative updating to provide evidence of the "worst" choice, selecting
+     * two choices at random, A and B, for comparison,  then updating on, e.g. ¬A,
+     * when A is the worst choice out of the two.
      */
     static auto negMassEvidence(
         const double[] qualities,
@@ -649,8 +650,8 @@ public class DempsterShafer
     }
 
     /**
-     * Calculates the evidential mass assignment, selecting a quality value
-     * based on the pignistic belief of the agent.
+     * The same as negative updating, but the selection of the pair is weighted
+     * according to the agent's pignistic distribution. Possibly useless.
      */
     static auto probNegMassEvidence(
         const double[] qualities,
