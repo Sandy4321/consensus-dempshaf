@@ -45,7 +45,7 @@ void main(string[] args)
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = true;
+    immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -251,17 +251,13 @@ void main(string[] args)
     writeln("Belief indices: ", belIndices);
 
     // Find the choice with the highest payoff, and store its index in the power set.
+    writeln(qualities);
     int bestChoice = qualities.maxIndex.to!int;
+    if (qualities[$-2] == qualities[$-1])
+        bestChoice = qualities.length.to!int - 1;
 
     auto belPlIndices = DempsterShafer.belAndPlIndices(langSize, bestChoice);
     writeln("Bel() and Pl() indices: ", belPlIndices);
-
-    /* int[][] plSets;
-    foreach (index; belPlIndices[1])
-    {
-        plSets ~= DempsterShafer.createSet(langSize, index);
-    }
-    writeln(plSets); */
 
     // Convergence parameters and variables
     static if (fullyQualifiedName!combination.canFind("dempster"))
@@ -321,6 +317,8 @@ void main(string[] args)
 
             qualities = masterQualities.filter!(a => a.length == langSize).array[qualityIndex].dup;
             bestChoice = qualities.maxIndex.to!int;
+            if (qualities[$-2] == qualities[$-1])
+                bestChoice = qualities.length.to!int - 1;
 
             foreach (agentIndex, ref agent; population)
             {
@@ -684,8 +682,8 @@ void main(string[] args)
                                      * threshold, and not within some margin of
                                      * floating-point error, then do not combine beliefs.
                                      */
-                                    if (inconsistency > threshold
-                                            && !inconsistency.approxEqual(threshold, precision))
+                                    if (inconsistency > threshold &&
+                                        !inconsistency.approxEqual(threshold, precision))
                                     {
                                         continue;
                                     }
