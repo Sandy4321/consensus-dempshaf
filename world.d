@@ -63,8 +63,9 @@ void main(string[] args)
 
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
+    // If noiseSigma = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
-    immutable auto noiseSigma = 0.1;
+    immutable auto noiseSigma = sqrt(0.2);
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -591,7 +592,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.probMassEvidence(
-                                        qualities, agent.beliefs, rand),
+                                        qualities, noiseSigma, agent.beliefs, rand),
                                     0.0, false, lambda);
                             }
                         }
@@ -628,7 +629,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.probMassEvidence(
-                                        qualities, agent.beliefs, rand),
+                                        qualities, noiseSigma, agent.beliefs, rand),
                                     0.0, false, lambda);
                             }
                         }

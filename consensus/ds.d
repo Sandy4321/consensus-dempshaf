@@ -19,6 +19,9 @@ public class DempsterShafer
     static int[] staticSet;
     static double[] staticPignistic;
 
+    static bool getNoise = true;
+    static double[2] noisePair;
+
     /**
      * Generate the binary vector based on the set provided,
      * and the language size.
@@ -30,31 +33,6 @@ public class DempsterShafer
         foreach (ref element; set) staticVector[element] = 1;
 
         return staticVector.dup;
-    }
-
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tsetToVec : from set");
-
-        int langSize = 3;
-        auto set = [0, 2];
-        assert(setToVec(set) == [1, 0, 1]);
-        set = [1, 2];
-        assert(setToVec(set) == [0, 1, 1]);
-        set = [0, 1, 2];
-        assert(setToVec(set) == [1, 1, 1]);
-
-        langSize = 5;
-        set = [0];
-        assert(setToVec(set) == [1, 0, 0, 0, 0]);
-        set = [0, 1, 2, 3, 4];
-        assert(setToVec(set) == [1, 1, 1, 1, 1]);
-        set = [0, 2, 4];
-        assert(setToVec(set) == [1, 0, 1, 0, 1]);
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -73,31 +51,6 @@ public class DempsterShafer
         }
 
         return staticVector.dup;
-    }
-
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tindexToVec : from index");
-
-        int langSize = 3;
-        int index;
-        assert(indexToVec(langSize, index) == [1, 0, 0]);
-        index = 5;
-        assert(indexToVec(langSize, index) == [0, 1, 1]);
-        index = 6;
-        assert(indexToVec(langSize, index) == [1, 1, 1]);
-
-        langSize = 5;
-        index = 0;
-        assert(indexToVec(langSize, index) == [1, 0, 0, 0, 0]);
-        index = 30;
-        assert(indexToVec(langSize, index) == [1, 1, 1, 1, 1]);
-        index = 20;
-        assert(indexToVec(langSize, index) == [1, 0, 1, 0, 1]);
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -123,44 +76,6 @@ public class DempsterShafer
         return staticSet[0 .. vector.sum].dup;
     }
 
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tcreateSet : from index");
-
-        createSet(3, 0);
-        createSet(3, 1);
-        createSet(3, 2);
-        createSet(3, 3);
-        createSet(3, 4);
-        createSet(3, 5);
-        createSet(3, 6);
-
-        int langSize = 3;
-        // The index is the reverse binary equivalent + 1, where each 1
-        // represents the presence of the proposition (by index) in the set.
-        // E.g. <1 1 0> = 3, 3 + 1 = 4, <0 0 1> -> [1].
-        int index;
-        // <0 0 0> (0) -> <1 0 0> (1)
-        assert(createSet(langSize, index) == [0]);
-
-        index = 3;
-        // <1 1 0> (3) -> <0 0 1> (4)
-        assert(createSet(langSize, index) == [2]);
-
-        index = 5;
-        // <1 0 1> (5) -> <0 1 1> (6)
-        assert(createSet(langSize, index) == [1, 2]);
-
-        langSize = 5;
-        index = 30;
-        // <0 1 1 1 1> (30) -> <1 1 1 1 1> (31)
-        assert(createSet(langSize, index) == [0, 1, 2, 3, 4]);
-
-        writeln("\t\tPASSED.");
-    }
-
     /**
      * Generate the set based on its binary vector, and then return
      * the set.
@@ -176,27 +91,6 @@ public class DempsterShafer
             if (value == 1) staticSet[fillIndex++] = i.to!int;
 
         return staticSet[0 .. vector.sum].dup;
-    }
-
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tcreateSet : from vector");
-
-        auto vector = [1, 0, 0];
-        auto set = createSet(vector);
-        assert(set == [0]);
-
-        vector = [0, 0, 1];
-        set = createSet(vector);
-        assert(set == [2]);
-
-        vector = [0, 1, 1];
-        set = createSet(vector);
-        assert(set == [1, 2]);
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -220,27 +114,6 @@ public class DempsterShafer
         foreach (i, ref value; vector) index += value * 2^^i;
 
         return index - 1;
-    }
-
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tvecToIndex");
-
-        int[] vector = [1, 1, 1];
-        assert(vecToIndex(vector) == 6);
-
-        vector = [1, 0, 1];
-        assert(vecToIndex(vector) == 4);
-
-        vector = [1, 0, 0];
-        assert(vecToIndex(vector) == 0);
-
-        vector = [0, 0, 1];
-        assert(vecToIndex(vector) == 3);
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -359,27 +232,6 @@ public class DempsterShafer
         return powerset;
     }
 
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tgeneratePowerset");
-
-        auto langSize = 1;
-        auto powerset = generatePowerset(langSize);
-        assert(powerset == [[0]]);
-
-        langSize = 2;
-        powerset = generatePowerset(langSize);
-        assert(powerset == [[0], [1], [0, 1]]);
-
-        langSize = 3;
-        powerset = generatePowerset(langSize);
-        assert(powerset == [[0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]]);
-
-        writeln("\t\tPASSED.");
-    }
-
     /**
      * Generate the indices for both belief and plausibily, so that
      * you can calculate these later on without having to generate
@@ -415,17 +267,6 @@ public class DempsterShafer
         return [[belIndex], plIndices];
     }
 
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tbelAndPlIndices");
-
-
-
-        writeln("\t\tPASSED.");
-    }
-
     /**
      * Calculates the evidential mass assignment based on the agent's pignistic
      * distribution. This prioritises the most dominant choice to receive feedback
@@ -434,6 +275,7 @@ public class DempsterShafer
      */
     static auto probMassEvidence(
         const double[] qualities,
+        const double noiseSigma,
         const double[int] beliefs,
         ref from!"std.random".Random rand)
     {
@@ -459,53 +301,36 @@ public class DempsterShafer
         auto index = vecToIndex(staticVector);
 
         double[int] massFunction;
-        massFunction[index] = qualities[choice];
-        if (qualities[choice] != 1.0)
-            massFunction[(2^^qualities.length.to!int)-2] = 1.0 - qualities[choice];
+        auto quality = qualities[choice];
+        auto noise = 0.0;
+
+        if (noiseSigma > 0.0)
+        {
+            if (getNoise)
+            {
+                noisePair = normalDistribution(rand);
+                noise = noisePair[0];
+                getNoise = false;
+            }
+            else
+            {
+                noise = noisePair[1];
+                getNoise = true;
+            }
+
+            if (quality + noise > 1.0 || quality + noise < 0.0)
+                noise = -noise;
+
+            noise *= noiseSigma;
+        }
+        quality += noise;
+
+        massFunction[index] = quality;
+
+        if (quality != 1.0)
+            massFunction[(2^^qualities.length.to!int)-2] = 1.0 - quality;
 
         return massFunction;
-    }
-
-    unittest
-    {
-        import std.math : approxEqual;
-        import std.random : Random, unpredictableSeed;
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tprobMassEvidence");
-
-        auto rand = Random(unpredictableSeed);
-        auto langSize = 2;
-        auto qualities = [0.8, 0.2];
-        double[int] beliefs;
-        beliefs[0] = 1.0; beliefs[1] = 0.0; beliefs[2] =  0.0;
-        auto massFunction = probMassEvidence(qualities, beliefs, rand);
-        // It is necessary to use approxEqual here in the element-wise comparison
-        // of arrays because you're comparing doubles which can result in them
-        // printing the same out, but not actually being comparatively equivalent.
-        assert(approxEqual(massFunction[0], 0.8, precision));
-        assert(approxEqual(massFunction[2], 0.2, precision));
-
-        beliefs[0] = 0.0; beliefs[1] = 1.0; beliefs[2] =  0.0;
-        massFunction = probMassEvidence(qualities, beliefs, rand);
-        assert(approxEqual(massFunction[1], 0.2, precision));
-        assert(approxEqual(massFunction[2], 0.8, precision));
-
-        beliefs[0] = 0.5; beliefs[1] = 0.5; beliefs[2] =  0.0;
-        massFunction = probMassEvidence(qualities, beliefs, rand);
-        if (0 in massFunction)
-            assert(
-                approxEqual(massFunction[0], 0.8, precision) &&
-                approxEqual(massFunction[2], 0.2, precision)
-            );
-        else
-            assert(
-                approxEqual(massFunction[1], 0.2, precision) &&
-                approxEqual(massFunction[2], 0.8, precision)
-            );
-
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -532,36 +357,6 @@ public class DempsterShafer
             massFunction[(2^^langSize)-2] = 1.0 - qualities[choice];
 
         return massFunction;
-    }
-
-    unittest
-    {
-        import std.algorithm.comparison : equal;
-        import std.math : approxEqual;
-        import std.random : Random, unpredictableSeed;
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\trandMassEvidence");
-
-        auto rand = Random(unpredictableSeed);
-        auto langSize = 2;
-        auto qualities = [0.8, 0.2];
-        auto massFunction = randMassEvidence(qualities, rand);
-        // It is necessary to use approxEqual here in the element-wise comparison
-        // of arrays because you're comparing doubles which can result in them
-        // printing the same out, but not actually being comparatively equivalent.
-        if (0 in massFunction)
-            assert(
-                approxEqual(massFunction[0], 0.8, precision) &&
-                approxEqual(massFunction[2], 0.2, precision)
-            );
-        else
-            assert(
-                approxEqual(massFunction[1], 0.2, precision) &&
-                approxEqual(massFunction[2], 0.8, precision)
-            );
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -613,40 +408,6 @@ public class DempsterShafer
         }
 
         return massFunction;
-    }
-
-    unittest
-    {
-        import std.algorithm.comparison : equal;
-        import std.algorithm.mutation : remove;
-        import std.conv : to;
-        import std.math : approxEqual;
-        import std.random : Random, unpredictableSeed;
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tnegMassEvidence");
-
-        auto rand = Random(unpredictableSeed);
-        auto langSize = 3;
-        auto qualities = [0.8, 0.2, 0.1];
-        double alpha = 0.0; // Alpha = 0 means "precise" negative info.
-        auto massFunction = negMassEvidence(qualities, alpha, rand);
-        // It is necessary to use approxEqual here in the element-wise comparison
-        // of arrays because you're comparing doubles which can result in them
-        // printing the same out, but not actually being comparatively equivalent.
-        assert(approxEqual(massFunction[massFunction.keys[0]], 1.0, precision));
-
-        alpha = 1.0;
-        massFunction = negMassEvidence(qualities, alpha, rand);
-        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 1.0, precision));
-
-        alpha = 0.5;
-        massFunction = negMassEvidence(qualities, alpha, rand);
-        assert(approxEqual(massFunction[(2^^qualities.length.to!int)-2], 0.5, precision));
-        massFunction.remove((2^^qualities.length.to!int)-2);
-        assert(approxEqual(massFunction[massFunction.keys[0]], 0.5, precision));
-
-        writeln("\t\tPASSED.");
     }
 
     /**
@@ -772,35 +533,6 @@ public class DempsterShafer
         return staticPignistic.dup;
     }
 
-    unittest
-    {
-        import std.math : approxEqual;
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tpignisticDist");
-
-        DempsterShafer.staticVector     = new int[langSize];
-        DempsterShafer.staticSet        = new int[langSize];
-        DempsterShafer.staticPignistic  = new double[langSize];
-
-        double[int] probDist;
-        probDist[0] = 0.2;
-        probDist[1] = 0.2;
-        probDist[2] = 0.6;
-        auto uniformDist = pignisticDist(probDist);
-        assert(approxEqual(uniformDist[0], 0.5, precision));
-        assert(approxEqual(uniformDist[1], 0.5, precision));
-
-        probDist[0] = 0.2;
-        probDist[1] = 0.1;
-        probDist[2] = 0.7;
-        uniformDist = pignisticDist(probDist);
-        assert(approxEqual(uniformDist, [0.55,0.45], precision));
-        assert(approxEqual(uniformDist, [0.55,0.45], precision));
-
-        writeln("\t\tPASSED.");
-    }
-
     /**
      * Calculate the relative similarity between two sets of propositions.
      * Returns true if the two sets are similar enough, according to some
@@ -818,26 +550,5 @@ public class DempsterShafer
         immutable auto setUnion = multiwayUnion(cast(int[][])[set1, set2]).walkLength;
 
         return setIntersec.to!double / setUnion.to!double;
-    }
-
-    unittest
-    {
-        import std.stdio : writeln;
-
-        writeln("Unit tests:\tsetSimilarity");
-
-        auto set1 = [0, 1, 3, 5];
-        auto set2 = [1, 2, 4, 5];
-        auto threshold = 0.4;
-        assert(!setSimilarity(set1, set2) > threshold);
-        threshold = 0.3;
-        assert(setSimilarity(set1, set2) > threshold);
-
-        set1 = [0, 1, 2, 3, 4, 5];
-        set2 = [0, 1, 2, 3, 4, 5];
-        threshold = 1.0;
-        assert(!setSimilarity(set1, set2) > threshold);
-
-        writeln("\t\tPASSED.");
     }
 }
