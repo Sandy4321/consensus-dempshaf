@@ -1,6 +1,7 @@
 module dempshaf.consensus.ds;
 
 import dempshaf.misc.importidiom;
+import dempshaf.misc.normalDistribution;
 
 /**
  * DempsterShafer is a class for containing all of the calculation functions
@@ -20,7 +21,7 @@ public class DempsterShafer
     static double[] staticPignistic;
 
     static bool getNoise = true;
-    static double[2] noisePair;
+    static real[2] noisePair;
 
     /**
      * Generate the binary vector based on the set provided,
@@ -282,6 +283,8 @@ public class DempsterShafer
         import std.conv : to;
         import std.random : uniform01;
 
+        import std.stdio : writeln;
+
         auto pignisticBel = pignisticDist(beliefs);
         immutable auto prob = uniform01(rand);
         auto sum = 0.0;
@@ -301,27 +304,31 @@ public class DempsterShafer
         auto index = vecToIndex(staticVector);
 
         double[int] massFunction;
-        auto quality = qualities[choice];
+        auto quality = qualities[choice].to!double;
         auto noise = 0.0;
 
         if (noiseSigma > 0.0)
         {
-            if (getNoise)
+            do
             {
-                noisePair = normalDistribution(rand);
-                noise = noisePair[0];
-                getNoise = false;
-            }
-            else
-            {
-                noise = noisePair[1];
-                getNoise = true;
-            }
+                if (getNoise)
+                {
+                    noisePair = normalDistribution(rand);
+                    noise = noisePair[0];
+                    getNoise = false;
+                }
+                else
+                {
+                    noise = noisePair[1];
+                    getNoise = true;
+                }
 
-            if (quality + noise > 1.0 || quality + noise < 0.0)
-                noise = -noise;
+                noise *= noiseSigma;
 
-            noise *= noiseSigma;
+                if (quality + noise > 1.0 || quality + noise < 0.0)
+                    noise = -noise;
+
+            } while (noise <= -1 || noise >= 1);
         }
         quality += noise;
 

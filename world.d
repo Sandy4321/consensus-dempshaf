@@ -39,7 +39,7 @@ void main(string[] args)
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
-    immutable bool setSeed = true;
+    immutable bool setSeed = false;
 
     // Default precision for approxEqual is 1e-2.
     alias precision = DempsterShafer.precision;
@@ -65,7 +65,8 @@ void main(string[] args)
     // and set the paramater value for the noise if so.
     // If noiseSigma = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
-    immutable auto noiseSigma = sqrt(0.2);
+    static if (noisyEvidence)   immutable auto noiseSigma = sqrt(0.05);
+    else                        immutable auto noiseSigma = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -308,7 +309,7 @@ void main(string[] args)
             langSize = parameter;
         }
 
-        auto seed = false ? 128 : unpredictableSeed;
+        auto seed = setSeed ? 128 : unpredictableSeed;
         auto rand = Random(seed);
 
         // auto inconsistResults   = new string[][](arraySize, testSet);
