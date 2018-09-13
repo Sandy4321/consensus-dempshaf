@@ -35,7 +35,7 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 100;      // Evidence rate will equal 1/evidenceRate
+    immutable auto evidenceRate = 1/100.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -604,7 +604,7 @@ void main(string[] args)
                         {
                             Agent agent = population[i];
 
-                            if (uniform01(rand) > 1/evidenceRate.to!double)
+                            if (uniform01(rand) > evidenceRate)
                                 continue;
 
                             static if (negativeEvidence)
