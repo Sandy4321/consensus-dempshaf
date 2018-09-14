@@ -65,8 +65,8 @@ void main(string[] args)
     // and set the paramater value for the noise if so.
     // If noiseSigma = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
-    static if (noisyEvidence)   immutable auto noiseSigma = sqrt(0.05);
-    else                        immutable auto noiseSigma = 0.0;
+    static if (noisyEvidence) immutable auto noiseSigma = sqrt(0.05);
+    else                      immutable auto noiseSigma = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -89,7 +89,6 @@ void main(string[] args)
 
     bool randomSelect = true;
     int langSize, numOfAgents;
-    // string distribution = "";
 
     writeln("Running program: ", args[0].split("/")[$ - 1]);
 
@@ -320,6 +319,8 @@ void main(string[] args)
         auto belPlResults       = new string[][](arraySize, testSet);
         auto cardMassResults    = new string[][](arraySize, testSet);
         auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
+        immutable auto agentsForTrajectories = [0, 15, 23, 34, 76];
+        auto trajectoryBeliefs = new string[](agentsForTrajectories.length);
 
         /*
         * Main test loop;
@@ -501,6 +502,19 @@ void main(string[] args)
                             format("%.4f", belPl[0]) ~ "," ~
                             format("%.4f", belPl[1]) ~ "]";
                         cardMassResults[iterIndex][test] = format("%.4f", cardinality);
+
+                        // Plot agent trajectories for plotting barycentric plots
+                        if (langSize == 2)
+                        {
+                            foreach (i; agentsForTrajectories)
+                            {
+                                trajectoryBeliefs[i] = "[" ~
+                                    format("%.4f", population[i].beliefs[0]) ~ "," ~
+                                    format("%.4f", population[i].beliefs[1]) ~ "," ~
+                                    format("%.4f", population[i].beliefs[2])
+                                ~ "]";
+                            }
+                        }
 
                         iterIndex++;
                     }
