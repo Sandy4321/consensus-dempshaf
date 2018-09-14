@@ -281,12 +281,12 @@ public class DempsterShafer
         ref from!"std.random".Random rand)
     {
         import std.conv : to;
-        import std.random : uniform01;
+        import std.random : uniform;
 
         import std.stdio : writeln;
 
         auto pignisticBel = pignisticDist(beliefs);
-        immutable auto prob = uniform01(rand);
+        immutable auto prob = uniform!"[]"(0.0, 1.0, rand);
         auto sum = 0.0;
         int choice;
         foreach (int i, ref bel; pignisticBel)
@@ -431,7 +431,7 @@ public class DempsterShafer
         import std.algorithm.searching : count, find;
         import std.conv : to;
         import std.math : approxEqual;
-        import std.random : randomChoice = choice, uniform01;
+        import std.random : randomChoice = choice, uniform;
         import std.range : array, iota;
         import std.stdio : writeln;
 
@@ -441,7 +441,7 @@ public class DempsterShafer
         int choice;
         if (pignisticBel.count!("a > 0") > 1)
         {
-            auto prob = uniform01(rand);
+            auto prob = uniform!"[]"(0.0, 1.0, rand);
             int[] choices = [-1, -1];
             auto sum = 0.0;
             foreach (int i, ref bel; pignisticBel)
@@ -455,7 +455,7 @@ public class DempsterShafer
             }
             do
             {
-                prob = uniform01(rand);
+                prob = uniform!"[]"(0.0, 1.0, rand);
                 sum = 0.0;
                 foreach (int i, ref bel; pignisticBel)
                 {
