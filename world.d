@@ -312,12 +312,12 @@ void main(string[] args)
         auto rand = Random(seed);
 
         // auto inconsistResults   = new string[][](arraySize, testSet);
-        auto entropyResults     = new string[][](arraySize, testSet);
-        auto uniqueResults      = new string[][](arraySize, testSet);
-        auto choiceResults      = new string[][](arraySize, testSet);
-        auto powersetResults    = new string[][](arraySize, testSet);
-        auto belPlResults       = new string[][](arraySize, testSet);
-        auto cardMassResults    = new string[][](arraySize, testSet);
+        auto entropyResults     = new double[][](arraySize, testSet);
+        auto uniqueResults      = new ulong[][](arraySize, testSet);
+        auto choiceResults      = new double[][][](langSize, arraySize, testSet);
+        auto powersetResults    = new double[][][](belLength, arraySize, testSet);
+        auto belPlResults       = new double[][][](2, arraySize, testSet);
+        auto cardMassResults    = new double[][](arraySize, testSet);
         auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
         immutable auto agentsForTrajectories = [0, 15, 23, 34, 76];
         auto trajectoryBeliefs = new string[](agentsForTrajectories.length);
@@ -483,25 +483,15 @@ void main(string[] args)
                     if (!steadyStatesOnly || (reachedSteadyState && iter % 100 == 1) || iter == iterations)
                     {
                         // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
-                        entropyResults[iterIndex][test] = format("%.4f", entropy);
-                        uniqueResults[iterIndex][test] = format("%d", uniqueBeliefs.length);
-                        choiceResults[iterIndex][test] = "["
-                            ~ choiceBeliefs
-                            .map!(x => format("%.4f", x))
-                            .join(",")
-                            ~ "]";
+                        entropyResults[iterIndex][test] = entropy;
+                        uniqueResults[iterIndex][test] = uniqueBeliefs.length;
+                        choiceResults[iterIndex][test] = choiceBeliefs.dup;
                         if (langSize < powersetLimit)
                         {
-                            powersetResults[iterIndex][test] = "["
-                                ~ std.range.iota(belLength)
-                                .map!(x => format("%.4f", powersetBeliefs[x]))
-                                .join(",")
-                                ~ "]";
+                            powersetResults[iterIndex][test] = powersetBeliefs.dup;
                         }
-                        belPlResults[iterIndex][test] = "[" ~
-                            format("%.4f", belPl[0]) ~ "," ~
-                            format("%.4f", belPl[1]) ~ "]";
-                        cardMassResults[iterIndex][test] = format("%.4f", cardinality);
+                        belPlResults[iterIndex][test] = belPl.dup;
+                        cardMassResults[iterIndex][test] = cardinality;
 
                         // Plot agent trajectories for plotting barycentric plots
                         if (langSize == 2)
@@ -845,17 +835,65 @@ void main(string[] args)
 }
 
 private void writeToFile(T)(string directory, string fileName, string append,
-                            int maxIterations, T[][] results)
+                            int maxIterations, T[][][] results)
 {
+    // Convert results array to strings here
+    auto convertedResults = new string[][](results[0].length, results.length);
+    foreach (i, ref row; results)
+    {
+        foreach (j, ref col; row)
+        {
+
+            if (is(typeof(col) == ulong))
+                convertedResults[i][j] = format("%d", col);
+            else if (is(typeof(col) == double))
+                convertedResults[i][j] = format("%.4f", col);
+        }
+    }
+
+    // END
+
     if (maxIterations != int.init && !fileName.canFind("steadystate"))
-        results = extendResults(results, maxIterations);
+        results = extendResults(convertedResults, maxIterations);
     auto file = File(directory ~ fileName, append);
-    foreach (i, ref index; results)
+    foreach (i, ref index; convertedResults)
     {
         foreach (j, ref test; index)
         {
-            file.write(results[i][j]);
-            file.write((j == cast(ulong) results[i].length - 1) ? "\n" : ",");
+            file.write(convertedResults[i][j]);
+            file.write((j == cast(ulong) convertedResults[i].length - 1) ? "\n" : ",");
+        }
+    }
+    file.close();
+}
+
+private void writeToFile(T)(string directory, string fileName, string append,
+                            int maxIterations, T[][] results)
+{
+    // Convert results array to strings here
+    auto convertedResults = new string[][](results[0].length, results.length);
+    foreach (i, ref row; results)
+    {
+        foreach (j, ref col; row)
+        {
+            if (is(typeof(col) == ulong))
+                convertedResults[i][j] = format("%d", col);
+            else if (is(typeof(col) == double))
+                convertedResults[i][j] = format("%.4f", col);
+        }
+    }
+
+    // END
+
+    if (maxIterations != int.init && !fileName.canFind("steadystate"))
+        results = extendResults(convertedResults, maxIterations);
+    auto file = File(directory ~ fileName, append);
+    foreach (i, ref index; convertedResults)
+    {
+        foreach (j, ref test; index)
+        {
+            file.write(convertedResults[i][j]);
+            file.write((j == cast(ulong) convertedResults[i].length - 1) ? "\n" : ",");
         }
     }
     file.close();
