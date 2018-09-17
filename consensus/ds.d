@@ -331,6 +331,9 @@ public class DempsterShafer
             } while (noise <= -1 || noise >= 1);
         }
         quality += noise;
+        // Bound the noisy quality value to form a truncated noise profile
+        if (quality > 1)      quality = 1.0;
+        else if (quality < 0) quality = 0.0;
 
         massFunction[index] = quality;
 
