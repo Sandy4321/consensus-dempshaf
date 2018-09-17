@@ -314,13 +314,13 @@ void main(string[] args)
         // auto inconsistResults   = new string[][](arraySize, testSet);
         auto entropyResults     = new double[][](arraySize, testSet);
         auto uniqueResults      = new ulong[][](arraySize, testSet);
-        auto choiceResults      = new double[][][](langSize, arraySize, testSet);
-        auto powersetResults    = new double[][][](belLength, arraySize, testSet);
-        auto belPlResults       = new double[][][](2, arraySize, testSet);
+        auto choiceResults      = new double[][][](arraySize, testSet, langSize);
+        auto powersetResults    = new double[][][](arraySize, testSet, belLength);
+        auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
-        auto steadyStateBeliefs = new string[][](numOfAgents, testSet);
+        auto steadyStateBeliefs = new double[][][](numOfAgents, testSet);
         immutable auto agentsForTrajectories = [0, 15, 23, 34, 76];
-        auto trajectoryBeliefs = new string[](agentsForTrajectories.length);
+        auto trajectoryBeliefs = new string[][](arraySize, agentsForTrajectories.length);
 
         /*
         * Main test loop;
@@ -498,7 +498,7 @@ void main(string[] args)
                         {
                             foreach (i; agentsForTrajectories)
                             {
-                                trajectoryBeliefs[i] = "[" ~
+                                trajectoryBeliefs[i][iterIndex] = "[" ~
                                     format("%.4f", population[i].beliefs[0]) ~ "," ~
                                     format("%.4f", population[i].beliefs[1]) ~ "," ~
                                     format("%.4f", population[i].beliefs[2])
@@ -525,14 +525,8 @@ void main(string[] args)
                         foreach (i, ref agent; population)
                         {
                             auto beliefs = agent.beliefs;
-                            steadyStateBeliefs[i][test] = "["
-                                ~ belIndices
-                                  .map!(
-                                    x => (x in beliefs) ?
-                                          format("%.4f", beliefs[x]) :
-                                          format("%.4f", 0.0))
-                                  .join(",")
-                                ~ "]";
+                            steadyStateBeliefs[i][test] = belIndices
+                                .map!(x => (x in beliefs) ? beliefs[x] : 0.0);
                         }
                     }
 
@@ -796,18 +790,18 @@ void main(string[] args)
 
         // Best-choice belief
         fileName = "average_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-        writeToFile(directory, fileName, append, maxIterations, choiceResults);
+        writeToFileNested(directory, fileName, append, maxIterations, choiceResults);
 
         // Powerset belief
         if (langSize < powersetLimit)
         {
             fileName = "average_masses" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-            writeToFile(directory, fileName, append, maxIterations, powersetResults);
+            writeToFileNested(directory, fileName, append, maxIterations, powersetResults);
         }
 
         // Best-choice Bel and Pl
         fileName = "belief_plausibility" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-        writeToFile(directory, fileName, append, maxIterations, belPlResults);
+        writeToFileNested(directory, fileName, append, maxIterations, belPlResults);
 
         // Unique Beliefs
         fileName = "unique_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
@@ -834,27 +828,34 @@ void main(string[] args)
     }
 }
 
-private void writeToFile(T)(string directory, string fileName, string append,
+private void writeToFileNested(T)(string directory, string fileName, string append,
                             int maxIterations, T[][][] results)
 {
     // Convert results array to strings here
-    auto convertedResults = new string[][](results[0].length, results.length);
+    auto convertedResults = new string[][](results.length, results[0].length);
     foreach (i, ref row; results)
     {
         foreach (j, ref col; row)
         {
-
-            if (is(typeof(col) == ulong))
-                convertedResults[i][j] = format("%d", col);
-            else if (is(typeof(col) == double))
-                convertedResults[i][j] = format("%.4f", col);
+            if (is(typeof(col[0]) == ulong))
+                convertedResults[i][j] = "["
+                    ~ col
+                    .map!(x => format("%d", x))
+                    .join(",")
+                    ~ "]";
+            else if (is(typeof(col[0]) == double))
+                convertedResults[i][j] = "["
+                    ~ col
+                    .map!(x => format("%.4f", x))
+                    .join(",")
+                    ~ "]";
         }
     }
 
     // END
 
     if (maxIterations != int.init && !fileName.canFind("steadystate"))
-        results = extendResults(convertedResults, maxIterations);
+        convertedResults = extendResults(convertedResults, maxIterations);
     auto file = File(directory ~ fileName, append);
     foreach (i, ref index; convertedResults)
     {
@@ -871,7 +872,7 @@ private void writeToFile(T)(string directory, string fileName, string append,
                             int maxIterations, T[][] results)
 {
     // Convert results array to strings here
-    auto convertedResults = new string[][](results[0].length, results.length);
+    auto convertedResults = new string[][](results.length, results[0].length);
     foreach (i, ref row; results)
     {
         foreach (j, ref col; row)
@@ -886,7 +887,7 @@ private void writeToFile(T)(string directory, string fileName, string append,
     // END
 
     if (maxIterations != int.init && !fileName.canFind("steadystate"))
-        results = extendResults(convertedResults, maxIterations);
+        convertedResults = extendResults(convertedResults, maxIterations);
     auto file = File(directory ~ fileName, append);
     foreach (i, ref index; convertedResults)
     {
