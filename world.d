@@ -313,12 +313,13 @@ void main(string[] args)
 
         // auto inconsistResults   = new string[][](arraySize, testSet);
         auto entropyResults     = new double[][](arraySize, testSet);
-        auto uniqueResults      = new ulong[][](arraySize, testSet);
+        auto uniqueResults      = new long[][](arraySize, testSet);
+        uniqueResults.each!(x => x[] = -1L);
         auto choiceResults      = new double[][][](arraySize, testSet, langSize);
         auto powersetResults    = new double[][][](arraySize, testSet, belLength);
         auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
-        auto steadyStateBeliefs = new double[][][](numOfAgents, testSet);
+        auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
         immutable auto agentsForTrajectories = [0, 15, 23, 34, 76];
         auto trajectoryBeliefs = new string[][](arraySize, agentsForTrajectories.length);
 
@@ -470,11 +471,13 @@ void main(string[] args)
                             reachedSteadyState = false;
                     }
                     entropy /= numOfAgents;
+                    assert(!entropy.isNaN);
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     choiceBeliefs[] /= numOfAgents;
                     belPl[] /= numOfAgents;
                     if (langSize < powersetLimit)
-                        foreach (index; 0 .. belLength) powersetBeliefs[index] /= numOfAgents;
+                        foreach (index; 0 .. belLength)
+                            powersetBeliefs[index] /= numOfAgents;
                     cardinality /= numOfAgents;
 
                     // Format and store the resulting simulation data into their
@@ -526,7 +529,7 @@ void main(string[] args)
                         {
                             auto beliefs = agent.beliefs;
                             steadyStateBeliefs[i][test] = belIndices
-                                .map!(x => (x in beliefs) ? beliefs[x] : 0.0);
+                                .map!(x => (x in beliefs) ? beliefs[x] : 0.0).array;
                         }
                     }
 
@@ -823,7 +826,7 @@ void main(string[] args)
         {
             // Steady state belief results
             fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-            writeToFile(directory, fileName, append, maxIterations, steadyStateBeliefs);
+            writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
         }
     }
 }
@@ -837,18 +840,27 @@ private void writeToFileNested(T)(string directory, string fileName, string appe
     {
         foreach (j, ref col; row)
         {
-            if (is(typeof(col[0]) == ulong))
+            if (is(typeof(col[0]) == long))
                 convertedResults[i][j] = "["
                     ~ col
                     .map!(x => format("%d", x))
                     .join(",")
                     ~ "]";
             else if (is(typeof(col[0]) == double))
-                convertedResults[i][j] = "["
-                    ~ col
-                    .map!(x => format("%.4f", x))
-                    .join(",")
-                    ~ "]";
+            {
+                if (col[0].isNaN)
+                {
+                    convertedResults[i][j] = "";
+                }
+                else
+                {
+                    convertedResults[i][j] = "["
+                        ~ col
+                        .map!(x => format("%.4f", x))
+                        .join(",")
+                        ~ "]";
+                }
+            }
         }
     }
 
@@ -877,10 +889,10 @@ private void writeToFile(T)(string directory, string fileName, string append,
     {
         foreach (j, ref col; row)
         {
-            if (is(typeof(col) == ulong))
-                convertedResults[i][j] = format("%d", col);
+            if (is(typeof(col) == long))
+                convertedResults[i][j] = (col == -1) ? "" : format("%d", col);
             else if (is(typeof(col) == double))
-                convertedResults[i][j] = format("%.4f", col);
+                convertedResults[i][j] = (col.to!double.isNaN) ? "" : format("%.4f", col);
         }
     }
 
