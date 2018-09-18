@@ -12,6 +12,8 @@
 
 # Results Directory #
 results/
+# Results files (noise, etc.)
+*.csv
 
 # Executable names on linux
 world
