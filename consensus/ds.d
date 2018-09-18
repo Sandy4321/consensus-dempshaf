@@ -328,7 +328,7 @@ public class DempsterShafer
                 if (quality + noise > 1.0 || quality + noise < 0.0)
                     noise = -noise;
 
-            } while (noise <= -1 || noise >= 1);
+            } while (quality + noise < 0 || quality + noise > 1);
         }
         quality += noise;
         // Bound the noisy quality value to form a truncated noise profile

@@ -5,7 +5,7 @@ import dempshaf.consensus.operators;
 import dempshaf.consensus.ds;
 
 import core.stdc.stdlib;
-import std.algorithm, std.array, std.conv, std.file, std.getopt, std.math;
+import std.algorithm, std.array, std.conv, std.getopt, std.math;
 import std.random, std.range, std.stdio, std.string, std.traits;
 
 // Set the version to symmetric or asymmetric
