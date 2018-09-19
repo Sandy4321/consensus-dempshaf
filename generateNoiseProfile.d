@@ -6,15 +6,14 @@ import std.math, std.stdio, std.string, std.random;
 
 void main(string[] args)
 {
-    immutable auto iterations = 1000;
+    immutable auto iterations = 500_000;
 
-    immutable auto seed = unpredictableSeed;
-    auto rand = Random(seed);
+    auto rand = Random(unpredictableSeed);
 
-    immutable auto noiseSigma = sqrt(0.025);
+    immutable auto variance = 0.05; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
 
-    immutable auto choices = 3;
     immutable auto qualities = [0.8, 0.9, 1.0];
+    immutable auto choices = qualities.length;
 
     auto values = new double[][](choices, iterations);
 
@@ -41,10 +40,7 @@ void main(string[] args)
                     getNoise = true;
                 }
 
-                noise *= noiseSigma;
-
-                if (quality + noise > 1.0 || quality + noise < 0.0)
-                    noise = -noise;
+                noise *= variance;
 
             } while (quality + noise < 0 || quality + noise > 1);
             quality += noise;
@@ -60,11 +56,18 @@ void main(string[] args)
     string directory = "../results/test_results/dempshaf/";
 
     auto file = File("noise_results.csv", "w");
+
+    file.write(format("%.3f\n", variance));
+    foreach (choice; 0 .. choices)
+    {
+        file.write(format("%.2f", qualities[choice]));
+        file.write((choice == choices - 1) ? "\n" : ",");
+    }
     foreach (choice; 0 .. choices)
     {
         foreach (iteration; 0 .. iterations)
         {
-            file.write(values[choice][iteration]);
+            file.write(format("%.4f", values[choice][iteration]));
             file.write((iteration == cast(ulong) values[choice].length - 1) ? "\n" : ",");
         }
     }

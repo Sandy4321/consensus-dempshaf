@@ -63,10 +63,10 @@ void main(string[] args)
 
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
-    // If noiseSigma = 0.0, then no noise is added.
+    // If noiseVariance = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
-    static if (noisyEvidence) immutable auto noiseSigma = sqrt(0.05);
-    else                      immutable auto noiseSigma = 0.0;
+    static if (noisyEvidence) immutable auto noiseVariance = 0.05;
+    else                      immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -320,8 +320,8 @@ void main(string[] args)
         auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
         auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
-        immutable auto agentsForTrajectories = [0, 15, 23, 34, 76];
-        auto trajectoryBeliefs = new string[][](arraySize, agentsForTrajectories.length);
+        auto agentsForTrajectories = std.range.iota(numOfAgents).randomSample(5, rand).array;
+        auto trajectoryBeliefs = new double[][][](arraySize, agentsForTrajectories.length, 3);
 
         /*
         * Main test loop;
@@ -497,15 +497,16 @@ void main(string[] args)
                         cardMassResults[iterIndex][test] = cardinality;
 
                         // Plot agent trajectories for plotting barycentric plots
-                        if (langSize == 2)
+                        if (langSize == 2)// && test == 15)
                         {
-                            foreach (i; agentsForTrajectories)
+                            foreach (i, agentIndex; agentsForTrajectories)
                             {
-                                trajectoryBeliefs[i][iterIndex] = "[" ~
-                                    format("%.4f", population[i].beliefs[0]) ~ "," ~
-                                    format("%.4f", population[i].beliefs[1]) ~ "," ~
-                                    format("%.4f", population[i].beliefs[2])
-                                ~ "]";
+                                trajectoryBeliefs[iterIndex][i][0] = (0 in population[agentIndex].beliefs) ?
+                                    population[agentIndex].beliefs[0] : 0 ;
+                                trajectoryBeliefs[iterIndex][i][1] = (1 in population[agentIndex].beliefs) ?
+                                    population[agentIndex].beliefs[1] : 0 ;
+                                trajectoryBeliefs[iterIndex][i][2] = (2 in population[agentIndex].beliefs) ?
+                                    population[agentIndex].beliefs[2] : 0 ;
                             }
                         }
 
@@ -594,7 +595,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.probMassEvidence(
-                                        qualities, noiseSigma, agent.beliefs, rand),
+                                        qualities, noiseVariance, agent.beliefs, rand),
                                     0.0, false, lambda);
                             }
                         }
@@ -631,7 +632,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.probMassEvidence(
-                                        qualities, noiseSigma, agent.beliefs, rand),
+                                        qualities, noiseVariance, agent.beliefs, rand),
                                     0.0, false, lambda);
                             }
                         }
@@ -825,6 +826,13 @@ void main(string[] args)
         static if (!gamma && !iota)
         {
             // Steady state belief results
+            fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
+            writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
+        }
+
+        if (langSize == 2)
+        {
+            // Trajectory belief results for selected agents
             fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
             writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
         }

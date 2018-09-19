@@ -276,7 +276,7 @@ public class DempsterShafer
      */
     static auto probMassEvidence(
         const double[] qualities,
-        const double noiseSigma,
+        const double noiseVariance,
         const double[int] beliefs,
         ref from!"std.random".Random rand)
     {
@@ -307,7 +307,7 @@ public class DempsterShafer
         auto quality = qualities[choice].to!double;
         auto noise = 0.0;
 
-        if (noiseSigma > 0.0)
+        if (noiseVariance > 0.0)
         {
             do
             {
@@ -323,10 +323,7 @@ public class DempsterShafer
                     getNoise = true;
                 }
 
-                noise *= noiseSigma;
-
-                if (quality + noise > 1.0 || quality + noise < 0.0)
-                    noise = -noise;
+                noise *= noiseVariance;
 
             } while (quality + noise < 0 || quality + noise > 1);
         }
