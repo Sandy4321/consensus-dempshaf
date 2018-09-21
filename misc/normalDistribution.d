@@ -12,10 +12,10 @@ import dempshaf.misc.importidiom;
 auto normalDistribution(ref from!"std.random".Random rand)
 {
     import std.math : cos, log, pow, PI, sin, sqrt;
-    import std.random : uniform01;
+    import std.random : uniform;
 
-    auto u1 = uniform01(rand);
-    auto u2 = uniform01(rand);
+    auto u1 = uniform(0.0, 1.0, rand);
+    auto u2 = uniform(0.0, 1.0, rand);
 
     auto r = sqrt(-2.0 * log(u1));
     auto theta = 2.0 * PI * u2;
