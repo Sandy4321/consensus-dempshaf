@@ -47,8 +47,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.dempsterRoC;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
@@ -320,7 +320,9 @@ void main(string[] args)
         auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
         auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
-        auto agentsForTrajectories = std.range.iota(numOfAgents).randomSample(5, rand).array;
+        auto agentsForTrajectories = std.range.iota(numOfAgents)
+                                              .randomSample(5, rand)
+                                              .array;
         auto trajectoryBeliefs = new double[][][](arraySize, agentsForTrajectories.length, 3);
 
         /*
