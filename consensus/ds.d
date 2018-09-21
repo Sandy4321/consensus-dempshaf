@@ -379,7 +379,7 @@ public class DempsterShafer
         import std.algorithm.iteration : filter;
         import std.conv : to;
         import std.math : approxEqual;
-        import std.random : randomChoice = choice, uniform01;
+        import std.random : randomChoice = choice;
         import std.range : array, iota;
 
         int[] selection = iota(0, qualities.length.to!int).array;
@@ -471,7 +471,7 @@ public class DempsterShafer
 
             if (qualities[choices[0]].approxEqual(qualities[choices[1]], precision))
             {
-                choice = choices.randomChoice;
+                choice = choices.randomChoice(rand);
             }
             else
             {
