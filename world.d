@@ -39,7 +39,7 @@ void main(string[] args)
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
-    immutable bool setSeed = false;
+    immutable bool setSeed = true;
 
     // Default precision for approxEqual is 1e-2.
     alias precision = DempsterShafer.precision;
@@ -47,15 +47,15 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = false;
+    immutable auto consensusOnly = true;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -65,7 +65,7 @@ void main(string[] args)
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
-    static if (noisyEvidence) immutable auto noiseVariance = 0.05;
+    static if (noisyEvidence) immutable auto noiseVariance = 0.1;
     else                      immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
@@ -308,7 +308,7 @@ void main(string[] args)
             langSize = parameter;
         }
 
-        auto seed = setSeed ? 128 : unpredictableSeed;
+        auto seed = setSeed ? 1024 : unpredictableSeed;
         auto rand = Random(seed);
 
         // auto inconsistResults   = new string[][](arraySize, testSet);
