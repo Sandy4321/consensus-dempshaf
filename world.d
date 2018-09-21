@@ -725,14 +725,6 @@ void main(string[] args)
         // Write results to disk for current test.
         string fileName;
         string fileExt = ".csv";
-        static if (gamma)
-        {
-            fileExt = "_%.4f".format(parameter) ~ fileExt;
-        }
-        else static if (iota)
-        {
-            fileExt = "_%.2f".format(parameter) ~ fileExt;
-        }
         string randomFN = "";
         if (randomSelect) randomFN = "random";
 
@@ -742,7 +734,7 @@ void main(string[] args)
         string directory = "../results/test_results/dempshaf/";
 
         static if (!paramHeatmaps)
-            directory ~= format("%s_agents/", numOfAgents);
+            directory ~= "%s_agents/".format(numOfAgents);
 
         version (symmetric)
         {
@@ -754,7 +746,7 @@ void main(string[] args)
         }
         static if (lambda > 0.0)
         {
-            directory ~= format("lambda_operator_%.1f/", lambda);
+            directory ~= "lambda_operator_%.1f/".format(lambda);
         }
         static if (fullyQualifiedName!combination.canFind("dempster"))
         {
@@ -776,7 +768,7 @@ void main(string[] args)
         {
             version (alterQ)
             {
-                directory ~= format("change_at_%s/", alterIter);
+                directory ~= "change_at_%s/".format(alterIter);
             }
             else
             {
@@ -784,15 +776,17 @@ void main(string[] args)
             }
         }
         static if (!paramHeatmaps)
-            directory ~= format("%s/%s/", langSize, qualitiesString);
+            directory ~= "%s/%s/".format(langSize, qualitiesString);
         auto append = "w";
 
         auto parameterString = "";
 
-        static if (paramHeatmaps)
-            parameterString = "_" ~ numOfAgents.to!string ~ "_" ~ langSize.to!string;
-        else static if (evidenceOnly)
-            parameterString = "_eo";
+        static if (noisyEvidence) parameterString ~= "_%.4f".format(noiseVariance);
+        static if (gamma) parameterString ~= "_%.4f".format(parameter);
+        else static if (iota) parameterString ~= "_%.2f".format(parameter);
+        static if (paramHeatmaps) parameterString ~= "_" ~ numOfAgents.to!string
+                                                   ~ "_" ~ langSize.to!string;
+        else static if (evidenceOnly) parameterString ~= "_eo";
 
         // Best-choice belief
         fileName = "average_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
@@ -853,7 +847,7 @@ private void writeToFileNested(T)(string directory, string fileName, string appe
             if (is(typeof(col[0]) == long))
                 convertedResults[i][j] = "["
                     ~ col
-                    .map!(x => format("%d", x))
+                    .map!(x => "%d".format(x))
                     .join(",")
                     ~ "]";
             else if (is(typeof(col[0]) == double))
@@ -866,7 +860,7 @@ private void writeToFileNested(T)(string directory, string fileName, string appe
                 {
                     convertedResults[i][j] = "["
                         ~ col
-                        .map!(x => format("%.4f", x))
+                        .map!(x => "%.4f".x))
                         .join(",")
                         ~ "]";
                 }
@@ -900,9 +894,9 @@ private void writeToFile(T)(string directory, string fileName, string append,
         foreach (j, ref col; row)
         {
             if (is(typeof(col) == long))
-                convertedResults[i][j] = (col == -1) ? "" : format("%d", col);
+                convertedResults[i][j] = (col == -1) ? "" : "%d".format(col);
             else if (is(typeof(col) == double))
-                convertedResults[i][j] = (col.to!double.isNaN) ? "" : format("%.4f", col);
+                convertedResults[i][j] = (col.to!double.isNaN) ? "" : "%.4f".format(col);
         }
     }
 
