@@ -10,9 +10,19 @@ void main(string[] args)
 
     auto rand = Random(unpredictableSeed);
 
-    immutable auto variance = 0.05; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
+    immutable auto variance = 0.1; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
 
-    immutable auto qualities = [0.8, 0.9, 1.0];
+    immutable auto qualitySet = [
+        [0.3, 0.9],
+        [0.5, 1.0],
+        [0.9, 1.0],
+
+        [0.2, 0.4, 1.0],
+        [0.8, 0.9, 1.0],
+        [1.0, 1.0, 1.0]
+    ];
+
+    immutable auto qualities = qualitySet[5];
     immutable auto choices = qualities.length;
 
     auto values = new double[][](choices, iterations);
