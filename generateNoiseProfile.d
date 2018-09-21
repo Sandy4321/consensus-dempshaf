@@ -18,8 +18,8 @@ void main(string[] args)
         [0.9, 1.0],
 
         [0.2, 0.4, 1.0],
-        [0.8, 0.9, 1.0],
-        [1.0, 1.0, 1.0]
+        [0.3, 0.5, 0.7],
+        [0.8, 0.9, 1.0]
     ];
 
     immutable auto qualities = qualitySet[5];
