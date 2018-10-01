@@ -27,3 +27,6 @@ callgrind_out.demangled
 
 # Memory profiling
 *.log
+
+# Nohup output
+*.out
