@@ -10,7 +10,7 @@ qualities = []
 
 try:
     with open(file_name) as file:
-        variance = file.readline().strip()
+        variance = float(file.readline().strip())
         qualities = list(map(float, file.readline().strip().split(',')))
         for line in file:
             results.append(list(map(float, line.strip().split(','))))
@@ -45,6 +45,6 @@ for choice in range(choices):
 
 plt.legend(qualities)
 
-plt.savefig("../results/graphs/dempshaf/{0}_{1}.pdf".format('_'.join(map(str, qualities)), variance))
+plt.savefig("../results/graphs/dempshaf/{0}_{1:.4f}.pdf".format('_'.join(map(str, qualities)), variance))
 
 plt.clf()

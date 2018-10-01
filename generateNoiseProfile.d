@@ -10,7 +10,7 @@ void main(string[] args)
 
     auto rand = Random(unpredictableSeed);
 
-    immutable auto variance = 0.1; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
+    immutable auto variance = 0.0125; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
 
     immutable auto qualitySet = [
         [0.3, 0.9],
@@ -22,7 +22,7 @@ void main(string[] args)
         [0.8, 0.9, 1.0]
     ];
 
-    immutable auto qualities = qualitySet[5];
+    immutable auto qualities = qualitySet[4];
     immutable auto choices = qualities.length;
 
     auto values = new double[][](choices, iterations);
@@ -67,7 +67,7 @@ void main(string[] args)
 
     auto file = File("noise_results.csv", "w");
 
-    file.write(format("%.3f\n", variance));
+    file.write(format("%.4f\n", variance));
     foreach (choice; 0 .. choices)
     {
         file.write(format("%.2f", qualities[choice]));
