@@ -108,7 +108,7 @@ public final class Operators
         const double lambda)
     {
         import std.algorithm : setIntersection, sum;
-        import std.math : approxEqual, isInfinity;
+        import std.math : approxEqual;
         import std.range : array;
 
         double[int] beliefs;

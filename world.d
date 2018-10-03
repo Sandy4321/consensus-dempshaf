@@ -55,7 +55,7 @@ void main(string[] args)
     // Disable consensus formation
     immutable auto evidenceOnly = false;
     // Disable evidential updating
-    immutable auto consensusOnly = true;
+    immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
@@ -65,7 +65,7 @@ void main(string[] args)
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
-    static if (noisyEvidence) immutable auto noiseVariance = 0.1;
+    static if (noisyEvidence) immutable auto noiseVariance = 0.0125;
     else                      immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
@@ -137,6 +137,8 @@ void main(string[] args)
 
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$ - 1]);
 
+    static if (noisyEvidence) writeln("Noise: ", noiseVariance);
+
     writeln("Lambda value: ", lambda);
     version (alterQ) writeln("Altering value(s) after ", alterIter, " iterations.");
 
@@ -180,9 +182,9 @@ void main(string[] args)
         "[0.3, 0.5, 0.7]",
         "[0.8, 0.9, 1.0]",
 
-        "[0.6, 0.7, 0.8, 0.9, 1.0]",
         "[0.025, 0.025, 0.05, 0.1, 0.8]",
-        "[0.96, 0.97, 0.98, 0.99, 1.0]",
+        "[0.1, 0.3, 0.5, 0.7, 0.9]",
+        "[0.6, 0.7, 0.8, 0.9, 1.0]",
 
         "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 1.0]",
         "[0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0]",
@@ -860,7 +862,7 @@ private void writeToFileNested(T)(string directory, string fileName, string appe
                 {
                     convertedResults[i][j] = "["
                         ~ col
-                        .map!(x => "%.4f".x))
+                        .map!(x => "%.4f".format(x))
                         .join(",")
                         ~ "]";
                 }
