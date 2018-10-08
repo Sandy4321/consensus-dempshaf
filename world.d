@@ -64,7 +64,7 @@ void main(string[] args)
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
-    immutable auto noisyEvidence = true;
+    immutable auto noisyEvidence = false;
     static if (noisyEvidence) immutable auto noiseVariance = 0.0125;
     else                      immutable auto noiseVariance = 0.0;
 
@@ -137,6 +137,8 @@ void main(string[] args)
 
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$ - 1]);
 
+    writeln("Evidence rate: ", evidenceRate);
+
     static if (noisyEvidence) writeln("Noise: ", noiseVariance);
 
     writeln("Lambda value: ", lambda);
@@ -179,7 +181,7 @@ void main(string[] args)
         "[0.9, 1.0]",
 
         "[0.2, 0.4, 1.0]",
-        "[0.3, 0.5, 0.7]",
+        "[0.25, 0.5, 0.75]",
         "[0.8, 0.9, 1.0]",
 
         "[0.025, 0.025, 0.05, 0.1, 0.8]",
@@ -782,6 +784,9 @@ void main(string[] args)
         auto append = "w";
 
         auto parameterString = "";
+
+        // Append evidence_rate for comparison figures
+        parameterString ~= "_%.3f_er".format(evidenceRate);
 
         static if (noisyEvidence) parameterString ~= "_%.4f".format(noiseVariance);
         static if (gamma) parameterString ~= "_%.4f".format(parameter);
