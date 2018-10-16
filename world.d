@@ -64,8 +64,9 @@ void main(string[] args)
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
-    immutable auto noisyEvidence = false;
-    static if (noisyEvidence) immutable auto noiseVariance = 0.0125;
+    immutable auto noisyEvidence = true;
+    // [0.025, 0.05, 0.1, 0.2, 0.3]
+    static if (noisyEvidence) immutable auto noiseVariance = 0.025;
     else                      immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
@@ -320,7 +321,7 @@ void main(string[] args)
         auto uniqueResults      = new long[][](arraySize, testSet);
         uniqueResults.each!(x => x[] = -1L);
         auto choiceResults      = new double[][][](arraySize, testSet, langSize);
-        auto powersetResults    = new double[][][](arraySize, testSet, belLength);
+        // auto powersetResults    = new double[][][](arraySize, testSet, belLength);
         auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
         auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
@@ -376,7 +377,7 @@ void main(string[] args)
             */
             int iterIndex;
             auto choiceBeliefs = new double[langSize];
-            auto powersetBeliefs = new double[belLength];
+            // auto powersetBeliefs = new double[belLength];
             double[int][] uniqueBeliefs;
             int[] uniqueBeliefsCount;
             double[2] belPl;
@@ -410,8 +411,8 @@ void main(string[] args)
                 if (iter % (iterations / iterStep) == 0)
                 {
                     choiceBeliefs[] = 0.0;
-                    if (langSize < powersetLimit)
-                        powersetBeliefs[] = 0.0;
+                    /* if (langSize < powersetLimit)
+                        powersetBeliefs[] = 0.0; */
 
                     belPl = [0.0, 0.0];
                     uniqueBeliefs.length = 0;
@@ -460,10 +461,10 @@ void main(string[] args)
                                     belPl[0] += beliefs[belIndex];
                             }
                         }
-                        if (langSize < powersetLimit)
+                        /* if (langSize < powersetLimit)
                             foreach (index; 0 .. belLength)
                                 if (index in beliefs)
-                                    powersetBeliefs[index] += beliefs[index];
+                                    powersetBeliefs[index] += beliefs[index]; */
 
                         foreach (index, ref bel; beliefs)
                         {
@@ -481,9 +482,9 @@ void main(string[] args)
                     // inconsist = (2 * inconsist) / (n * (n - 1));
                     choiceBeliefs[] /= numOfAgents;
                     belPl[] /= numOfAgents;
-                    if (langSize < powersetLimit)
+                    /* if (langSize < powersetLimit)
                         foreach (index; 0 .. belLength)
-                            powersetBeliefs[index] /= numOfAgents;
+                            powersetBeliefs[index] /= numOfAgents; */
                     cardinality /= numOfAgents;
 
                     // Format and store the resulting simulation data into their
@@ -495,10 +496,10 @@ void main(string[] args)
                         entropyResults[iterIndex][test] = entropy;
                         uniqueResults[iterIndex][test] = uniqueBeliefs.length;
                         choiceResults[iterIndex][test] = choiceBeliefs.dup;
-                        if (langSize < powersetLimit)
+                        /* if (langSize < powersetLimit)
                         {
                             powersetResults[iterIndex][test] = powersetBeliefs.dup;
-                        }
+                        } */
                         belPlResults[iterIndex][test] = belPl.dup;
                         cardMassResults[iterIndex][test] = cardinality;
 
@@ -800,11 +801,11 @@ void main(string[] args)
         writeToFileNested(directory, fileName, append, maxIterations, choiceResults);
 
         // Powerset belief
-        if (langSize < powersetLimit)
+        /* if (langSize < powersetLimit)
         {
             fileName = "average_masses" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
             writeToFileNested(directory, fileName, append, maxIterations, powersetResults);
-        }
+        } */
 
         // Best-choice Bel and Pl
         fileName = "belief_plausibility" ~ "_" ~ randomFN ~ parameterString ~ fileExt;

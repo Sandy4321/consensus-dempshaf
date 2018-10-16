@@ -10,7 +10,7 @@ void main(string[] args)
 
     auto rand = Random(unpredictableSeed);
 
-    immutable auto variance = 0.0125; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
+    immutable auto variance = 0.3; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
 
     immutable auto qualitySet = [
         [0.3, 0.9],
