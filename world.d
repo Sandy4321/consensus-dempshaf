@@ -35,7 +35,7 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 1/100.to!double;
+    immutable auto evidenceRate = 5/100.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -185,13 +185,9 @@ void main(string[] args)
         "[0.25, 0.5, 0.75]",
         "[0.8, 0.9, 1.0]",
 
-        "[0.025, 0.025, 0.05, 0.1, 0.8]",
-        "[0.1, 0.3, 0.5, 0.7, 0.9]",
-        "[0.6, 0.7, 0.8, 0.9, 1.0]",
+        "[0.1666, 0.03333, 0.5, 0.6666, 0.8333]",
 
-        "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 1.0]",
-        "[0.1, 0.1, 0.3, 0.3, 0.5, 0.5, 0.6, 0.6, 0.8, 1.0]",
-        "[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]",
+        "[0.0909, 0.1818, 0.2727, 0.3636, 0.4545, 0.5454, 0.6363, 0.7272, 0.8181, 0.9090]",
 
         "[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 1.0]"
     ];
