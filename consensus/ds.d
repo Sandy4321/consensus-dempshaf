@@ -62,7 +62,6 @@ public class DempsterShafer
     {
         import std.algorithm.iteration : sum;
         import std.conv : to;
-        import std.range : array;
 
         auto vector = indexToVec(index);
         staticSet[] = 0;
@@ -279,8 +278,6 @@ public class DempsterShafer
     {
         import std.conv : to;
         import std.random : uniform;
-
-        import std.stdio : writeln;
 
         auto pignisticBel = pignisticDist(beliefs);
         immutable auto prob = uniform!"[]"(0.0, 1.0, rand);
