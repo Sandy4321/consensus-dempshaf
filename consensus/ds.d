@@ -164,7 +164,7 @@ public class DempsterShafer
         const double[int] beliefs1,
         const double[int] beliefs2)
     {
-        import std.algorithm : setIntersection;
+        import std.algorithm : find, setIntersection;
         import std.math : approxEqual;
 
         double inconsistency = 0.0;
