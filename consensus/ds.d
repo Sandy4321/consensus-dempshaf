@@ -422,12 +422,11 @@ public class DempsterShafer
         ref from!"std.random".Random rand) //pure
     {
         import std.algorithm.iteration : filter;
-        import std.algorithm.searching : count, find;
+        import std.algorithm.searching : count;
         import std.conv : to;
         import std.math : approxEqual;
         import std.random : randomChoice = choice, uniform;
         import std.range : array, iota;
-        import std.stdio : writeln;
 
         auto pignisticBel = pignisticDist(beliefs);
 
