@@ -62,6 +62,7 @@ public class DempsterShafer
     {
         import std.algorithm.iteration : sum;
         import std.conv : to;
+        import std.range : array;
 
         auto vector = indexToVec(index);
         staticSet[] = 0;
