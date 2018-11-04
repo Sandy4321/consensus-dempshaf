@@ -61,9 +61,7 @@ public class DempsterShafer
     static auto createSet(const int index)
     {
         import std.algorithm.iteration : sum;
-        import std.algorithm.sorting : sort;
         import std.conv : to;
-        import std.range : array;
 
         auto vector = indexToVec(index);
         staticSet[] = 0;
