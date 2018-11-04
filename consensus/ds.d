@@ -65,8 +65,6 @@ public class DempsterShafer
         import std.conv : to;
         import std.range : array;
 
-        import std.stdio : writeln;
-
         auto vector = indexToVec(index);
         staticSet[] = 0;
         auto fillIndex = 0;
