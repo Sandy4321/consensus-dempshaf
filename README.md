@@ -1,4 +1,4 @@
-# Dempster-Shafer model for multi-agent consensus
+# A model of multi-agent evidence propagation and consensus formation in the Dempster-Shafer framework.
 
 In this model we compare two operators within the framework of Dempster-Shafer Theory, or Evidence Theory. This allows us to intuitively capture agents' uncertainty and, ideally, to study operators that might lead to convergence to imprecise beliefs, such as "the patient has either disease 1 or disease 2, but not any other disease." The first operator, Dempster's Rule of Combination (RoC) will be familiar to those also familiar with DST, as it is the most common rule for combining different sources of evidence. The seceond operator, referred to herein as the consensus operator, is based on Dubois and Prade's set-based operator, where the rule is simply to take the intersection when possible, and union otherwise.
 
