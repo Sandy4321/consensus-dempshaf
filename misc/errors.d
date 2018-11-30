@@ -1,4 +1,4 @@
-module dempshaf.misc.normalDistribution;
+module dempshaf.misc.errors;
 
 import dempshaf.misc.importidiom;
 

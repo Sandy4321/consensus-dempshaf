@@ -1,7 +1,7 @@
 module dempshaf.consensus.ds;
 
 import dempshaf.misc.importidiom;
-import dempshaf.misc.normalDistribution;
+import dempshaf.misc.errors;
 
 /**
  * DempsterShafer is a class for containing all of the calculation functions
@@ -362,12 +362,13 @@ public class DempsterShafer
 
     /**
      * Uses negative updating to provide evidence of the "worst" choice, selecting
-     * two choices at random, A and B, for comparison,  then updating on, e.g. ¬A,
+     * two choices at random, A and B, for comparison,  then updating on, w.o.l.g., ¬A,
      * when A is the worst choice out of the two.
      */
     static auto negMassEvidence(
         const double[] qualities,
         const double alpha,
+        const bool noisyEvidence,
         ref from!"std.random".Random rand)
     {
         import std.algorithm.iteration : filter;

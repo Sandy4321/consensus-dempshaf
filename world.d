@@ -22,8 +22,8 @@ void main(string[] args)
     immutable auto iterStep = iterations / 1;
     immutable auto testSet = 100;
     // alpha (a) is a parameter for negative evidential updating, such that 1-a is the
-    // mass assigned to the set of all choices - the worst choice selected (at random).
-    // The set of complete ignorance is then assigned a mass.
+    // mass assigned to the set of all choices minus the worst choice selected (at random).
+    // The set of complete ignorance is then assigned a mass of a.
     immutable auto alpha = 0.0;
     // gamma is used as a switch to determine whether we should threshold the operator
     // based on similarity of the agents' beliefs. This parameter attempts to control
@@ -59,15 +59,15 @@ void main(string[] args)
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
-    immutable auto negativeEvidence = false;
+    immutable auto negativeEvidence = true;
 
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
     // [0.025, 0.05, 0.1, 0.2, 0.3]
-    static if (noisyEvidence) immutable auto noiseVariance = 0.025;
-    else                      immutable auto noiseVariance = 0.0;
+    static if (noisyEvidence)   immutable auto noiseVariance = 0.025;
+    else                        immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -580,7 +580,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.negMassEvidence(
-                                        qualities, alpha, rand),
+                                        qualities, alpha, noisyEvidence, rand),
                                     0.0, false, lambda);
                             }
                             // If evidence should be provided for a random choice.
@@ -617,7 +617,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.negMassEvidence(
-                                        qualities, alpha, rand),
+                                        qualities, alpha, noisyEvidence, rand),
                                     0.0, false, lambda);
                             }
                             // If evidence should be provided for a random choice.
@@ -737,44 +737,20 @@ void main(string[] args)
         static if (!paramHeatmaps)
             directory ~= "%s_agents/".format(numOfAgents);
 
-        version (symmetric)
-        {
-            directory ~= "symmetric/";
-        }
-        version (sanityCheck)
-        {
-            directory ~= "sanity_checks/";
-        }
-        static if (lambda > 0.0)
-        {
-            directory ~= "lambda_operator_%.1f/".format(lambda);
-        }
+        version (symmetric) directory ~= "symmetric/";
+        version (sanityCheck) directory ~= "sanity_checks/";
+        static if (lambda > 0.0) directory ~= "lambda_operator_%.1f/".format(lambda);
         static if (fullyQualifiedName!combination.canFind("dempster"))
-        {
             directory ~= "dempsters_operator/";
-        }
-        else
-        {
-            directory ~= "consensus_operator/";
-        }
-        static if (negativeEvidence)
-        {
-            directory ~= "negative_evidence/";
-        }
-        else static if (evidenceOnly)
-        {
-            // directory ~= "evidence_only/";
-        }
+        else directory ~= "consensus_operator/";
+        static if (negativeEvidence) directory ~= "negative_evidence/";
+        else static if (evidenceOnly) { /* directory ~= "evidence_only/"; */ }
         static if (lambda > 0.0)
         {
             version (alterQ)
-            {
                 directory ~= "change_at_%s/".format(alterIter);
-            }
             else
-            {
                 directory ~= "no_change/";
-            }
         }
         static if (!paramHeatmaps)
             directory ~= "%s/%s/".format(langSize, qualitiesString);
