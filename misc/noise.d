@@ -25,3 +25,15 @@ auto normalDistribution(ref from!"std.random".Random rand)
 
     return [z1, z2];
 }
+
+/**
+ *
+ */
+auto negComparisonError()
+{
+    // Given a number of alternatives, calculate the likelihood of getting
+    // two comparisons wrong, where the comparisons of 1 and 2, is twice as
+    // likely as 1 and 3, etc.
+
+    return 0;
+}
