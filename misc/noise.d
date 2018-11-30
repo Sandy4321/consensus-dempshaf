@@ -1,4 +1,4 @@
-module dempshaf.misc.errors;
+module dempshaf.misc.noise;
 
 import dempshaf.misc.importidiom;
 

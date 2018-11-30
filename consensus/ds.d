@@ -1,7 +1,7 @@
 module dempshaf.consensus.ds;
 
 import dempshaf.misc.importidiom;
-import dempshaf.misc.errors;
+import dempshaf.misc.noise;
 
 /**
  * DempsterShafer is a class for containing all of the calculation functions
