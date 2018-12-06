@@ -378,7 +378,6 @@ public class DempsterShafer
         import std.random : randomChoice = choice, uniform;
         import std.range : array, iota;
 
-
         int[] selection = iota(0, qualities.length.to!int).array;
         int[] choices = [-1, -1];
         choices[0] = selection.randomChoice(rand);
@@ -395,7 +394,9 @@ public class DempsterShafer
                                        ? choices[0]: choices[1];
             immutable auto worstChoice = (qualities[choices[0]] > qualities[choices[1]])
                                        ? choices[1]: choices[0];
-            auto qualityDifference = abs((qualities[choices[0]] - qualities[choices[1]]).to!double);
+            immutable auto qualityDifference = abs(
+                qualities[choices[0]] - qualities[choices[1]]
+            );
 
             if (uniform!"[]"(0.0, 1.0, rand) > comparisonError(qualityDifference, lambda))
                  choice = bestChoice;
@@ -413,6 +414,8 @@ public class DempsterShafer
                             ? choices[0]: choices[1];
             }
         }
+
+        // alpha = abs((qualities[choices[0]] - qualities[choices[1]]).to!double);
 
         double[int] massFunction;
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
