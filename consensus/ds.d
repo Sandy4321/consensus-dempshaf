@@ -374,9 +374,10 @@ public class DempsterShafer
     {
         import std.algorithm.iteration : filter;
         import std.conv : to;
-        import std.math : approxEqual;
+        import std.math : abs, approxEqual;
         import std.random : randomChoice = choice, uniform;
         import std.range : array, iota;
+
 
         int[] selection = iota(0, qualities.length.to!int).array;
         int[] choices = [-1, -1];
@@ -390,13 +391,11 @@ public class DempsterShafer
         int choice;
         if (noisyEvidence)
         {
-            immutable auto bestChoice  = (qualities[choices[0]] < qualities[choices[1]])
+            immutable auto bestChoice  = (qualities[choices[0]] > qualities[choices[1]])
                                        ? choices[0]: choices[1];
-            immutable auto worstChoice = (qualities[choices[0]] < qualities[choices[1]])
+            immutable auto worstChoice = (qualities[choices[0]] > qualities[choices[1]])
                                        ? choices[1]: choices[0];
-            auto qualityDifference = (qualities[choices[0]] - qualities[choices[1]]).to!double;
-
-            if (qualityDifference < 0.0) qualityDifference = -qualityDifference;
+            auto qualityDifference = abs((qualities[choices[0]] - qualities[choices[1]]).to!double);
 
             if (uniform!"[]"(0.0, 1.0, rand) > comparisonError(qualityDifference, lambda))
                  choice = bestChoice;
@@ -404,8 +403,15 @@ public class DempsterShafer
         }
         else
         {
-            choice = (qualities[choices[0]] < qualities[choices[1]])
-                   ? choices[0]: choices[1];
+            if (qualities[choices[0]].approxEqual(qualities[choices[1]], precision))
+            {
+                choice = choices.randomChoice(rand);
+            }
+            else
+            {
+                choice = (qualities[choices[0]] > qualities[choices[1]])
+                            ? choices[0]: choices[1];
+            }
         }
 
         double[int] massFunction;
@@ -488,7 +494,7 @@ public class DempsterShafer
             }
             else
             {
-                choice = (qualities[choices[0]] < qualities[choices[1]])
+                choice = (qualities[choices[0]] > qualities[choices[1]])
                             ? choices[0]: choices[1];
             }
         }
