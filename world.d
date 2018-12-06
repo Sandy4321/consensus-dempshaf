@@ -35,7 +35,7 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 5/100.to!double;
+    immutable auto evidenceRate = 1/100.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -68,8 +68,9 @@ void main(string[] args)
     // [0.025, 0.05, 0.1, 0.2, 0.3]
     static if (negativeEvidence && noisyEvidence)
     {
-        double[] parameterSet = [-10.0, -5.0, -3.0, -1.0, -0.1, 0.0, 1.0, 3.0,
-                        5.0, 10.0, 20.0, 100.0];
+        double[] parameterSet = [
+            -10.0, -5.0, -3.0, -1.0, -0.1, 0.0, 1.0, 3.0, 5.0, 10.0, 20.0, 100.0
+        ];
     }
     else static if (noisyEvidence) immutable auto noiseVariance = 0.025;
     else                           immutable auto noiseVariance = 0.0;
