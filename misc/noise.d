@@ -27,20 +27,19 @@ auto normalDistribution(ref from!"std.random".Random rand)
 }
 
 /**
- *
+ * Generate the error function for calculating probabilities of
+ * confusing one option for an alternative, depending on their
+ * relative placement to one another.
  */
-auto negComparisonError(
-    const double x,
-    const double lambda,
-    ref from!"std.random".Random rand)
+auto comparisonError(const double x, const double lambda)
 {
     import std.math : E;
     import std.math : pow;
 
     // Bound the error function in [0, bound]
     immutable auto bound = 0.5;
-    auto errorValue = pow(E, -lambda * x) - pow(E, -lambda);
-         errorValue = errorValue / 1 - pow(E, -lambda);
+    immutable double errorValue = ( pow(E, -lambda * x) - pow(E, -lambda) )
+                                / ( 1.0 - pow(E, -lambda) );
 
     return bound * errorValue;
 }

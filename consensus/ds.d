@@ -362,19 +362,20 @@ public class DempsterShafer
 
     /**
      * Uses negative updating to provide evidence of the "worst" choice, selecting
-     * two choices at random, A and B, for comparison,  then updating on, w.o.l.g., ¬A,
+     * two choices at random, A and B, for comparison, then updating on, w.o.l.g., ¬A,
      * when A is the worst choice out of the two.
      */
     static auto negMassEvidence(
         const double[] qualities,
         const double alpha,
         const bool noisyEvidence,
+        const double lambda,
         ref from!"std.random".Random rand)
     {
         import std.algorithm.iteration : filter;
         import std.conv : to;
         import std.math : approxEqual;
-        import std.random : randomChoice = choice;
+        import std.random : randomChoice = choice, uniform;
         import std.range : array, iota;
 
         int[] selection = iota(0, qualities.length.to!int).array;
@@ -386,8 +387,26 @@ public class DempsterShafer
         }
         while (choices[0] == choices[1]);
 
-        immutable int choice = (qualities[choices[0]] < qualities[choices[1]])
-                             ? choices[0]: choices[1];
+        int choice;
+        if (noisyEvidence)
+        {
+            immutable auto bestChoice  = (qualities[choices[0]] < qualities[choices[1]])
+                                       ? choices[0]: choices[1];
+            immutable auto worstChoice = (qualities[choices[0]] < qualities[choices[1]])
+                                       ? choices[1]: choices[0];
+            auto qualityDifference = (qualities[choices[0]] - qualities[choices[1]]).to!double;
+
+            if (qualityDifference < 0.0) qualityDifference = -qualityDifference;
+
+            if (uniform!"[]"(0.0, 1.0, rand) > comparisonError(qualityDifference, lambda))
+                 choice = bestChoice;
+            else choice = worstChoice;
+        }
+        else
+        {
+            choice = (qualities[choices[0]] < qualities[choices[1]])
+                   ? choices[0]: choices[1];
+        }
 
         double[int] massFunction;
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)

@@ -66,8 +66,13 @@ void main(string[] args)
     // If noiseVariance = 0.0, then no noise is added.
     immutable auto noisyEvidence = true;
     // [0.025, 0.05, 0.1, 0.2, 0.3]
-    static if (noisyEvidence)   immutable auto noiseVariance = 0.025;
-    else                        immutable auto noiseVariance = 0.0;
+    static if (negativeEvidence && noisyEvidence)
+    {
+        double[] parameterSet = [-10.0, -5.0, -3.0, -1.0, -0.1, 0.0, 1.0, 3.0,
+                        5.0, 10.0, 20.0, 100.0];
+    }
+    else static if (noisyEvidence) immutable auto noiseVariance = 0.025;
+    else                           immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -140,8 +145,6 @@ void main(string[] args)
 
     writeln("Evidence rate: ", evidenceRate);
 
-    static if (noisyEvidence) writeln("Noise: ", noiseVariance);
-
     writeln("Lambda value: ", lambda);
     version (alterQ) writeln("Altering value(s) after ", alterIter, " iterations.");
 
@@ -151,6 +154,9 @@ void main(string[] args)
     static if (negativeEvidence) writeln("negative");
     else static if (randomEvidence) writeln("random");
     else writeln("probabilistic");
+
+    static if (negativeEvidence && noisyEvidence) writeln("Noise: noisy comparisons");
+    else static if (noisyEvidence) writeln("Noise: ", noiseVariance);
 
     if (evidenceOnly)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
@@ -244,6 +250,7 @@ void main(string[] args)
         int[] parameterSet = [2, 3, 5, 7, 9, 10];
     }
     else static if (qualityHeatmaps){}
+    else static if (negativeEvidence && noisyEvidence){}
     else
     {
         immutable double[] parameterSet = [0.0];
@@ -580,7 +587,8 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.negMassEvidence(
-                                        qualities, alpha, noisyEvidence, rand),
+                                        qualities, alpha, noisyEvidence,
+                                        parameter, rand),
                                     0.0, false, lambda);
                             }
                             // If evidence should be provided for a random choice.
@@ -617,7 +625,8 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.negMassEvidence(
-                                        qualities, alpha, noisyEvidence, rand),
+                                        qualities, alpha, noisyEvidence,
+                                        parameter, rand),
                                     0.0, false, lambda);
                             }
                             // If evidence should be provided for a random choice.
@@ -761,7 +770,9 @@ void main(string[] args)
         // Append evidence_rate for comparison figures
         parameterString ~= "_%.3f_er".format(evidenceRate);
 
-        static if (noisyEvidence) parameterString ~= "_%.4f".format(noiseVariance);
+        static if (negativeEvidence && noisyEvidence)
+            parameterString ~= "_lambda_%.2f".format(parameter);
+        else static if (noisyEvidence) parameterString ~= "_%.4f".format(noiseVariance);
         static if (gamma) parameterString ~= "_%.4f".format(parameter);
         else static if (iota) parameterString ~= "_%.2f".format(parameter);
         static if (paramHeatmaps) parameterString ~= "_" ~ numOfAgents.to!string

@@ -1,63 +1,23 @@
 module dempshaf.generateErrorProfile;
 
-import dempshaf.misc.normalDistribution;
+import dempshaf.misc.noise;
 
-import std.math, std.stdio, std.string, std.random;
+import std.conv, std.stdio, std.string;
 
 void main(string[] args)
 {
-    immutable auto iterations = 500_000;
+    auto lambda = [-10.0, -5.0, -3.0, -1.0, -0.1, 0.0, 1.0, 3.0, 5.0, 10.0, 20.0, 100.0];
+    immutable auto xSamples = 1000;
 
-    auto rand = Random(unpredictableSeed);
+    auto results = new double[][](lambda.length, xSamples + 1);
 
-    immutable auto variance = 0.3; // Sigma^2, StdDev = Sigma, sqrt(Sigma^2)
-
-    immutable auto qualitySet = [
-        [0.3, 0.9],
-        [0.5, 1.0],
-        [0.9, 1.0],
-
-        [0.2, 0.4, 1.0],
-        [0.25, 0.5, 0.75],
-        [0.8, 0.9, 1.0]
-    ];
-
-    immutable auto qualities = qualitySet[4];
-    immutable auto choices = qualities.length;
-
-    auto values = new double[][](choices, iterations);
-
-    auto getNoise = true;
-    real[2] noisePair;
-
-    foreach (iteration; 0 .. iterations)
+    foreach (i, value; lambda)
     {
-        foreach (choice; 0 .. choices)
+        foreach (x; 0 .. xSamples + 1)
         {
-            double noise;
-            double quality = qualities[choice];
-            do
-            {
-                if (getNoise)
-                {
-                    noisePair = normalDistribution(rand);
-                    noise = noisePair[0];
-                    getNoise = false;
-                }
-                else
-                {
-                    noise = noisePair[1];
-                    getNoise = true;
-                }
-
-                noise *= variance;
-
-            } while (quality + noise < 0 || quality + noise > 1);
-            quality += noise;
-
-            if (quality > 1)      values[choice][iteration] = 1.0;
-            else if (quality < 0) values[choice][iteration] = 0.0;
-            else                  values[choice][iteration] = quality;
+            results[i][x] = comparisonError(x/xSamples.to!double, value);
+            // writeln(value);
+            // writeln(x/xSamples.to!double);
         }
     }
 
@@ -65,20 +25,19 @@ void main(string[] args)
 
     string directory = "../results/test_results/dempshaf/";
 
-    auto file = File("noise_results.csv", "w");
+    auto file = File("error_results.csv", "w");
 
-    file.write(format("%.4f\n", variance));
-    foreach (choice; 0 .. choices)
+    foreach (i, value; lambda)
     {
-        file.write(format("%.2f", qualities[choice]));
-        file.write((choice == choices - 1) ? "\n" : ",");
+        file.write(format("%.2f", value));
+        file.write((value == lambda[$-1]) ? "\n" : ",");
     }
-    foreach (choice; 0 .. choices)
+    foreach (i, value; lambda)
     {
-        foreach (iteration; 0 .. iterations)
+        foreach (x; 0 .. xSamples + 1)
         {
-            file.write(format("%.4f", values[choice][iteration]));
-            file.write((iteration == cast(ulong) values[choice].length - 1) ? "\n" : ",");
+            file.write(format("%.4f", results[i][x]));
+            file.write((x == cast(ulong) results[i].length - 1) ? "\n" : ",");
         }
     }
     file.close();

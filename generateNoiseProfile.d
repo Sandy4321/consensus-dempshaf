@@ -1,6 +1,6 @@
 module dempshaf.generateNoiseProfile;
 
-import dempshaf.misc.normalDistribution;
+import dempshaf.misc.noise;
 
 import std.math, std.stdio, std.string, std.random;
 
