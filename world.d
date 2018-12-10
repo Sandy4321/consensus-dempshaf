@@ -192,7 +192,7 @@ void main(string[] args)
         "[0.25, 0.5, 0.75]",
         "[0.8, 0.9, 1.0]",
 
-        "[0.1666, 0.03333, 0.5, 0.6666, 0.8333]",
+        "[0.1666, 0.3333, 0.5, 0.6666, 0.8333]",
 
         "[0.0909, 0.1818, 0.2727, 0.3636, 0.4545, 0.5454, 0.6363, 0.7272, 0.8181, 0.9090]",
 
@@ -588,7 +588,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.negMassEvidence(
-                                        qualities, alpha, noisyEvidence,
+                                        qualities, noisyEvidence,
                                         parameter, rand),
                                     0.0, false, lambda);
                             }
@@ -626,7 +626,7 @@ void main(string[] args)
                                 agent.beliefs = combination(
                                     langSize, agent.beliefs,
                                     DempsterShafer.negMassEvidence(
-                                        qualities, alpha, noisyEvidence,
+                                        qualities, noisyEvidence,
                                         parameter, rand),
                                     0.0, false, lambda);
                             }

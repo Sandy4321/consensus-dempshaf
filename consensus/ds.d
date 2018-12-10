@@ -367,7 +367,6 @@ public class DempsterShafer
      */
     static auto negMassEvidence(
         const double[] qualities,
-        const double alpha,
         const bool noisyEvidence,
         const double lambda,
         ref from!"std.random".Random rand)
@@ -387,13 +386,18 @@ public class DempsterShafer
         }
         while (choices[0] == choices[1]);
 
+        // The choice we select in the following code relates to which option
+        // is NOT THE BEST, as opposed to choosing the best option. This is so
+        // we can select the most vague focal set which does not contain the
+        // worst choice, and update based on that set.
+
         int choice;
         if (noisyEvidence)
         {
             immutable auto bestChoice  = (qualities[choices[0]] > qualities[choices[1]])
-                                       ? choices[0]: choices[1];
-            immutable auto worstChoice = (qualities[choices[0]] > qualities[choices[1]])
                                        ? choices[1]: choices[0];
+            immutable auto worstChoice = (qualities[choices[0]] > qualities[choices[1]])
+                                       ? choices[0]: choices[1];
             immutable auto qualityDifference = abs(
                 qualities[choices[0]] - qualities[choices[1]]
             );
@@ -411,30 +415,28 @@ public class DempsterShafer
             else
             {
                 choice = (qualities[choices[0]] > qualities[choices[1]])
-                            ? choices[0]: choices[1];
+                       ? choices[1]: choices[0];
             }
         }
 
-        // alpha = abs((qualities[choices[0]] - qualities[choices[1]]).to!double);
+        // immutable auto alpha = abs((qualities[choices[0]] - qualities[choices[1]]));
+        immutable auto alpha = 0;
 
         double[int] massFunction;
         immutable int[] evidenceSet = iota(0, qualities.length.to!int)
-                                    .filter!(a => a != choice)
-                                    .array;
-        int index = setToIndex(evidenceSet);
+                                      .filter!(a => a != choice)
+                                      .array;
+        immutable int index = setToIndex(evidenceSet);
 
-        assert(index != int.init);
-
-        if (approxEqual(alpha, 1.0, precision))
-            massFunction[(2^^qualities.length.to!int)-2] = 1.0;
-        else if (approxEqual(alpha, 0.0, precision))
+        assert(!approxEqual(alpha, 1.0, precision));
+        if (approxEqual(alpha, 0.0, precision))
         {
             massFunction[index] = 1.0;
         }
         else
         {
-            massFunction[index] = 1 - alpha;
-            massFunction[(2^^qualities.length.to!int)-2] = alpha;
+            massFunction[index] = alpha;
+            massFunction[(2^^qualities.length.to!int)-2] = 1 - alpha;
         }
 
         return massFunction;
@@ -527,9 +529,8 @@ public class DempsterShafer
 
         assert(index != int.init);
 
-        if (approxEqual(alpha, 1.0, precision))
-            massFunction[(2^^qualities.length.to!int)-2] = 1.0;
-        else if (approxEqual(alpha, 0.0, precision))
+        assert(!approxEqual(alpha, 1.0, precision));
+        if (approxEqual(alpha, 0.0, precision))
         {
             massFunction[index] = 1.0;
         }

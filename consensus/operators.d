@@ -83,8 +83,11 @@ public final class Operators
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
-        foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
-        if (lambda > 0) beliefs[cast(int) (2^^langSize) - 2] += lambda;
+        if (lambda > 0)
+        {
+            foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
+            beliefs[cast(int) (2^^langSize) - 2] += lambda;
+        }
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
@@ -155,8 +158,11 @@ public final class Operators
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
-        foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
-        if (lambda > 0) beliefs[cast(int) (2^^langSize) - 2] += lambda;
+        if (lambda > 0)
+        {
+            foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
+            beliefs[cast(int) (2^^langSize) - 2] += lambda;
+        }
 
         // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
         immutable auto renormaliser = beliefs.byValue.sum;
