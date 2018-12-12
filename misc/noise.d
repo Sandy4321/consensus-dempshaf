@@ -36,6 +36,8 @@ auto comparisonError(const double x, const double lambda)
     import std.math : E;
     import std.math : pow;
 
+    if (lambda == 0) return 0.0;
+
     // Bound the error function in [0, bound]
     immutable auto bound = 0.5;
     immutable double errorValue = ( pow(E, -lambda * x) - pow(E, -lambda) )

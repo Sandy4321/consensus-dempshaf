@@ -47,8 +47,8 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
-    // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.consensus;
+    alias combination = Operators.dempsterRoC;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;

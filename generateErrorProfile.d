@@ -6,7 +6,7 @@ import std.conv, std.stdio, std.string;
 
 void main(string[] args)
 {
-    auto lambda = [-10.0, -5.0, -3.0, -1.0, -0.1, 0.0, 1.0, 3.0, 5.0, 10.0, 20.0, 100.0];
+    auto lambda = [-10.0, -5.0, -3.0, -1.0, 0.0, 1.0, 3.0, 5.0, 10.0, 20.0, 100.0];
     immutable auto xSamples = 1000;
 
     auto results = new double[][](lambda.length, xSamples + 1);
