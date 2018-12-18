@@ -24,7 +24,7 @@ void main(string[] args)
     // alpha (a) is a parameter for negative evidential updating, such that 1-a is the
     // mass assigned to the set of all choices minus the worst choice selected (at random).
     // The set of complete ignorance is then assigned a mass of a.
-    immutable auto alpha = 0.0;
+    // immutable auto alpha = 0.0;
     // gamma is used as a switch to determine whether we should threshold the operator
     // based on similarity of the agents' beliefs. This parameter attempts to control
     // how imprecise agents' beliefs are at steady state.
