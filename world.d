@@ -429,6 +429,12 @@ void main(string[] args)
                     {
                         auto beliefs = agent.beliefs;
 
+                        /*
+                         * Perhaps this is where I should increment the time_since_change
+                         * counter, so that the time since their last change is actual
+                         * iterations and not interactions...
+                         */
+
                         append = true;
                         foreach (uniqIndex, unique; uniqueBeliefs)
                         {
