@@ -48,7 +48,7 @@ void main(string[] args)
     // Consensus operator, and Dempster's rule of combination
 
     // alias combination = Operators.consensus;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.average;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
@@ -64,7 +64,7 @@ void main(string[] args)
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
-    immutable auto noisyEvidence = true;
+    immutable auto noisyEvidence = false;
     // [0.025, 0.05, 0.1, 0.2, 0.3]
     static if (negativeEvidence && noisyEvidence)
     {
@@ -485,7 +485,10 @@ void main(string[] args)
 
                         // Check if agent has reached a steady state
                         if (agent.timeSinceChange < changeThreshold)
+                        {
+                            writeln(agent.timeSinceChange);
                             reachedSteadyState = false;
+                        }
                     }
                     entropy /= numOfAgents;
                     assert(!entropy.isNaN);
@@ -588,6 +591,9 @@ void main(string[] args)
                         foreach (i; restrictedPopulation)
                         {
                             Agent agent = population[i];
+
+                            if (uniform01(rand) > evidenceRate)
+                                continue;
 
                             static if (negativeEvidence)
                             {

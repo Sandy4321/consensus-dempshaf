@@ -11,6 +11,7 @@ public final class Agent
         double[int] mBeliefs;
         int mInteractions;
         int mTimeSinceChange;
+        bool mBeliefChanged;
         // Temp variables
         string tempProp;
     }
@@ -43,6 +44,7 @@ public final class Agent
                     beliefs[index].approxEqual(this.mBeliefs[index]))
                 {
                     this.mTimeSinceChange++;
+                    break;
                 }
                 else this.mTimeSinceChange = 0;
             }

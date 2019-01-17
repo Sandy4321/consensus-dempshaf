@@ -18,6 +18,8 @@ public final class Operators
      */
     static int[] currentSet;
     static int[] setUnion;
+    static int[] indices1;
+    static int[] indices2;
 
     /**
      * Consensus operator for Dempster-Shafer mass functions.
@@ -95,6 +97,84 @@ public final class Operators
         if (renormaliser != 1.0)
             foreach (ref index; beliefs.byKey)
                 beliefs[index] /= renormaliser;
+
+        return beliefs;
+    }
+
+    /**
+     * Averaging operator for Dempster-Shafer mass functions.
+     */
+    static auto average(
+        const int langSize,
+        const double[int] beliefs1,
+        const double[int] beliefs2,
+        const double threshold,
+        const bool affectOperator,
+        const double lambda)
+    {
+        import std.algorithm : sort, sum;
+        import std.array : array;
+        import std.conv : to;
+
+        import std.stdio : writeln;
+
+        double[int] beliefs;
+        if (indices1 == null) indices1.reserve(langSize * 2);
+        if (indices2 == null) indices2.reserve(langSize * 2);
+
+        indices1 = beliefs1.keys.sort.array;
+        indices2 = beliefs2.keys.sort.array;
+
+        writeln(beliefs1);
+        writeln(beliefs2);
+
+        int index1 = 0;
+        int index2 = 0;
+        int i1 = 0;
+        int i2 = 0;
+
+        while (index1 != indices1.length && index2 != indices2.length)
+        {
+            i1 = indices1[index1];
+            i2 = indices2[index2];
+            if (i1 == i2)
+            {
+                // The new mass is the average of the two masses
+                beliefs[i1] = (beliefs1[i1] + beliefs2[i2]) / 2.0;
+
+                index1++; index2++;
+            }
+            else if (i1 < i2)
+            {
+                beliefs[i1] = beliefs1[i1] / 2.0;
+
+                index1++;
+            }
+            else if (i2 < i1)
+            {
+                beliefs[i2] = beliefs2[i2] / 2.0;
+
+                index2++;
+            }
+        }
+
+        // Apply the lambda parameter to skew beliefs away from the usual fixed-points
+        // of 0 and 1.
+        if (lambda > 0)
+        {
+            foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
+            beliefs[cast(int) (2^^langSize) - 2] += lambda;
+        }
+
+        // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
+        immutable auto renormaliser = beliefs.byValue.sum;
+
+        if (renormaliser != 1.0)
+            foreach (ref index; beliefs.byKey)
+                beliefs[index] /= renormaliser;
+
+        writeln(beliefs);
+        writeln("---------------------");
 
         return beliefs;
     }
