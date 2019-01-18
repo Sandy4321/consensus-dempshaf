@@ -36,19 +36,28 @@ public final class Agent
             }
         }
 
+        bool beliefsChanged = false;
+
         if (beliefs.length == this.mBeliefs.length)
         {
             foreach (index; beliefs.byKey)
             {
-                if (index in this.mBeliefs &&
-                    beliefs[index].approxEqual(this.mBeliefs[index]))
+                if  (index !in this.mBeliefs)
                 {
-                    this.mTimeSinceChange++;
+                    beliefsChanged = true;
                     break;
                 }
-                else this.mTimeSinceChange = 0;
+                else if (!beliefs[index].approxEqual(this.mBeliefs[index]))
+                {
+                    beliefsChanged = true;
+                    break;
+                }
             }
         }
+        else beliefsChanged = true;
+
+        if (beliefsChanged) this.mTimeSinceChange = 0;
+        else this.mTimeSinceChange++;
 
         this.mBeliefs = beliefs.dup;
         if (increment) this.incrementInteractions;

@@ -116,17 +116,12 @@ public final class Operators
         import std.array : array;
         import std.conv : to;
 
-        import std.stdio : writeln;
-
         double[int] beliefs;
         if (indices1 == null) indices1.reserve(langSize * 2);
         if (indices2 == null) indices2.reserve(langSize * 2);
 
         indices1 = beliefs1.keys.sort.array;
         indices2 = beliefs2.keys.sort.array;
-
-        writeln(beliefs1);
-        writeln(beliefs2);
 
         int index1 = 0;
         int index2 = 0;
@@ -157,6 +152,21 @@ public final class Operators
                 index2++;
             }
         }
+        // One of the indices have not yet been exhausted.
+        while (index1 != indices1.length)
+        {
+            i1 = indices1[index1];
+            beliefs[i1] = beliefs1[i1] / 2.0;
+
+            index1++;
+        }
+        while (index2 != indices2.length)
+        {
+            i2 = indices2[index2];
+            beliefs[i2] = beliefs2[i2] / 2.0;
+
+            index2++;
+        }
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
@@ -172,9 +182,6 @@ public final class Operators
         if (renormaliser != 1.0)
             foreach (ref index; beliefs.byKey)
                 beliefs[index] /= renormaliser;
-
-        writeln(beliefs);
-        writeln("---------------------");
 
         return beliefs;
     }

@@ -35,7 +35,7 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 1/100.to!double;
+    immutable auto evidenceRate = 2/1000.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -48,8 +48,8 @@ void main(string[] args)
     // Consensus operator, and Dempster's rule of combination
 
     // alias combination = Operators.consensus;
-    // alias combination = Operators.average;
-    alias combination = Operators.dempsterRoC;
+    alias combination = Operators.average;
+    // alias combination = Operators.dempsterRoC;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
@@ -60,12 +60,12 @@ void main(string[] args)
     // Evidence is random, not probabilistic:
     immutable auto randomEvidence = false;
     // Agents receive negative information.
-    immutable auto negativeEvidence = true;
+    immutable auto negativeEvidence = false;
 
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
-    immutable auto noisyEvidence = true;
+    immutable auto noisyEvidence = false;
     // [0.025, 0.05, 0.1, 0.2, 0.3]
     static if (negativeEvidence && noisyEvidence)
     {
@@ -287,7 +287,7 @@ void main(string[] args)
 
     // Convergence parameters and variables
     // immutable auto changeThreshold = 50;     This was seen as no. of agents / 2
-    immutable auto changeThreshold = 100;
+    immutable auto changeThreshold = 50;
 
     auto maxIterations = 0;
 
@@ -761,9 +761,12 @@ void main(string[] args)
         version (symmetric) directory ~= "symmetric/";
         version (sanityCheck) directory ~= "sanity_checks/";
         static if (lambda > 0.0) directory ~= "lambda_operator_%.1f/".format(lambda);
-        static if (fullyQualifiedName!combination.canFind("dempster"))
+        static if (fullyQualifiedName!combination.canFind("Operators.dempster"))
             directory ~= "dempsters_operator/";
-        else directory ~= "consensus_operator/";
+        else static if (fullyQualifiedName!combination.canFind("Operators.consensus"))
+            directory ~= "consensus_operator/";
+        else static if (fullyQualifiedName!combination.canFind("Operators.average"))
+            directory ~= "average_operator/";
         static if (negativeEvidence) directory ~= "negative_evidence/";
         else static if (evidenceOnly) { /* directory ~= "evidence_only/"; */ }
         static if (lambda > 0.0)
