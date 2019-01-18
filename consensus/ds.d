@@ -200,14 +200,15 @@ public class DempsterShafer
     static auto generatePowerset(const int langSize)
     {
         import std.algorithm.sorting : sort;
+        import std.conv : to;
 
         auto powerset = new int[][]((2^^langSize));
         auto props = new int[langSize];
 
         foreach (ref set; powerset)
         {
-            foreach (int i, ref prop; props)
-                if (prop == 1) set ~= i;
+            foreach (i, ref prop; props)
+                if (prop == 1) set ~= i.to!int;
 
             props[0]++;
             foreach (i, ref prop; props[0 .. $-1])
@@ -283,12 +284,12 @@ public class DempsterShafer
         immutable auto prob = uniform!"[]"(0.0, 1.0, rand);
         auto sum = 0.0;
         int choice;
-        foreach (int i, ref bel; pignisticBel)
+        foreach (i, ref bel; pignisticBel)
         {
             sum += bel;
             if (sum >= prob)
             {
-                choice = i;
+                choice = i.to!int;
                 break;
             }
         }
@@ -468,12 +469,12 @@ public class DempsterShafer
             auto prob = uniform!"[]"(0.0, 1.0, rand);
             int[] choices = [-1, -1];
             auto sum = 0.0;
-            foreach (int i, ref bel; pignisticBel)
+            foreach (i, ref bel; pignisticBel)
             {
                 sum += bel;
                 if (sum >= prob)
                 {
-                    choices[0] = i;
+                    choices[0] = i.to!int;
                     break;
                 }
             }
@@ -481,12 +482,12 @@ public class DempsterShafer
             {
                 prob = uniform!"[]"(0.0, 1.0, rand);
                 sum = 0.0;
-                foreach (int i, ref bel; pignisticBel)
+                foreach (i, ref bel; pignisticBel)
                 {
                     sum += bel;
                     if (sum >= prob)
                     {
-                        choices[1] = i;
+                        choices[1] = i.to!int;
                         break;
                     }
                 }
