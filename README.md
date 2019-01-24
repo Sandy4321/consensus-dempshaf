@@ -7,6 +7,7 @@ Two versions of this model have been developed: an *asymmetric* model in which t
 We are interested in looking at a range of problems within this model, including:
 
 - Consensus operator (intersection when possible, union otherwise) vs Dempster's rule of combination.
+- Adding average operator and Yager's operator for additional comparisons.
 - Thresholding the operators to allow convergence to imprecise beliefs.
 - Recovery from changes in qualities of choices; dropping quality value of dominant choice to see how the population reacts to changes in the environment.
 - Benchmarking with evidential-updating only.
