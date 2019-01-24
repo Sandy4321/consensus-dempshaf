@@ -135,19 +135,19 @@ public final class Operators
             if (i1 == i2)
             {
                 // The new mass is the average of the two masses
-                beliefs[i1] = (beliefs1[i1] + beliefs2[i2]) / 2.0;
+                beliefs[i1] += (beliefs1[i1] + beliefs2[i2]) / 2.0;
 
                 index1++; index2++;
             }
             else if (i1 < i2)
             {
-                beliefs[i1] = beliefs1[i1] / 2.0;
+                beliefs[i1] += beliefs1[i1] / 2.0;
 
                 index1++;
             }
             else if (i2 < i1)
             {
-                beliefs[i2] = beliefs2[i2] / 2.0;
+                beliefs[i2] += beliefs2[i2] / 2.0;
 
                 index2++;
             }
@@ -156,14 +156,14 @@ public final class Operators
         while (index1 != indices1.length)
         {
             i1 = indices1[index1];
-            beliefs[i1] = beliefs1[i1] / 2.0;
+            beliefs[i1] += beliefs1[i1] / 2.0;
 
             index1++;
         }
         while (index2 != indices2.length)
         {
             i2 = indices2[index2];
-            beliefs[i2] = beliefs2[i2] / 2.0;
+            beliefs[i2] += beliefs2[i2] / 2.0;
 
             index2++;
         }
@@ -242,6 +242,77 @@ public final class Operators
                 beliefs[index] /= 1.0 - emptySet;
         // If beliefs are completely inconsistent, just return the original belief.
         else return null;
+
+        // Apply the lambda parameter to skew beliefs away from the usual fixed-points
+        // of 0 and 1.
+        if (lambda > 0)
+        {
+            foreach (ref index; beliefs.byKey) beliefs[index] *= 1 - lambda;
+            beliefs[cast(int) (2^^langSize) - 2] += lambda;
+        }
+
+        // Normalisation to ensure beliefs sum to 1.0 due to potential rounding errors.
+        immutable auto renormaliser = beliefs.byValue.sum;
+
+        if (renormaliser != 1.0)
+            foreach (ref index; beliefs.byKey)
+                beliefs[index] /= renormaliser;
+
+        return beliefs;
+    }
+
+    /**
+     * Dempster-Shafer's rule of combination operator.
+     */
+    static auto yager(
+        const int langSize,
+        const double[int] beliefs1,
+        const double[int] beliefs2,
+        const double threshold,
+        const bool affectOperator,
+        const double lambda)
+    {
+        import std.algorithm : setIntersection, sum;
+        import std.math : approxEqual;
+        import std.range : array;
+
+        double[int] beliefs;
+        auto emptySet = 0.0;
+        if (currentSet == null) currentSet.reserve(langSize);
+        if (setUnion == null) setUnion.reserve(langSize * 2);
+
+        foreach (i, ref bel1; beliefs1)
+        {
+            // If the mass is 0, skip this set.
+            if (approxEqual(bel1, 0.0, this.precision)) continue;
+
+            foreach (j, ref bel2; beliefs2)
+            {
+                // If the mass is 0, skip this set.
+                if (approxEqual(bel2, 0.0, this.precision)) continue;
+
+                auto set1 = DempsterShafer.createSet(i);
+                auto set2 = DempsterShafer.createSet(j);
+                auto setIntersec = setIntersection(set1, set2);
+
+                /*
+                 * If the intersection is the empty set, add to empty set
+                 * and renormalise later.
+                 */
+                if (setIntersec.empty)
+                {
+                    emptySet += bel1 * bel2;
+                    continue;
+                }
+                // If the intersection is not empty, recreate the intersection set.
+                else currentSet = setIntersec.array;
+
+                beliefs[DempsterShafer.setToIndex(currentSet)] += bel1 * bel2;
+            }
+        }
+
+        if (beliefs.length == 1) beliefs[beliefs.keys[0]] = 1.0;
+        else beliefs[cast(int) (2^^langSize) - 2] = emptySet;
 
         // Apply the lambda parameter to skew beliefs away from the usual fixed-points
         // of 0 and 1.
