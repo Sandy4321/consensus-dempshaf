@@ -1,4 +1,5 @@
-module misc.dcallgrind;import std.array;
+module misc.dcallgrind;
+import std.array;
 import std.stdio;
 import std.demangle;
 import std.regex;
@@ -12,5 +13,9 @@ void main(string[] args)
     auto inFile = isStdin ? stdin : File(args[1]);
     auto outFile = isStdin ? stdout : File(args[1] ~ ".demangled", "w");
     foreach (l; inFile.byLine(KeepTerminator.yes))
-        outFile.write(replace!(a => demangle(to!string(a.hit)).replace("\"", "''"))(l, re));
+        outFile.write(
+            replace!(
+                a => demangle(to!string(a.hit)).replace("\"", "''")
+            )(l, re)
+        );
 }
