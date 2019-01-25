@@ -20,7 +20,7 @@ void main(string[] args)
      */
     immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 2;
+    immutable auto testSet = 10;
     // alpha (a) is a parameter for negative evidential updating, such that 1-a is the
     // mass assigned to the set of all choices minus the worst choice selected (at random).
     // The set of complete ignorance is then assigned a mass of a.
@@ -319,17 +319,19 @@ void main(string[] args)
 
         // auto inconsistResults   = new string[][](arraySize, testSet);
         auto entropyResults     = new double[][](arraySize, testSet);
-        auto uniqueResults      = new long[][](arraySize, testSet);
-        uniqueResults.each!(x => x[] = -1L);
+        // auto uniqueResults      = new long[][](arraySize, testSet);
+        // uniqueResults.each!(x => x[] = -1L);
         auto choiceResults      = new double[][][](arraySize, testSet, langSize);
         // auto powersetResults    = new double[][][](arraySize, testSet, belLength);
         auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
         // auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
-        auto agentsForTrajectories = std.range.iota(numOfAgents)
-                                              .randomSample(5, rand)
-                                              .array;
+        // auto agentsForTrajectories = std.range.iota(numOfAgents)
+        //                                       .randomSample(5, rand)
+        //                                       .array;
         // auto trajectoryBeliefs = new double[][][](arraySize, agentsForTrajectories.length, 3);
+
+        auto restrictedPopulation = new ulong[numOfAgents]
 
         /*
         * Main test loop;
@@ -379,14 +381,13 @@ void main(string[] args)
             int iterIndex;
             auto choiceBeliefs = new double[langSize];
             // auto powersetBeliefs = new double[belLength];
-            double[int][] uniqueBeliefs;
-            int[] uniqueBeliefsCount;
+            // double[int][] uniqueBeliefs;
+            // int[] uniqueBeliefsCount;
             double[2] belPl;
             // double inconsist,
             double entropy, cardinality;
             bool append, reachedSteadyState;
 
-            auto restrictedPopulation = new ulong[numOfAgents];
             foreach (index; 0 .. numOfAgents)
                 restrictedPopulation[index] = index;
             version (asymmetric) auto snapshotPopulation = new Agent[numOfAgents];
@@ -416,8 +417,8 @@ void main(string[] args)
                         powersetBeliefs[] = 0.0; */
 
                     belPl = [0.0, 0.0];
-                    uniqueBeliefs.length = 0;
-                    uniqueBeliefsCount.length = 0;
+                    // uniqueBeliefs.length = 0;
+                    // uniqueBeliefsCount.length = 0;
                     // inconsist =
                     entropy = cardinality = 0.0;
                     reachedSteadyState = true;
@@ -432,7 +433,7 @@ void main(string[] args)
                          * iterations and not interactions...
                          */
 
-                        append = true;
+                        /* append = true;
                         foreach (uniqIndex, unique; uniqueBeliefs)
                         {
                             // First compare whether the keys match. If they do, then
@@ -454,7 +455,7 @@ void main(string[] args)
                         {
                             uniqueBeliefs ~= beliefs;
                             uniqueBeliefsCount ~= 1;
-                        }
+                        } */
 
                         // Calculate average entropy of agents' beliefs
                         entropy += DempsterShafer.entropy(beliefs);
@@ -504,7 +505,7 @@ void main(string[] args)
                     {
                         // inconsistResults[iterIndex][test]  = format("%.4f", inconsist);
                         entropyResults[iterIndex][test] = entropy;
-                        uniqueResults[iterIndex][test] = uniqueBeliefs.length;
+                        // uniqueResults[iterIndex][test] = uniqueBeliefs.length;
                         choiceResults[iterIndex][test] = choiceBeliefs.dup;
                         /* if (langSize < powersetLimit)
                         {
@@ -514,7 +515,7 @@ void main(string[] args)
                         cardMassResults[iterIndex][test] = cardinality;
 
                         // Plot agent trajectories for plotting barycentric plots
-                        if (langSize == 2)// && test == 15)
+                        /* if (langSize == 2)// && test == 15)
                         {
                             foreach (i, agentIndex; agentsForTrajectories)
                             {
@@ -525,7 +526,7 @@ void main(string[] args)
                                 trajectoryBeliefs[iterIndex][i][2] = (2 in population[agentIndex].beliefs) ?
                                     population[agentIndex].beliefs[2] : 0 ;
                             }
-                        }
+                        } */
 
                         iterIndex++;
                     }
@@ -784,8 +785,8 @@ void main(string[] args)
         writeToFileNested(directory, fileName, append, maxIterations, belPlResults);
 
         // Unique Beliefs
-        fileName = "unique_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-        writeToFile(directory, fileName, append, maxIterations, uniqueResults);
+        // fileName = "unique_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
+        // writeToFile(directory, fileName, append, maxIterations, uniqueResults);
 
         // Inconsistency
         /* fileName = "inconsistency" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
@@ -809,8 +810,8 @@ void main(string[] args)
         // if (langSize == 2)
         // {
         //     // Trajectory belief results for selected agents
-        //     fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-        //     writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
+        //     fileName = "trajectory_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
+        //     writeToFileNested(directory, fileName, append, maxIterations, trajectoryBeliefs);
         // }
     }
 }
