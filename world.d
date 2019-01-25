@@ -331,7 +331,9 @@ void main(string[] args)
         //                                       .array;
         // auto trajectoryBeliefs = new double[][][](arraySize, agentsForTrajectories.length, 3);
 
-        auto restrictedPopulation = new ulong[numOfAgents]
+        auto populationIndices = new ulong[numOfAgents];
+        foreach (index; 0 .. numOfAgents)
+            populationIndices[index] = index;
 
         /*
         * Main test loop;
@@ -388,8 +390,6 @@ void main(string[] args)
             double entropy, cardinality;
             bool append, reachedSteadyState;
 
-            foreach (index; 0 .. numOfAgents)
-                restrictedPopulation[index] = index;
             version (asymmetric) auto snapshotPopulation = new Agent[numOfAgents];
 
             foreach (iter; 0 .. iterations + 1)
@@ -560,7 +560,7 @@ void main(string[] args)
                 {
                     version(asymmetric)
                     {
-                        foreach (i; restrictedPopulation)
+                        foreach (i; populationIndices)
                         {
                             Agent agent = population[i];
 
@@ -598,7 +598,7 @@ void main(string[] args)
                     }
                     version(symmetric)
                     {
-                        foreach (i; restrictedPopulation)
+                        foreach (i; populationIndices)
                         {
                             Agent agent = population[i];
 
@@ -640,15 +640,15 @@ void main(string[] args)
                 */
                 static if (!evidenceOnly)
                 {
-                    if (restrictedPopulation.length > 2)
+                    if (populationIndices.length > 2)
                     {
                         Agent selected;
                         int selection;
 
                         version (symmetric)
                         {
-                            int i = restrictedPopulation.choice(rand).to!int;
-                            do selection = restrictedPopulation.choice(rand).to!int;
+                            int i = populationIndices.choice(rand).to!int;
+                            do selection = populationIndices.choice(rand).to!int;
                             while (i == selection);
                             Agent agent = population[i];
                             selected = population[selection];
@@ -682,9 +682,9 @@ void main(string[] args)
                         {
                             foreach (index, ref snapshotAgent; snapshotPopulation)
                                 snapshotAgent = population[index].dup;
-                            foreach (i; restrictedPopulation)
+                            foreach (i; populationIndices)
                             {
-                                do selection = restrictedPopulation.choice(rand).to!int;
+                                do selection = populationIndices.choice(rand).to!int;
                                 while (i == selection);
                                 Agent agent = population[i];
                                 selected = snapshotPopulation[selection];
