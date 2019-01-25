@@ -20,7 +20,7 @@ void main(string[] args)
      */
     immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 100;
+    immutable auto testSet = 2;
     // alpha (a) is a parameter for negative evidential updating, such that 1-a is the
     // mass assigned to the set of all choices minus the worst choice selected (at random).
     // The set of complete ignorance is then assigned a mass of a.
@@ -35,7 +35,7 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 2/1000.to!double;
+    immutable auto evidenceRate = 1/1000.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -164,8 +164,6 @@ void main(string[] args)
         writeln("!!! EVIDENCE-ONLY VERSION: FOR BENCHMARKING ONLY !!!");
     if (consensusOnly)
         writeln("!!! CONSENSUS-ONLY VERSION: FOR TESTING PURPOSES ONLY !!!");
-    version (sanityCheck)
-        writeln("!!! SANITY CHECK MODE !!!");
 
     // Set static array in Dempster-Shafer module using langSize
     DempsterShafer.staticVector     = new int[langSize];
@@ -327,11 +325,11 @@ void main(string[] args)
         // auto powersetResults    = new double[][][](arraySize, testSet, belLength);
         auto belPlResults       = new double[][][](arraySize, testSet, 2);
         auto cardMassResults    = new double[][](arraySize, testSet);
-        auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
+        // auto steadyStateBeliefs = new double[][][](numOfAgents, testSet, langSize);
         auto agentsForTrajectories = std.range.iota(numOfAgents)
                                               .randomSample(5, rand)
                                               .array;
-        auto trajectoryBeliefs = new double[][][](arraySize, agentsForTrajectories.length, 3);
+        // auto trajectoryBeliefs = new double[][][](arraySize, agentsForTrajectories.length, 3);
 
         /*
         * Main test loop;
@@ -543,7 +541,7 @@ void main(string[] args)
                         maxIterations = (iter > maxIterations) ? iter : maxIterations;
 
                     // Grab the steady state results.
-                    static if (!gamma && !iota)
+                    /* static if (!gamma && !iota)
                     {
                         foreach (i, ref agent; population)
                         {
@@ -553,34 +551,8 @@ void main(string[] args)
                         }
                     }
 
-                    static if (steadyStatesOnly) maxIterations = int.init;
+                    static if (steadyStatesOnly) maxIterations = int.init; */
                     break;
-                }
-
-                /*
-                * Begin by combining each agent's mass function with the new
-                * evidence mass function, which serves as a form of 'payoff'
-                * assumed to be received when the agent assesses its choice
-                * e.g. when a honeybee visits a site.
-                */
-                version (sanityCheck)
-                {
-                    restrictedPopulation.length = 0;
-                    restrictedPopulation.reserve(numOfAgents);
-                    foreach (i, ref agent; population)
-                    {
-                        auto beliefs = agent.beliefs;
-                        auto skip = false;
-                        foreach (j; 0 .. langSize)
-                        {
-                            if (j in beliefs && approxEqual(beliefs[j], 1.0, precision))
-                            {
-                                skip = true;
-                                break;
-                            }
-                        }
-                        if (!skip) restrictedPopulation ~= i;
-                    }
                 }
 
                 static if (!consensusOnly)
@@ -744,6 +716,9 @@ void main(string[] args)
                 }
             }
         }
+
+        writeln("Writing results...");
+
         // Write results to disk for current test.
         string fileName;
         string fileExt = ".csv";
@@ -759,7 +734,6 @@ void main(string[] args)
             directory ~= "%s_agents/".format(numOfAgents);
 
         version (symmetric) directory ~= "symmetric/";
-        version (sanityCheck) directory ~= "sanity_checks/";
         static if (lambda > 0.0) directory ~= "lambda_operator_%.1f/".format(lambda);
         static if (fullyQualifiedName!combination.canFind("Operators.dempster"))
             directory ~= "dempsters_operator/";
@@ -825,19 +799,19 @@ void main(string[] args)
         fileName = "cardinality" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
         writeToFile(directory, fileName, append, maxIterations, cardMassResults);
 
-        static if (!gamma && !iota)
-        {
-            // Steady state belief results
-            fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-            writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
-        }
+        // static if (!gamma && !iota)
+        // {
+        //     // Steady state belief results
+        //     fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
+        //     writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
+        // }
 
-        if (langSize == 2)
-        {
-            // Trajectory belief results for selected agents
-            fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
-            writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
-        }
+        // if (langSize == 2)
+        // {
+        //     // Trajectory belief results for selected agents
+        //     fileName = "steadystate_beliefs" ~ "_" ~ randomFN ~ parameterString ~ fileExt;
+        //     writeToFileNested(directory, fileName, append, maxIterations, steadyStateBeliefs);
+        // }
     }
 }
 
