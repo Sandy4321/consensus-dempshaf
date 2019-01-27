@@ -35,11 +35,15 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 1/1000.to!double;
+    // immutable auto evidenceRate = 2/100.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
     immutable bool setSeed = true;
+
+    // Convergence parameters and variables
+    // immutable auto changeThreshold = 50;     This was seen as no. of agents / 2
+    immutable auto changeThreshold = 50;
 
     // Default precision for approxEqual is 1e-2.
     alias precision = DempsterShafer.precision;
@@ -47,14 +51,15 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    // alias combination = Operators.consensus;
-    alias combination = Operators.average;
+    alias combination = Operators.consensus;
+    // alias combination = Operators.average;
     // alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.yager;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
     // Disable consensus formation
-    immutable auto evidenceOnly = false;
+    immutable auto evidenceOnly = true;
     // Disable evidential updating
     immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
@@ -145,7 +150,7 @@ void main(string[] args)
 
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$ - 1]);
 
-    writeln("Evidence rate: ", evidenceRate);
+    // writeln("Evidence rate: ", evidenceRate);
 
     writeln("Lambda value: ", lambda);
     version (alterQ) writeln("Altering value(s) after ", alterIter, " iterations.");
@@ -253,7 +258,14 @@ void main(string[] args)
     else static if (negativeEvidence && noisyEvidence){}
     else
     {
-        immutable double[] parameterSet = [0.0];
+        // immutable double[] parameterSet = [0.0];
+        immutable double[] parameterSet = [
+            0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
+            0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
+            0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
+            // 0.9, 1.0
+        ];
+        writeln("Evidence rate: ", parameterSet);
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -283,11 +295,9 @@ void main(string[] args)
     auto belPlIndices = DempsterShafer.belAndPlIndices(langSize, bestChoice);
     writeln("Bel() and Pl() indices: ", belPlIndices);
 
-    // Convergence parameters and variables
-    // immutable auto changeThreshold = 50;     This was seen as no. of agents / 2
-    immutable auto changeThreshold = 50;
-
-    auto maxIterations = 0;
+    // The maximum number of iterations across all tests, such that tests reaching
+    // a steady state by smaller iteration counts should be extended to maxIterations.
+    auto maxIterations = int.init;
 
     writeln("----------");
 
@@ -312,6 +322,12 @@ void main(string[] args)
         {
             writeln("Language size: %d".format(parameter));
             langSize = parameter;
+        }
+
+        static if (parameterSet.length > 1)
+        {
+            immutable auto evidenceRate = parameter;
+            writeln(parameter);
         }
 
         auto seed = setSeed ? 1024 : unpredictableSeed;
@@ -569,30 +585,42 @@ void main(string[] args)
 
                             static if (negativeEvidence)
                             {
-                                agent.beliefs = combination(
-                                    langSize, agent.beliefs,
-                                    DempsterShafer.negMassEvidence(
-                                        qualities, noisyEvidence,
-                                        parameter, rand),
-                                    0.0, false, lambda);
+                                agent.beliefs(
+                                    combination(
+                                        langSize, agent.beliefs,
+                                        DempsterShafer.negMassEvidence(
+                                            qualities, noisyEvidence,
+                                            parameter, rand),
+                                        0.0, false, lambda
+                                    ),
+                                    true
+                                );
                             }
                             // If evidence should be provided for a random choice.
                             else static if (randomEvidence)
                             {
-                                agent.beliefs = combination(
-                                    langSize, agent.beliefs,
-                                    DempsterShafer.randMassEvidence(
-                                        qualities, rand),
-                                    0.0, false, lambda);
+                                agent.beliefs(
+                                    combination(
+                                        langSize, agent.beliefs,
+                                        DempsterShafer.randMassEvidence(
+                                            qualities, rand),
+                                        0.0, false, lambda
+                                    ),
+                                    true
+                                );
                             }
                             // Else, evidence should favour the most prominent choice.
                             else
                             {
-                                agent.beliefs = combination(
-                                    langSize, agent.beliefs,
-                                    DempsterShafer.probMassEvidence(
-                                        qualities, noiseVariance, agent.beliefs, rand),
-                                    0.0, false, lambda);
+                                agent.beliefs(
+                                    combination(
+                                        langSize, agent.beliefs,
+                                        DempsterShafer.probMassEvidence(
+                                            qualities, noiseVariance, agent.beliefs, rand),
+                                        0.0, false, lambda
+                                    ),
+                                    true
+                                );
                             }
                         }
                     }
@@ -607,30 +635,42 @@ void main(string[] args)
 
                             static if (negativeEvidence)
                             {
-                                agent.beliefs = combination(
-                                    langSize, agent.beliefs,
-                                    DempsterShafer.negMassEvidence(
-                                        qualities, noisyEvidence,
-                                        parameter, rand),
-                                    0.0, false, lambda);
+                                agent.beliefs(
+                                    combination(
+                                        langSize, agent.beliefs,
+                                        DempsterShafer.negMassEvidence(
+                                            qualities, noisyEvidence,
+                                            parameter, rand),
+                                        0.0, false, lambda
+                                    ),
+                                    true
+                                );
                             }
                             // If evidence should be provided for a random choice.
                             else static if (randomEvidence)
                             {
-                                agent.beliefs = combination(
-                                    langSize, agent.beliefs,
-                                    DempsterShafer.randMassEvidence(
-                                        qualities, rand),
-                                    0.0, false, lambda);
+                                agent.beliefs(
+                                    combination(
+                                        langSize, agent.beliefs,
+                                        DempsterShafer.randMassEvidence(
+                                            qualities, rand),
+                                        0.0, false, lambda
+                                    ),
+                                    true
+                                );
                             }
                             // Else, evidence should favour the most prominent choice.
                             else
                             {
-                                agent.beliefs = combination(
-                                    langSize, agent.beliefs,
-                                    DempsterShafer.probMassEvidence(
-                                        qualities, noiseVariance, agent.beliefs, rand),
-                                    0.0, false, lambda);
+                                agent.beliefs(
+                                    combination(
+                                        langSize, agent.beliefs,
+                                        DempsterShafer.probMassEvidence(
+                                            qualities, noiseVariance, agent.beliefs, rand),
+                                        0.0, false, lambda
+                                    ),
+                                    true
+                                );
                             }
                         }
                     }
@@ -742,6 +782,8 @@ void main(string[] args)
             directory ~= "consensus_operator/";
         else static if (fullyQualifiedName!combination.canFind("Operators.average"))
             directory ~= "average_operator/";
+        else static if (fullyQualifiedName!combination.canFind("Operators.yager"))
+            directory ~= "yagers_operator/";
         static if (negativeEvidence) directory ~= "negative_evidence/";
         else static if (evidenceOnly) { /* directory ~= "evidence_only/"; */ }
         static if (lambda > 0.0)
