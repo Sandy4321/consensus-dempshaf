@@ -20,7 +20,7 @@ void main(string[] args)
      */
     immutable auto iterations = 10_000;
     immutable auto iterStep = iterations / 1;
-    immutable auto testSet = 10;
+    immutable auto testSet = 100;
     // alpha (a) is a parameter for negative evidential updating, such that 1-a is the
     // mass assigned to the set of all choices minus the worst choice selected (at random).
     // The set of complete ignorance is then assigned a mass of a.
@@ -43,7 +43,7 @@ void main(string[] args)
 
     // Convergence parameters and variables
     // immutable auto changeThreshold = 50;     This was seen as no. of agents / 2
-    immutable auto changeThreshold = 50;
+    immutable auto changeThreshold = 100;
 
     // Default precision for approxEqual is 1e-2.
     alias precision = DempsterShafer.precision;
@@ -51,15 +51,15 @@ void main(string[] args)
     // An alias for one of two combination functions:
     // Consensus operator, and Dempster's rule of combination
 
-    alias combination = Operators.consensus;
+    // alias combination = Operators.consensus;
     // alias combination = Operators.average;
     // alias combination = Operators.dempsterRoC;
-    // alias combination = Operators.yager;
+    alias combination = Operators.yager;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
     // Disable consensus formation
-    immutable auto evidenceOnly = true;
+    immutable auto evidenceOnly = false;
     // Disable evidential updating
     immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
@@ -259,12 +259,11 @@ void main(string[] args)
     else
     {
         // immutable double[] parameterSet = [0.0];
-        immutable double[] parameterSet = [
+        /* immutable double[] parameterSet = [
             0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
             0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
             0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
-            // 0.9, 1.0
-        ];
+        ]; */
         writeln("Evidence rate: ", parameterSet);
     }
 
