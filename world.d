@@ -35,7 +35,7 @@ void main(string[] args)
     // iota is used as a switch to determine whether we should threshold the operator
     // based on relative inconsistency between pairs of agents.
     immutable auto iota = false;
-    immutable auto evidenceRate = 1/100.to!double;
+    // immutable auto evidenceRate = 0/1000.to!double;
     immutable auto paramHeatmaps = false;
     immutable auto qualityHeatmaps = false;
     immutable auto alterIter = 10;
@@ -53,13 +53,13 @@ void main(string[] args)
 
     // alias combination = Operators.consensus;
     // alias combination = Operators.average;
-    // alias combination = Operators.dempsterRoC;
-    alias combination = Operators.yager;
+    alias combination = Operators.dempsterRoC;
+    // alias combination = Operators.yager;
 
     // Only record steadystate results
     immutable auto steadyStatesOnly = false;
     // Disable consensus formation
-    immutable auto evidenceOnly = false;
+    immutable auto evidenceOnly = true;
     // Disable evidential updating
     immutable auto consensusOnly = false;
     // Evidence is random, not probabilistic:
@@ -70,7 +70,7 @@ void main(string[] args)
     // Set whether evidence should be associated with noise
     // and set the paramater value for the noise if so.
     // If noiseVariance = 0.0, then no noise is added.
-    immutable auto noisyEvidence = true;
+    immutable auto noisyEvidence = false;
     // [0.025, 0.05, 0.1, 0.2, 0.3]
     static if (negativeEvidence && noisyEvidence)
     {
@@ -78,8 +78,8 @@ void main(string[] args)
             -10.0, -5.0, -3.0, -1.0, -0.1, 0.0, 1.0, 3.0, 5.0, 10.0, 20.0, 100.0
         ];
     }
-    // else static if (noisyEvidence) immutable auto noiseVariance = 0.025;
-    // else                           immutable auto noiseVariance = 0.0;
+    else static if (noisyEvidence) immutable auto noiseVariance = 0.025;
+    else                           immutable auto noiseVariance = 0.0;
 
     if ((paramHeatmaps || qualityHeatmaps) && !steadyStatesOnly)
     {
@@ -150,7 +150,7 @@ void main(string[] args)
 
     writeln("Combination function: ", fullyQualifiedName!combination.split(".")[$ - 1]);
 
-    writeln("Evidence rate: ", evidenceRate);
+    // writeln("Evidence rate: ", evidenceRate);
 
     writeln("Lambda value: ", lambda);
     version (alterQ) writeln("Altering value(s) after ", alterIter, " iterations.");
@@ -265,13 +265,12 @@ void main(string[] args)
     }
     else
     {
-        // immutable double[] parameterSet = [0.0];
-        /* immutable double[] parameterSet = [
+        immutable double[] parameterSet = [
             0.0, 0.001, 0.002, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009,
             0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
             0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0
-        ]; */
-        // writeln("Evidence rate: ", parameterSet);
+        ];
+        writeln("Evidence rate: ", parameterSet);
     }
 
     // Generate the frame of discernment (power set of the propositional variables)
@@ -330,13 +329,10 @@ void main(string[] args)
             langSize = parameter;
         }
 
-        /* static if (parameterSet.length > 1)
-        {
-            immutable auto evidenceRate = parameter;
-            writeln(parameter);
-        } */
-        immutable auto noiseVariance = parameter;
+        immutable auto evidenceRate = parameter;
         writeln(parameter);
+        /* immutable auto noiseVariance = parameter;
+        writeln(parameter); */
 
         auto seed = setSeed ? 1024 : unpredictableSeed;
         auto rand = Random(seed);
